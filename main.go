@@ -2,6 +2,7 @@ package main
 
 import (
 	"github.com/Mrs4s/go-cqhttp/cmd/gocq"
+	"time"
 
 	_ "github.com/Mrs4s/go-cqhttp/db/leveldb"   // leveldb
 	_ "github.com/Mrs4s/go-cqhttp/modules/mime" // mime检查模块
@@ -12,5 +13,7 @@ import (
 )
 
 func main() {
+	var cstZone = time.FixedZone("CST", 8*3600) // 东八
+	time.Local = cstZone
 	gocq.Main()
 }

@@ -5,7 +5,8 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/task"
+	"github.com/Mrs4s/go-cqhttp/util/cron"
+	"github.com/Mrs4s/go-cqhttp/util/weibo_hot"
 	"os"
 	"runtime/debug"
 	"strings"
@@ -103,8 +104,22 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	//bot.Client.UserWantJoinGroupEvent.Subscribe(bot.groupJoinReqEvent)
 	//bot.Client.OtherClientStatusChangedEvent.Subscribe(bot.otherClientStatusChangedEvent)
 	//bot.Client.GroupDigestEvent.Subscribe(bot.groupEssenceMsg)
+	content := fmt.Sprintf("%s 自动机器人已启动\n", time.Now().Format("2006-01-02 15:04:05"))
+	bot.SendGroupMessage(555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 
-	task.HourlyWeiboHot(bot)
+	f := func() {
+		content := fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04:05"))
+		if hotList, err := weibo_hot.Summary(); err != nil {
+			log.Errorf("get hot list error:%s", err.Error())
+		} else {
+			for _, hot := range hotList {
+				content += fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title)
+			}
+		}
+		bot.SendGroupMessage(555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+	}
+
+	cron.AddCronJob(f, cron.JobDurationHourly)
 
 	go func() {
 		if base.HeartbeatInterval == 0 {
@@ -291,7 +306,7 @@ func (bot *CQBot) SendGroupMessage(groupID int64, m *message.SendingMessage) int
 	bot.checkMedia(newElem, groupID)
 	ret := bot.Client.SendGroupMessage(groupID, m)
 	if ret == nil || ret.Id == -1 {
-		log.Warnf("群消息发送失败: 账号可能被风控.")
+		log.Warnf("群消息发送失败: 账号可能被风控.群：%d", groupID)
 		return -1
 	}
 	return bot.InsertGroupMessage(ret)
