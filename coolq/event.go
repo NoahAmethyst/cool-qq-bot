@@ -81,6 +81,7 @@ func (bot *CQBot) privateMessageEvent(_ *client.QQClient, m *message.PrivateMess
 	if m.Sender.Uin == bot.Client.Uin {
 		typ = "message_sent/private/friend"
 	}
+
 	fm := global.MSG{
 		"message_id":  id,
 		"user_id":     m.Sender.Uin,
@@ -95,6 +96,7 @@ func (bot *CQBot) privateMessageEvent(_ *client.QQClient, m *message.PrivateMess
 			"age":      0,
 		},
 	}
+
 	bot.dispatchEvent(typ, fm)
 }
 
@@ -129,7 +131,6 @@ func (bot *CQBot) groupMessageEvent(c *client.QQClient, m *message.GroupMessage)
 		return
 	}
 	gm.Others["message_id"] = id
-
 	bot.dispatch(gm)
 }
 

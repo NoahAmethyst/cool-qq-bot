@@ -108,18 +108,43 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	bot.SendGroupMessage(555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 
 	f := func() {
-		content := fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04:05"))
+		hotContent := fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04:05"))
+		nextContent := ""
 		if hotList, err := weibo_hot.Summary(); err != nil {
 			log.Errorf("get hot list error:%s", err.Error())
 		} else {
-			for _, hot := range hotList {
-				content += fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title)
+			for i, hot := range hotList {
+				if i < 30 {
+					hotContent += fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title)
+				} else {
+					nextContent += fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title)
+				}
 			}
+			bot.SendGroupMessage(555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent)}})
+			bot.SendGroupMessage(555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(nextContent)}})
 		}
-		bot.SendGroupMessage(555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
-	}
 
-	cron.AddCronJob(f, cron.JobDurationHourly)
+		//coinContent := fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04:05"))
+		//for _, symbol := range coin.Symbols {
+		//	coinInfo, err := coin.Get24HPriceInfo(symbol)
+		//	if err != nil {
+		//		log.Error("get %s error:%s", symbol, err)
+		//		continue
+		//	}
+		//	formatContent := fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
+		//		coinInfo.Symbol,
+		//		strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
+		//		coinInfo.PriceChangePercent,
+		//		strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
+		//		strings.ReplaceAll(coinInfo.LowPrice, "000", ""))
+		//
+		//	coinContent += formatContent
+		//}
+		//bot.SendPrivateMessage(1066840101, 555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent)}})
+	}
+	f()
+
+	cron.AddCronJob(f, "0 0 0,9,15,21 * * *\n")
 
 	go func() {
 		if base.HeartbeatInterval == 0 {

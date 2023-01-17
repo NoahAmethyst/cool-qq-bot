@@ -324,7 +324,6 @@ func Main() {
 	log.Info("资源初始化完成, 开始处理信息.")
 	log.Info("アトリは、高性能ですから!")
 
-
 	go func() {
 		selfupdate.CheckUpdate()
 		selfdiagnosis.NetworkDiagnosis(cli)
