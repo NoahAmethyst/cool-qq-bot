@@ -126,6 +126,7 @@ func (bot *CQBot) groupMessageEvent(c *client.QQClient, m *message.GroupMessage)
 	cqm := toStringMessage(m.Elements, source)
 	id := bot.InsertGroupMessage(m)
 	log.Infof("收到群 %v(%v) 内 %v(%v) 的消息: %v (%v)", m.GroupName, m.GroupCode, m.Sender.DisplayName(), m.Sender.Uin, cqm, id)
+	bot.askChatGpt(source, m)
 	gm := bot.formatGroupMessage(m)
 	if gm == nil {
 		return

@@ -73,7 +73,7 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 		nextTokenCache: utils.NewCache[*guildMemberPageToken](time.Second * 10),
 	}
 	//bot.Client.PrivateMessageEvent.Subscribe(bot.privateMessageEvent)
-	//bot.Client.GroupMessageEvent.Subscribe(bot.groupMessageEvent)
+	bot.Client.GroupMessageEvent.Subscribe(bot.groupMessageEvent)
 	//if base.ReportSelfMessage {
 	//	bot.Client.SelfPrivateMessageEvent.Subscribe(bot.privateMessageEvent)
 	//	bot.Client.SelfGroupMessageEvent.Subscribe(bot.groupMessageEvent)

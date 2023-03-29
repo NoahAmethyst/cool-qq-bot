@@ -1,6 +1,6 @@
 module github.com/Mrs4s/go-cqhttp
 
-go 1.18
+go 1.19
 
 require (
 	github.com/Microsoft/go-winio v0.5.1
@@ -15,6 +15,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
 	github.com/rs/zerolog v1.28.0
+	github.com/sashabaranov/go-openai v1.5.7
 	github.com/segmentio/asm v1.1.3
 	github.com/sirupsen/logrus v1.8.1
 	github.com/stretchr/testify v1.8.0
