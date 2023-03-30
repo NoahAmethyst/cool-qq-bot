@@ -6,6 +6,7 @@ import (
 	openai "github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 	"os"
+	"time"
 )
 
 var cli *openai.Client
@@ -27,12 +28,12 @@ func AskChatGpt(content string) (string, error) {
 	log.Info("收到openai响应:%+v", resp)
 	if len(resp.Choices) > 0 {
 		return resp.Choices[0].Message.Content, err
-	} else {
-		if err == nil {
-			err = errors.New("openai响应为空")
-		}
-		return "", err
 	}
+	if err == nil {
+		err = errors.New("openai响应为空")
+	}
+
+	return "", err
 
 }
 
@@ -43,6 +44,7 @@ func initCli() {
 			cli = openai.NewClient(apiKey)
 		} else {
 			config := openai.DefaultConfig(apiKey)
+			config.HTTPClient.Timeout = time.Minute * 3
 			config.BaseURL = "https://cold-weasel-95.deno.dev/v1"
 			cli = openai.NewClientWithConfig(config)
 		}

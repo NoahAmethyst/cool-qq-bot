@@ -7,6 +7,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"github.com/Mrs4s/go-cqhttp/util/cron"
 	"os"
 	"path"
 	"sync"
@@ -320,7 +321,10 @@ func Main() {
 	}
 	cli.SetOnlineStatus(allowStatus[base.Account.Status])
 
-	servers.Run(coolq.NewQQBot(cli))
+	bot := coolq.NewQQBot(cli)
+	servers.Run(bot)
+	cron.AddCronJob(bot.ReportWeiboHot(555784683), "0 0 0,9,15,21 * * *\n")
+
 	log.Info("资源初始化完成, 开始处理信息.")
 	log.Info("アトリは、高性能ですから!")
 
