@@ -4,7 +4,10 @@
 
 set your own account in **config.yml**
 
-this project support weibo hot right now
+* Weibo hot report ☑️
+* Integrate with chatgpt ☑️ 
+
+
 
 
 
