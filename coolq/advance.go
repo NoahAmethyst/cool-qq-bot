@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/Mrs4s/go-cqhttp/util/coin"
 	"github.com/Mrs4s/go-cqhttp/util/openai_util"
 	"github.com/Mrs4s/go-cqhttp/util/weibo_hot"
 	log "github.com/sirupsen/logrus"
+	"strings"
 	"time"
 )
 
@@ -74,23 +76,27 @@ func (bot *CQBot) ReportWeiboHot(group int64) func() {
 			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(nextContent)}})
 		}
 
-		//coinContent := fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04:05"))
-		//for _, symbol := range coin.Symbols {
-		//	coinInfo, err := coin.Get24HPriceInfo(symbol)
-		//	if err != nil {
-		//		log.Error("get %s error:%s", symbol, err)
-		//		continue
-		//	}
-		//	formatContent := fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
-		//		coinInfo.Symbol,
-		//		strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
-		//		coinInfo.PriceChangePercent,
-		//		strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
-		//		strings.ReplaceAll(coinInfo.LowPrice, "000", ""))
-		//
-		//	coinContent += formatContent
-		//}
-		//bot.SendPrivateMessage(1066840101, 555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent)}})
 	}
 	return f
+}
+
+func (bot *CQBot) ReportCoinPrice(group int64) {
+
+	coinContent := fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04:05"))
+	for _, symbol := range coin.Symbols {
+		coinInfo, err := coin.Get24HPriceInfo(symbol)
+		if err != nil {
+			log.Error("get %s error:%s", symbol, err)
+			continue
+		}
+		formatContent := fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
+			coinInfo.Symbol,
+			strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
+			coinInfo.PriceChangePercent,
+			strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
+			strings.ReplaceAll(coinInfo.LowPrice, "000", ""))
+
+		coinContent += formatContent
+	}
+	bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent)}})
 }
