@@ -5,7 +5,7 @@ import (
 	"testing"
 )
 
-func TestChatgpt(t *testing.T) {
+func Test_Chatgpt(t *testing.T) {
 	replyMsg, err := openai_util.AskChatGpt("hello")
 	if err != nil {
 		panic(err)

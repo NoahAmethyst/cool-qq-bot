@@ -2,14 +2,14 @@ package gotest
 
 import (
 	"github.com/Mrs4s/go-cqhttp/constant"
-	"github.com/Mrs4s/go-cqhttp/util/weibo_hot"
+	"github.com/Mrs4s/go-cqhttp/util/top_list"
 	log "github.com/sirupsen/logrus"
 	"testing"
 )
 
 func Test_WeiboHot(t *testing.T) {
-	html, _ := weibo_hot.GetHTML(constant.WEIBO)
-	hotList, err := weibo_hot.ParseWeiboHot(html)
+	html, _ := top_list.GetHTML(constant.WEIBO)
+	hotList, err := top_list.ParseWeiboHot(html)
 	if err != nil {
 		log.Error(err)
 	} else {

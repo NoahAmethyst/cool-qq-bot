@@ -1,4 +1,4 @@
-package weibo_hot
+package top_list
 
 import (
 	"github.com/Mrs4s/go-cqhttp/constant"
@@ -13,7 +13,7 @@ type WeiboHot struct {
 	Rank  int
 }
 
-func Summary() ([]WeiboHot, error) {
+func LoadWeiboHot() ([]WeiboHot, error) {
 	var hotList []WeiboHot
 	html, err := GetHTML(constant.WEIBO)
 	if err != nil {

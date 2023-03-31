@@ -6,18 +6,13 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/coin"
 	"github.com/Mrs4s/go-cqhttp/util/openai_util"
-	"github.com/Mrs4s/go-cqhttp/util/weibo_hot"
+	"github.com/Mrs4s/go-cqhttp/util/top_list"
 	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
 )
 
 func (bot *CQBot) askChatGpt(_ *client.QQClient, m *message.GroupMessage) {
-
-	if len(m.Elements) <= 1 {
-		return
-	}
-
 	var atEle *message.AtElement
 	var textEle *message.TextElement
 	for _, _ele := range m.Elements {
@@ -39,8 +34,9 @@ func (bot *CQBot) askChatGpt(_ *client.QQClient, m *message.GroupMessage) {
 
 	//重试机制
 	if err != nil {
-		maxRetry := 3
+		maxRetry := 6
 		for i := 0; i < maxRetry; i++ {
+			time.Sleep(500 * time.Millisecond)
 			log.Warnf("call openai failed cause:%s,retry:%d", err.Error(), i+1)
 			answer, err = openai_util.AskChatGpt(textEle.Content)
 			if err == nil {
@@ -53,31 +49,45 @@ func (bot *CQBot) askChatGpt(_ *client.QQClient, m *message.GroupMessage) {
 		answer = fmt.Sprintf("调用openAi 失败：%s", err.Error())
 	}
 
-	bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(answer)}})
+	bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewReply(m),
+		message.NewText(answer)}})
+
 }
 
-func (bot *CQBot) ReportWeiboHot(group int64) func() {
+func (bot *CQBot) ReportWeiboHot(group int64) (func(), string) {
 
-	bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("已开启微博热搜定时推送")}})
 	f := func() {
 		hotContent := fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04:05"))
-		nextContent := ""
-		if hotList, err := weibo_hot.Summary(); err != nil {
+		if hotList, err := top_list.LoadWeiboHot(); err != nil {
 			log.Errorf("get hot list error:%s", err.Error())
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
+				fmt.Sprintf("爬取微博热搜失败：", err.Error()))}})
 		} else {
-			for i, hot := range hotList {
-				if i < 30 {
-					hotContent += fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title)
-				} else {
-					nextContent += fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title)
-				}
+			for _, hot := range hotList {
+				hotContent += fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title)
 			}
 			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent)}})
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(nextContent)}})
 		}
 
 	}
-	return f
+	return f, top_list.Weibo
+}
+
+func (bot *CQBot) Report36krHot(group int64) (func(), string) {
+	f := func() {
+		hotContent := fmt.Sprintf("%s 36氪24H热榜\n", time.Now().Format("2006-01-02 15:04:05"))
+		if hotList, err := top_list.Load36krHot(); err != nil {
+			log.Errorf("get hot list error:%s", err.Error())
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
+				fmt.Sprintf("爬取36氪热榜失败：", err.Error()))}})
+		} else {
+			for _, _hot := range hotList {
+				hotContent += fmt.Sprintf("%d	%s\n%s\n", _hot.Rank, _hot.Title, _hot.Url)
+			}
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent)}})
+		}
+	}
+	return f, top_list.D36kr
 }
 
 func (bot *CQBot) ReportCoinPrice(group int64) {

@@ -25,8 +25,8 @@ func AskChatGpt(content string) (string, error) {
 			},
 		},
 	)
-	log.Info("收到openai响应:%+v", resp)
-	if len(resp.Choices) > 0 {
+	log.Infof("收到openai响应:%+v", resp)
+	if len(resp.Choices) > 0 && len(resp.Choices[0].Message.Content) > 0 {
 		return resp.Choices[0].Message.Content, err
 	}
 	if err == nil {
@@ -48,6 +48,5 @@ func initCli() {
 			config.BaseURL = "https://cold-weasel-95.deno.dev/v1"
 			cli = openai.NewClientWithConfig(config)
 		}
-
 	}
 }

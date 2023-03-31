@@ -7,6 +7,7 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/cron"
 	"os"
 	"path"
@@ -323,7 +324,21 @@ func Main() {
 
 	bot := coolq.NewQQBot(cli)
 	servers.Run(bot)
-	cron.AddCronJob(bot.ReportWeiboHot(555784683), "0 0 0,9,15,21 * * *\n")
+	group := int64(555784683)
+	weiboReport, weiboModel := bot.ReportWeiboHot(group)
+	_36krReport, _36krModel := bot.Report36krHot(group)
+	cron.AddCronJob(weiboReport, "0 0 0,9,15,21 * * *\n")
+	cron.AddCronJob(_36krReport, "0 0 0,12,23 * * *\n")
+
+	modelList := []string{weiboModel, _36krModel}
+
+	modelContent := ""
+	for _, _model := range modelList {
+		modelContent += fmt.Sprintf("已开启%s定时推送\n", _model)
+	}
+
+	bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{
+		message.NewText(modelContent)}})
 
 	log.Info("资源初始化完成, 开始处理信息.")
 	log.Info("アトリは、高性能ですから!")
