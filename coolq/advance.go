@@ -90,6 +90,23 @@ func (bot *CQBot) Report36krHot(group int64) (func(), string) {
 	return f, top_list.D36kr
 }
 
+func (bot *CQBot) ReportWallStreetNews(group int64) (func(), string) {
+	f := func() {
+		if hotList, err := top_list.LoadWallStreetNews(); err != nil {
+			log.Errorf("get hot list error:%s", err.Error())
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
+				fmt.Sprintf("爬取华尔街见闻最新资讯失败：", err.Error()))}})
+		} else {
+			for _, _hot := range hotList {
+				bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
+					fmt.Sprintf("%s\n摘要：%s\n链接：%s", _hot.Title, _hot.Content, _hot.Url))}})
+			}
+		}
+	}
+
+	return f, top_list.WallStreet
+}
+
 func (bot *CQBot) ReportCoinPrice(group int64) {
 
 	coinContent := fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04:05"))

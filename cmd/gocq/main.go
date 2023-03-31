@@ -327,10 +327,12 @@ func Main() {
 	group := int64(555784683)
 	weiboReport, weiboModel := bot.ReportWeiboHot(group)
 	_36krReport, _36krModel := bot.Report36krHot(group)
-	cron.AddCronJob(weiboReport, "0 0 0,9,15,21 * * *\n")
-	cron.AddCronJob(_36krReport, "0 0 0,12,23 * * *\n")
+	wallStreetReport, wallStreetModel := bot.ReportWallStreetNews(group)
+	cron.AddCronJob(weiboReport, "0 0 9,15,21 * * *\n")
+	cron.AddCronJob(_36krReport, "0 0 12,23 * * *\n")
+	cron.AddCronJob(wallStreetReport, "0 */30 9-23 * * *\n")
 
-	modelList := []string{weiboModel, _36krModel}
+	modelList := []string{weiboModel, _36krModel, wallStreetModel}
 
 	modelContent := ""
 	for _, _model := range modelList {
