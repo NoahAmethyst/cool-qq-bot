@@ -5,6 +5,7 @@ import (
 	"github.com/opesun/goquery"
 	"io/ioutil"
 	"net/http"
+	"time"
 )
 
 type WeiboHot struct {
@@ -25,7 +26,9 @@ func LoadWeiboHot() ([]WeiboHot, error) {
 
 func GetHTML(url string) (string, error) {
 	var html string
-	client := &http.Client{}
+	client := &http.Client{
+		Timeout: 120 * time.Second,
+	}
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
 		return html, err

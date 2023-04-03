@@ -7,11 +7,9 @@ import (
 )
 
 const (
-	ETH  = "ETHUSDT"
-	BTC  = "BTCUSDT"
-	LUNA = "LUNAUSDT"
-	LUNC = "LUNCUSDT"
-	CHZ  = "CHZUSDT"
+	ETH = "ETHUSDT"
+	BTC = "BTCUSDT"
+	BNB = "BNBUSDT"
 )
 
 var Symbols []string
@@ -38,5 +36,5 @@ func Get24HPriceInfo(symbol string) (CoinPrice, error) {
 }
 
 func init() {
-	Symbols = []string{ETH, BTC, CHZ}
+	Symbols = []string{ETH, BTC, BNB}
 }

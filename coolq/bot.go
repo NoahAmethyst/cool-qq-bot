@@ -105,8 +105,22 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 
 	//add chatgpt
 	bot.Client.GroupMessageEvent.Subscribe(bot.askChatGpt)
-	content := fmt.Sprintf("%s 自动机器人已启动\n", time.Now().Format("2006-01-02 15:04:05"))
-	bot.SendGroupMessage(555784683, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+	bot.Client.GroupMessageEvent.Subscribe(bot.reactCmd)
+
+	group := int64(555784683)
+
+	//add report job
+	bot.RegisterJob(bot.WeiboHotReporter(group, "0 0 9,15,21 * * *"))
+	bot.RegisterJob(bot.D36krHotReporter(group, "0 0 12,23 * * *"))
+	bot.RegisterJob(bot.WallStreetNewsReporter(group, "0 15,35,55 9-23 * * *"))
+
+	content := fmt.Sprintf("%s 自动机器人已启动\n\n", time.Now().Format("2006-01-02 15:04:05"))
+	for _model, _corn := range JobModels {
+		content += fmt.Sprintf("开启 %s 定时推送[ %s ]\n\n", _model, _corn)
+	}
+
+	bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{
+		message.NewText(content)}})
 
 	go func() {
 		if base.HeartbeatInterval == 0 {

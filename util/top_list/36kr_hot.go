@@ -20,7 +20,7 @@ func Load36krHot() ([]Data36krHot, error) {
 func Parse36krHot() ([]Data36krHot, error) {
 	var data []Data36krHot
 	url := "https://36kr.com/"
-	timeout := time.Duration(5 * time.Second) //超时时间5s
+	timeout := 120 * time.Second //超时时间2mine
 	client := &http.Client{
 		Timeout: timeout,
 	}
@@ -69,7 +69,7 @@ func Parse36krHot() ([]Data36krHot, error) {
 		data[_i] = Data36krHot{
 			Title: _data["title"].(string),
 			Url:   _data["url"].(string),
-			Rank:  _i,
+			Rank:  _i + 1,
 		}
 	}
 	return data, nil

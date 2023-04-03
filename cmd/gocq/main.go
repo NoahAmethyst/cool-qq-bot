@@ -7,8 +7,6 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/util/cron"
 	"os"
 	"path"
 	"sync"
@@ -324,23 +322,6 @@ func Main() {
 
 	bot := coolq.NewQQBot(cli)
 	servers.Run(bot)
-	group := int64(555784683)
-	weiboReport, weiboModel := bot.ReportWeiboHot(group)
-	_36krReport, _36krModel := bot.Report36krHot(group)
-	wallStreetReport, wallStreetModel := bot.ReportWallStreetNews(group)
-	cron.AddCronJob(weiboReport, "0 0 9,15,21 * * *\n")
-	cron.AddCronJob(_36krReport, "0 0 12,23 * * *\n")
-	cron.AddCronJob(wallStreetReport, "0 */30 9-23 * * *\n")
-
-	modelList := []string{weiboModel, _36krModel, wallStreetModel}
-
-	modelContent := ""
-	for _, _model := range modelList {
-		modelContent += fmt.Sprintf("已开启%s定时推送\n", _model)
-	}
-
-	bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{
-		message.NewText(modelContent)}})
 
 	log.Info("资源初始化完成, 开始处理信息.")
 	log.Info("アトリは、高性能ですから!")
@@ -432,7 +413,7 @@ func (p protocolLogger) Dump(data []byte, format string, arg ...any) {
 		_ = os.MkdirAll(global.DumpsPath, 0o755)
 	}
 	dumpFile := path.Join(global.DumpsPath, fmt.Sprintf("%v.dump", time.Now().Unix()))
-	message := fmt.Sprintf(format, arg...)
-	log.Errorf("出现错误 %v. 详细信息已转储至文件 %v 请连同日志提交给开发者处理", message, dumpFile)
+	_message := fmt.Sprintf(format, arg...)
+	log.Errorf("出现错误 %v. 详细信息已转储至文件 %v 请连同日志提交给开发者处理", _message, dumpFile)
 	_ = os.WriteFile(dumpFile, data, 0o644)
 }

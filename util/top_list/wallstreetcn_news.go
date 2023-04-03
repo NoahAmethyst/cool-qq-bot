@@ -35,12 +35,13 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 	if len(readyData) == 0 {
 		log.Warn("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(data))
 	}
+
 	return readyData, err
 }
 
 func ParseWallStreetNews() ([]WallStreetNews, error) {
 	url := "https://wallstreetcn.com/news/global"
-	timeout := time.Duration(5 * time.Second) //超时时间5s
+	timeout := 120 * time.Second //超时时间2mine
 	client := &http.Client{
 		Timeout: timeout,
 	}
@@ -81,7 +82,7 @@ func ParseWallStreetNews() ([]WallStreetNews, error) {
 	})
 
 	for _i, _data := range allData {
-		if _i > 6 {
+		if _i > 10 {
 			break
 		}
 		data = append(data, WallStreetNews{
@@ -98,9 +99,9 @@ func (s *SentNewsRecord) Add(title string) {
 	defer s.Unlock()
 	now := time.Now()
 	s.SentList[title] = now
-	if len(s.SentList) > 100 {
+	if len(s.SentList) > 200 {
 		for _title, _createdAt := range s.SentList {
-			if now.Sub(_createdAt) > 72*time.Hour {
+			if now.Sub(_createdAt) > 3*time.Hour {
 				delete(s.SentList, _title)
 			}
 		}

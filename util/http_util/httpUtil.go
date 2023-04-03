@@ -13,7 +13,7 @@ import (
 
 func Get(url string, headers map[string]string) ([]byte, error) {
 
-	client := &http.Client{Timeout: 5 * time.Second}
+	client := &http.Client{Timeout: 120 * time.Second}
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 
 	if err != nil {
