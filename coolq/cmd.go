@@ -12,21 +12,42 @@ import (
 const (
 	CMDHeart      = "心跳"
 	CMDWeibo      = "微博"
-	CMD36氪        = "36"
+	CMD36kr       = "36"
 	CMDWallStreet = "华尔街"
 	CMDCoin       = "比特币"
 )
 
 var cmdList map[string]string
+var groupCmdHandlers map[string]func(*CQBot, *message.GroupMessage)
 
 func init() {
 	cmdList = map[string]string{
 		CMDHeart:      "心跳检查",
 		CMDWeibo:      "拉取微博热搜",
-		CMD36氪:        "拉取36氪热榜",
+		CMD36kr:       "拉取36氪热榜",
 		CMDWallStreet: "拉取华尔街见闻最新资讯",
 		CMDCoin:       "获取BTC,ETH,BNB最新币价（USD）",
 	}
+
+	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
+		CMDHeart: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.SendGroupMessage(groupMessage.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("存活")}})
+		},
+		CMDWeibo: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.ReportWeiboHot(groupMessage.GroupCode)
+		},
+		CMD36kr: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.Report36kr(groupMessage.GroupCode)
+		},
+		CMDWallStreet: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.ReportWallStreetNews(groupMessage.GroupCode)
+		},
+		CMDCoin: func(bot *CQBot, groupMessage *message.GroupMessage) {
+
+		},
+	}
+
 }
 
 // 命令 - 描述
@@ -69,17 +90,10 @@ func (bot *CQBot) reactCmd(_ *client.QQClient, m *message.GroupMessage) {
 
 	log.Infof("接收到命令:%s", cmd)
 
-	switch cmd {
-	case CMDHeart:
-		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText("存活")}})
-	case CMDWeibo:
-		bot.ReportWeiboHot(m.GroupCode)
-	case CMD36氪:
-		bot.Report36kr(m.GroupCode)
-	case CMDWallStreet:
-		bot.ReportWallStreetNews(m.GroupCode)
-	default:
+	handler := groupCmdHandlers[cmd]
+	if handler != nil {
+		handler(bot, m)
+	} else {
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
 			message.NewText("该命令无效")}})
 	}
