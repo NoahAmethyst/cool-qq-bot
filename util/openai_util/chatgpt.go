@@ -2,7 +2,6 @@ package openai_util
 
 import (
 	"context"
-	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/pkg/errors"
 	openai "github.com/sashabaranov/go-openai"
@@ -47,7 +46,7 @@ func initCli() {
 		} else {
 			config := openai.DefaultConfig(apiKey)
 			config.HTTPClient.Timeout = time.Minute * 60
-			config.BaseURL = fmt.Sprintf("https://%s/v1", os.Getenv(constant.REMOTE_PROXY))
+			config.BaseURL = "https://cold-weasel-95.deno.dev/v1"
 			cli = openai.NewClientWithConfig(config)
 		}
 	}
