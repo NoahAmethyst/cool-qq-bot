@@ -2,6 +2,8 @@ package openai_util
 
 import (
 	"context"
+	"fmt"
+	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/pkg/errors"
 	openai "github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
@@ -38,14 +40,14 @@ func AskChatGpt(content string) (string, error) {
 }
 
 func initCli() {
-	apiKey := os.Getenv("OPENAI_API_KEY")
+	apiKey := os.Getenv(constant.OPENAI_API_KEY)
 	if cli == nil {
-		if len(os.Getenv("NOT_MIRROR")) > 0 {
+		if len(os.Getenv(constant.NOT_MIRROR)) > 0 {
 			cli = openai.NewClient(apiKey)
 		} else {
 			config := openai.DefaultConfig(apiKey)
-			config.HTTPClient.Timeout = time.Minute * 3
-			config.BaseURL = "https://cold-weasel-95.deno.dev/v1"
+			config.HTTPClient.Timeout = time.Minute * 60
+			config.BaseURL = fmt.Sprintf("https://%s/v1", os.Getenv(constant.REMOTE_PROXY))
 			cli = openai.NewClientWithConfig(config)
 		}
 	}
