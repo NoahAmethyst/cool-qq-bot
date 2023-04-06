@@ -17,16 +17,21 @@ const (
 	CMDCoin       = "比特币"
 )
 
-var cmdList map[string]string
+var cmdList []cmdInfo
 var groupCmdHandlers map[string]func(*CQBot, *message.GroupMessage)
 
+type cmdInfo struct {
+	cmd  string
+	desc string
+}
+
 func init() {
-	cmdList = map[string]string{
-		CMDHeart:      "心跳检查",
-		CMDWeibo:      "拉取微博热搜",
-		CMD36kr:       "拉取36氪热榜",
-		CMDWallStreet: "拉取华尔街见闻最新资讯",
-		CMDCoin:       "获取BTC,ETH,BNB最新币价（USD）",
+	cmdList = []cmdInfo{
+		{CMDHeart, "心跳检查"},
+		{CMDWeibo, "拉取微博热搜"},
+		{CMD36kr, "拉取36氪热榜"},
+		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
+		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
 	}
 
 	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
@@ -44,7 +49,7 @@ func init() {
 			bot.ReportWallStreetNews(groupMessage.GroupCode)
 		},
 		CMDCoin: func(bot *CQBot, groupMessage *message.GroupMessage) {
-
+			bot.ReportCoinPrice(groupMessage.GroupCode)
 		},
 	}
 
@@ -68,8 +73,8 @@ func (bot *CQBot) reactCmd(_ *client.QQClient, m *message.GroupMessage) {
 
 	if textEle.Content == "#" {
 		content := ""
-		for _cmd, _desc := range cmdList {
-			content += fmt.Sprintf("#%s	%s\n", _cmd, _desc)
+		for _, _cmdInfo := range cmdList {
+			content += fmt.Sprintf("#%s	%s\n", _cmdInfo.cmd, _cmdInfo.desc)
 		}
 
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
@@ -90,8 +95,8 @@ func (bot *CQBot) reactCmd(_ *client.QQClient, m *message.GroupMessage) {
 
 	log.Infof("接收到命令:%s", cmd)
 
-	handler := groupCmdHandlers[cmd]
-	if handler != nil {
+	handler, ok := groupCmdHandlers[cmd]
+	if ok {
 		handler(bot, m)
 	} else {
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
