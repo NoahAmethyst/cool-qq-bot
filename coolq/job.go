@@ -26,6 +26,7 @@ type (
 )
 
 func (r *ReportJob) RunJob() {
+	JobModels[r.Model] = r.Corn
 	cron.AddCronJob(r.Report, r.Corn)
 }
 
