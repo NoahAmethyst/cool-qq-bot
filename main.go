@@ -15,5 +15,6 @@ import (
 func main() {
 	var cstZone = time.FixedZone("CST", 8*3600) // 东八
 	time.Local = cstZone
+	gracefulShutdown()
 	gocq.Main()
 }
