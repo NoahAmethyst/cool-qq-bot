@@ -1,10 +1,14 @@
 package top_list
 
 import (
+	"fmt"
+	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/PuerkitoBio/goquery"
-	log "github.com/sirupsen/logrus"
+	"github.com/tristan-club/kit/log"
 	"io"
 	"net/http"
+	"os"
 	"sync"
 	"time"
 )
@@ -26,14 +30,14 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 	data, err := ParseWallStreetNews()
 	var readyData []WallStreetNews
 	for _, _data := range data {
-		if !SentNews.CheckSent(_data.Title) {
+		if !SentNews.checkSent(_data.Title) {
 			readyData = append(readyData, _data)
-			SentNews.Add(_data.Title)
+			SentNews.add(_data.Title)
 		}
 	}
 
 	if len(readyData) == 0 {
-		log.Warn("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(data))
+		log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(data))
 	}
 
 	return readyData, err
@@ -56,14 +60,16 @@ func ParseWallStreetNews() ([]WallStreetNews, error) {
 	}
 	request.Header.Add("User-Agent", `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36`)
 	request.Header.Add("Upgrade-Insecure-Requests", `1`)
-	//request.Header.Add("Host", `wallstreetcn.com`)
-	//request.Header.Add("Referer", `https://wallstreetcn.com/`)
+	//request.Header.add("Host", `wallstreetcn.com`)
+	//request.Header.add("Referer", `https://wallstreetcn.com/`)
 	res, err := client.Do(request)
 
 	if err != nil {
 		return data, err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 	//str,_ := ioutil.ReadAll(res.Body)
 	//fmt.Println(string(str))
 	var allData []map[string]interface{}
@@ -94,7 +100,7 @@ func ParseWallStreetNews() ([]WallStreetNews, error) {
 	return data, nil
 }
 
-func (s *SentNewsRecord) Add(title string) {
+func (s *SentNewsRecord) add(title string) {
 	s.Lock()
 	defer s.Unlock()
 	now := time.Now()
@@ -108,16 +114,41 @@ func (s *SentNewsRecord) Add(title string) {
 	}
 }
 
-func (s *SentNewsRecord) CheckSent(title string) bool {
+func (s *SentNewsRecord) checkSent(title string) bool {
 	s.RLock()
 	defer s.RUnlock()
 	_, ok := s.SentList[title]
 	return ok
 }
 
+func (s *SentNewsRecord) SaveCache() {
+	s.RLock()
+	defer s.RUnlock()
+	path := os.Getenv(constant.FILE_ROOT)
+	if len(path) == 0 {
+		path = "/tmp"
+	}
+	_, err := file_util.WriteJsonFile(s.SentList, path, "wallStreetCache", false)
+	if err != nil {
+		log.Error().Fields(map[string]interface{}{
+			"action": "save wall street news to file",
+			"error":  err,
+		}).Send()
+	}
+}
+
 func init() {
 	SentNews = SentNewsRecord{
 		SentList: map[string]time.Time{},
 		RWMutex:  sync.RWMutex{},
+	}
+	data := make(map[string]time.Time)
+	path := os.Getenv(constant.FILE_ROOT)
+	if len(path) == 0 {
+		path = "/tmp"
+	}
+	_ = file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data)
+	if len(data) > 0 {
+		SentNews.SentList = data
 	}
 }

@@ -23,7 +23,6 @@ func Test_WeiboHot(t *testing.T) {
 			t.Logf("%+v", _hot)
 		}
 	}
-
 }
 
 func Test_WallStreetcn_Latest(t *testing.T) {
@@ -36,13 +35,6 @@ func Test_WallStreetcn_Latest(t *testing.T) {
 		t.Logf("%+v", _data)
 	}
 
-	data, err = top_list.LoadWallStreetNews()
-	if err != nil {
-		panic(err)
-	}
-
-	for _, _data := range data {
-		t.Logf("%+v", _data)
-	}
+	top_list.SentNews.SaveCache()
 
 }
