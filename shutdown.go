@@ -16,5 +16,6 @@ func gracefulShutdown() {
 		sig := <-signalChannel
 		log.Info().Msgf("shut down,sign:%v", sig)
 		top_list.SentNews.SaveCache()
+		log.Info().Msgf("save wall street cache to file")
 	}()
 }

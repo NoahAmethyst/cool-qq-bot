@@ -38,6 +38,8 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 
 	if len(readyData) == 0 {
 		log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(data))
+	} else {
+		SentNews.SaveCache()
 	}
 
 	return readyData, err

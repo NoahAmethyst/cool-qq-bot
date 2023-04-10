@@ -31,6 +31,11 @@ func (bot *CQBot) askChatGpt(_ *client.QQClient, m *message.GroupMessage) {
 		return
 	}
 
+	if atEle.Target != bot.Client.Uin {
+		log.Warnf("mention target is not bot")
+		return
+	}
+
 	answer, err := openai_util.AskChatGpt(textEle.Content)
 
 	//重试机制
