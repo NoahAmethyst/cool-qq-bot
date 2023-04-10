@@ -1,10 +1,14 @@
 package top_list
 
 import (
+	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
-	"github.com/opesun/goquery"
-	"io/ioutil"
+	"github.com/Mrs4s/go-cqhttp/util/http_util"
+	"github.com/PuerkitoBio/goquery"
+	"github.com/tristan-club/kit/log"
+	"io"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -12,57 +16,79 @@ type WeiboHot struct {
 	Title string
 	Hot   string
 	Rank  int
+	Url   string
+}
+
+// https://m.weibo.cn/api/container/getIndex?containerid=106003type%3D25%26t%3D3%26disable_hot%3D1%26filter_type%3Drealtimehot
+// weiboHot analyze:https://m.s.weibo.com/topic/detail?q=%s
+func ParseWeiboHotByApi() (map[string]interface{}, error) {
+	url := "https://m.weibo.cn/api/container/getIndex?containerid=106003type%3D25%26t%3D3%26disable_hot%3D1%26filter_type%3Drealtimehot"
+	var data map[string]interface{}
+	err := http_util.GetJSON(url, nil, &data)
+	if err != nil {
+		log.Error().Fields(map[string]interface{}{
+			"action": "request weibo api",
+			"error":  err,
+		}).Send()
+	}
+	return data, err
 }
 
 func LoadWeiboHot() ([]WeiboHot, error) {
-	var hotList []WeiboHot
-	html, err := GetHTML(constant.WEIBO)
-	if err != nil {
-		return hotList, err
-	}
-	hotList, err = ParseWeiboHot(html)
+	hotList, err := ParseWeiboHot()
 	return hotList, err
 }
 
-func GetHTML(url string) (string, error) {
-	var html string
+func ParseWeiboHot() ([]WeiboHot, error) {
+	url := "https://s.weibo.com/top/summary?cate=realtimehot"
+	timeout := 120 * time.Second //超时时间2mine
 	client := &http.Client{
-		Timeout: 120 * time.Second,
-	}
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		return html, err
-	}
-	req.Header.Set("User-Agent", constant.AGENT)
-	req.Header.Set("Cookie", constant.COOKIE)
-	res, err := client.Do(req)
-	if err != nil {
-		return html, err
-	}
-	defer res.Body.Close()
-	body, err := ioutil.ReadAll(res.Body)
-	html = string(body)
-	return html, nil
-}
-
-func ParseWeiboHot(contents string) ([]WeiboHot, error) {
-	html, err := goquery.ParseString(contents)
-	if err != nil {
-		return nil, err
+		Timeout: timeout,
 	}
 
 	var hotList []WeiboHot
 
-	hotInfo := html.Find(".td-02")
-	hotInfo.Find("a").Each(func(index int, element *goquery.Node) {
-		for _, node := range element.Child {
-			weiboHot := WeiboHot{
-				Title: node.Data,
-				Rank:  index + 1,
-			}
-			hotList = append(hotList, weiboHot)
+	var Body io.Reader
+	request, err := http.NewRequest("GET", url, Body)
+	if err != nil {
+		return hotList, err
+	}
+	request.Header.Add("User-Agent", `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36`)
+	request.Header.Add("Cookie", constant.COOKIE)
+	//request.Header.Add("Host", `wallstreetcn.com`)
+	//request.Header.Add("Referer", `https://wallstreetcn.com/`)
+	res, err := client.Do(request)
+
+	if err != nil {
+		return hotList, err
+	}
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
+	var allData []map[string]interface{}
+	document, err := goquery.NewDocumentFromReader(res.Body)
+	if err != nil {
+		return hotList, err
+	}
+
+	titleCache := make(map[string]struct{})
+	document.Find(".td-02").Each(func(i int, selection *goquery.Selection) {
+		s := selection.Find("a").First()
+		url, boolUrl := s.Attr("href")
+		text := s.Text()
+
+		if boolUrl && strings.Contains(url, "weibo") {
+			titleCache[text] = struct{}{}
+			allData = append(allData, map[string]interface{}{"title": text, "url": fmt.Sprintf("https://s.weibo.com%s", url)})
 		}
 	})
 
+	for _i, _data := range allData {
+		hotList = append(hotList, WeiboHot{
+			Title: _data["title"].(string),
+			Rank:  _i + 1,
+			Url:   _data["url"].(string),
+		})
+	}
 	return hotList, err
 }
