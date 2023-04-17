@@ -104,6 +104,7 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	//bot.Client.GroupDigestEvent.Subscribe(bot.groupEssenceMsg)
 
 	bot.Client.GroupMessageEvent.Subscribe(bot.groupMessageAdvancedEvent)
+	bot.Client.PrivateMessageEvent.Subscribe(bot.privateMessageAdvancedEvent)
 
 	groups := []int64{555784683}
 
