@@ -279,15 +279,18 @@ func (bot *CQBot) TransTextInGroup(m *message.GroupMessage) {
 }
 
 func parseSourceText(textEle *message.TextElement) (string, bool) {
-	re := regexp.MustCompile(`^#(\S+)\s(.*)$`)
+	//re := regexp.MustCompile(`^#(\S+)\s(.*)$`)
+	//
+	//match := re.FindStringSubmatch(textEle.Content)
+	//
+	//if len(match) != 3 {
+	//	return "", true
+	//}
 
-	match := re.FindStringSubmatch(textEle.Content)
+	//text := strings.TrimSpace(match[2])
 
-	if len(match) != 3 {
-		return "", true
-	}
-
-	text := strings.TrimSpace(match[2])
+	match := strings.ReplaceAll(textEle.Content, "#翻译 ", "")
+	text := strings.TrimSpace(match)
 	return text, false
 }
 
