@@ -114,7 +114,7 @@ func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 		return
 	}
 
-	re := regexp.MustCompile(`#(.*)`)
+	re := regexp.MustCompile(`^#(\S+)`)
 
 	// 匹配字符串
 	match := re.FindStringSubmatch(textEle.Content)
@@ -163,7 +163,7 @@ func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage)
 		return
 	}
 
-	re := regexp.MustCompile(`#(.*)`)
+	re := regexp.MustCompile(`^#(\S+)`)
 
 	// 匹配字符串
 	match := re.FindStringSubmatch(textEle.Content)
