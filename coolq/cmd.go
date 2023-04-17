@@ -5,6 +5,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
 	log "github.com/sirupsen/logrus"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -16,6 +17,7 @@ const (
 	CMDWallStreet = "华尔街"
 	CMDCoin       = "比特币"
 	CMDTrans      = "翻译"
+	CMDExist      = "关闭"
 )
 
 var groupCmdList []cmdInfo
@@ -83,6 +85,13 @@ func init() {
 		},
 		CMDTrans: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			bot.TransTextInPrivate(privateMessage)
+		},
+		CMDExist: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.SendPrivateMessage(privateMessage.Sender.Uin, 0, &message.SendingMessage{
+				Elements: []message.IMessageElement{
+					message.NewText("正在关闭Jarvis...")},
+			})
+			os.Exit(0)
 		},
 	}
 }
