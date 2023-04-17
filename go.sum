@@ -64,8 +64,8 @@ github.com/Microsoft/go-winio v0.5.1 h1:aPJp2QD7OOrhO5tQXqQoGSJc+DjDtWTGLOmNyAm6
 github.com/Microsoft/go-winio v0.5.1/go.mod h1:JPGBdM1cNvN/6ISo+n8V5iA4v8pBzdOpzfwIujj1a84=
 github.com/Mrs4s/MiraiGo v0.0.0-20230103130153-8e70b22d1c83 h1:K7D18vz0Ssp/DCeAAv7fY/86vvLO1G7d9/+Tkg0yVNE=
 github.com/Mrs4s/MiraiGo v0.0.0-20230103130153-8e70b22d1c83/go.mod h1:EAJPnMB7OYB4pLCv/QZlfCrtW34lmRuNNnQevDX5HDY=
-github.com/NoahAmethyst/translator-engine v1.0.1 h1:/Hb6GAdX95dphvlALpAFm1IpAxFO2MrgeB1OrjwAo/E=
-github.com/NoahAmethyst/translator-engine v1.0.1/go.mod h1:6kpEac3F0ga4lCaVQ85OQgxow6UaM/hCdLqtxrDRfNs=
+github.com/NoahAmethyst/translator-engine v1.0.3 h1:wOpxtORztgkvsnsX3OVje2XxlLR2p0Yvb8huR8BEw8s=
+github.com/NoahAmethyst/translator-engine v1.0.3/go.mod h1:6kpEac3F0ga4lCaVQ85OQgxow6UaM/hCdLqtxrDRfNs=
 github.com/OneOfOne/xxhash v1.2.2/go.mod h1:HSdplMjZKSmBqAxg5vPj2TmRDmfkzw+cTzAElWljhcU=
 github.com/PuerkitoBio/goquery v1.8.1 h1:uQxhNlArOIdbrH1tr0UXwdVFgDcZDrZVdcpygAcwmWM=
 github.com/PuerkitoBio/goquery v1.8.1/go.mod h1:Q8ICL1kNUJ2sXGoAhPGUdYDJvgQgHzJsnnd3H7Ho5jQ=

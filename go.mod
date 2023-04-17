@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/Microsoft/go-winio v0.5.1
 	github.com/Mrs4s/MiraiGo v0.0.0-20230103130153-8e70b22d1c83
-	github.com/NoahAmethyst/translator-engine v1.0.1
+	github.com/NoahAmethyst/translator-engine v1.0.3
 	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/RomiChan/syncx v0.0.0-20220404072119-d7ea0ae15a4c
 	github.com/RomiChan/websocket v1.4.3-0.20220123145318-307a86b127bc
