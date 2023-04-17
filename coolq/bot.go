@@ -96,31 +96,32 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	//bot.Client.GroupMemberLeaveEvent.Subscribe(bot.memberLeaveEvent)
 	//bot.Client.GroupMemberPermissionChangedEvent.Subscribe(bot.memberPermissionChangedEvent)
 	//bot.Client.MemberCardUpdatedEvent.Subscribe(bot.memberCardUpdatedEvent)
-	//bot.Client.NewFriendRequestEvent.Subscribe(bot.friendRequestEvent)
-	//bot.Client.NewFriendEvent.Subscribe(bot.friendAddedEvent)
+	bot.Client.NewFriendRequestEvent.Subscribe(bot.friendRequestEvent)
+	bot.Client.NewFriendEvent.Subscribe(bot.friendAddedEvent)
 	//bot.Client.GroupInvitedEvent.Subscribe(bot.groupInvitedEvent)
 	//bot.Client.UserWantJoinGroupEvent.Subscribe(bot.groupJoinReqEvent)
 	//bot.Client.OtherClientStatusChangedEvent.Subscribe(bot.otherClientStatusChangedEvent)
 	//bot.Client.GroupDigestEvent.Subscribe(bot.groupEssenceMsg)
 
-	//add chatgpt
-	bot.Client.GroupMessageEvent.Subscribe(bot.askChatGpt)
-	bot.Client.GroupMessageEvent.Subscribe(bot.reactCmd)
+	bot.Client.GroupMessageEvent.Subscribe(bot.groupMessageAdvancedEvent)
 
-	group := int64(555784683)
+	groups := []int64{555784683}
 
 	//add report job
-	bot.RegisterJob(bot.WeiboHotReporter(group, "0 0 9,15,21 * * *"))
-	bot.RegisterJob(bot.D36krHotReporter(group, "0 0 12,23 * * *"))
-	bot.RegisterJob(bot.WallStreetNewsReporter(group, "0 15,35,55 9-23 * * *"))
+	for _, _group := range groups {
+		bot.RegisterJob(bot.WeiboHotReporter(_group, "0 0 9,15,21 * * *"))
+		bot.RegisterJob(bot.D36krHotReporter(_group, "0 0 12,23 * * *"))
+		bot.RegisterJob(bot.WallStreetNewsReporter(_group, "0 15,35,55 9-23 * * *"))
 
-	content := fmt.Sprintf("%s 自动机器人已启动\n\n", time.Now().Format("2006-01-02 15:04:05"))
-	for _model, _corn := range JobModels {
-		content += fmt.Sprintf("开启 %s 定时推送[ %s ]\n\n", _model, _corn)
+		content := fmt.Sprintf("%s %s 已启动\n\n", time.Now().Format("2006-01-02 15:04:05"), bot.Client.Nickname)
+		for _model, _ := range JobModels {
+			content += fmt.Sprintf("开启 %s 定时推送\n\n", _model)
+		}
+		content += "您也可以添加我为好友在好友聊天中将我作为助手"
+
+		bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{
+			message.NewText(content)}})
 	}
-
-	bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{
-		message.NewText(content)}})
 
 	go func() {
 		if base.HeartbeatInterval == 0 {
@@ -531,36 +532,6 @@ func (bot *CQBot) InsertPrivateMessage(m *message.PrivateMessage) int32 {
 	}
 	return msg.GlobalID
 }
-
-/*
-// InsertTempMessage 临时消息入数据库
-func (bot *CQBot) InsertTempMessage(target int64, m *message.TempMessage) int32 {
-	val := global.MSG{
-		"message-id": m.Id,
-		// FIXME(InsertTempMessage) InternalId missing
-		"from-group": m.GroupCode,
-		"group-name": m.GroupName,
-		"target":     target,
-		"sender":     m.Sender,
-		"time":       int32(time.Now().Unix()),
-		"message":    ToStringMessage(m.Elements, 0, true),
-	}
-	id := db.ToGlobalID(m.Sender.Uin, m.Id)
-	if bot.db != nil {
-		buf := global.NewBuffer()
-		defer global.PutBuffer(buf)
-		if err := gob.NewEncoder(buf).Encode(val); err != nil {
-			log.Warnf("记录聊天数据时出现错误: %v", err)
-			return -1
-		}
-		if err := bot.db.Put(binary.ToBytes(id), buf.Bytes(), nil); err != nil {
-			log.Warnf("记录聊天数据时出现错误: %v", err)
-			return -1
-		}
-	}
-	return id
-}
-*/
 
 // InsertGuildChannelMessage 频道消息入数据库
 func (bot *CQBot) InsertGuildChannelMessage(m *message.GuildChannelMessage) string {

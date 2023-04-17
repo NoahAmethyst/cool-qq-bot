@@ -38,7 +38,9 @@ func Parse36krHot() ([]Data36krHot, error) {
 	if err != nil {
 		return data, err
 	}
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 	//str,_ := ioutil.ReadAll(res.Body)
 	//fmt.Println(string(str))
 	var allData []map[string]interface{}

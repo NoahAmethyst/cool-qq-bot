@@ -15,10 +15,13 @@ const (
 	CMD36kr       = "36"
 	CMDWallStreet = "华尔街"
 	CMDCoin       = "比特币"
+	CMDTrans      = "翻译"
 )
 
-var cmdList []cmdInfo
+var groupCmdList []cmdInfo
 var groupCmdHandlers map[string]func(*CQBot, *message.GroupMessage)
+var privateCmdList []cmdInfo
+var privateCmdHandlers map[string]func(bot *CQBot, privateMessage *message.PrivateMessage)
 
 type cmdInfo struct {
 	cmd  string
@@ -26,12 +29,13 @@ type cmdInfo struct {
 }
 
 func init() {
-	cmdList = []cmdInfo{
+	groupCmdList = []cmdInfo{
 		{CMDHeart, "心跳检查"},
 		{CMDWeibo, "拉取微博热搜"},
 		{CMD36kr, "拉取36氪热榜"},
 		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
 		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
+		{CMDTrans, "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文"},
 	}
 
 	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
@@ -40,23 +44,51 @@ func init() {
 				message.NewText("存活")}})
 		},
 		CMDWeibo: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportWeiboHot(groupMessage.GroupCode)
+			bot.ReportWeiboHot(groupMessage.GroupCode, true)
 		},
 		CMD36kr: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.Report36kr(groupMessage.GroupCode)
+			bot.Report36kr(groupMessage.GroupCode, true)
 		},
 		CMDWallStreet: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportWallStreetNews(groupMessage.GroupCode)
+			bot.ReportWallStreetNews(groupMessage.GroupCode, true)
 		},
 		CMDCoin: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportCoinPrice(groupMessage.GroupCode)
+			bot.ReportCoinPrice(groupMessage.GroupCode, true)
+		},
+		CMDTrans: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.TransTextInGroup(groupMessage)
 		},
 	}
 
+	privateCmdList = []cmdInfo{
+		{CMDWeibo, "拉取微博热搜"},
+		{CMD36kr, "拉取36氪热榜"},
+		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
+		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
+		{CMDTrans, "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文 "},
+	}
+
+	privateCmdHandlers = map[string]func(bot *CQBot, privateMessage *message.PrivateMessage){
+		CMDWeibo: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.ReportWeiboHot(privateMessage.Sender.Uin, false)
+		},
+		CMD36kr: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.Report36kr(privateMessage.Sender.Uin, false)
+		},
+		CMDWallStreet: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.ReportWallStreetNews(privateMessage.Sender.Uin, false)
+		},
+		CMDCoin: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.ReportCoinPrice(privateMessage.Sender.Uin, false)
+		},
+		CMDTrans: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.TransTextInPrivate(privateMessage)
+		},
+	}
 }
 
-// 命令 - 描述
-func (bot *CQBot) reactCmd(_ *client.QQClient, m *message.GroupMessage) {
+// 群命令 - 描述
+func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 	var textEle *message.TextElement
 	for _, _ele := range m.Elements {
 		switch _ele.Type() {
@@ -73,7 +105,7 @@ func (bot *CQBot) reactCmd(_ *client.QQClient, m *message.GroupMessage) {
 
 	if textEle.Content == "#" {
 		content := ""
-		for _, _cmdInfo := range cmdList {
+		for _, _cmdInfo := range groupCmdList {
 			content += fmt.Sprintf("#%s	%s\n", _cmdInfo.cmd, _cmdInfo.desc)
 		}
 
@@ -88,7 +120,7 @@ func (bot *CQBot) reactCmd(_ *client.QQClient, m *message.GroupMessage) {
 	match := re.FindStringSubmatch(textEle.Content)
 
 	// 输出匹配结果
-	if len(match) == 0 {
+	if len(match) < 2 {
 		return
 	}
 	cmd := match[1]
@@ -102,5 +134,53 @@ func (bot *CQBot) reactCmd(_ *client.QQClient, m *message.GroupMessage) {
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
 			message.NewText("该命令无效")}})
 	}
+}
 
+// 私聊命令 - 描述
+func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage) {
+	var textEle *message.TextElement
+	for _, _ele := range m.Elements {
+		switch _ele.Type() {
+		case message.Text:
+			textEle = _ele.(*message.TextElement)
+		default:
+
+		}
+	}
+
+	if textEle == nil || !strings.Contains(textEle.Content, "#") {
+		return
+	}
+
+	if textEle.Content == "#" {
+		content := ""
+		for _, _cmdInfo := range privateCmdList {
+			content += fmt.Sprintf("#%s	%s\n", _cmdInfo.cmd, _cmdInfo.desc)
+		}
+
+		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
+			message.NewText(fmt.Sprintf("你可以使用以下命令：\n%s", content))}})
+		return
+	}
+
+	re := regexp.MustCompile(`#(.*)`)
+
+	// 匹配字符串
+	match := re.FindStringSubmatch(textEle.Content)
+
+	// 输出匹配结果
+	if len(match) < 2 {
+		return
+	}
+	cmd := match[1]
+
+	log.Infof("接收到命令:%s", cmd)
+
+	handler, ok := privateCmdHandlers[cmd]
+	if ok {
+		handler(bot, m)
+	} else {
+		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
+			message.NewText("该命令无效")}})
+	}
 }

@@ -43,7 +43,7 @@ func (bot *CQBot) RegisterJob(job IJob) {
 func (bot *CQBot) WeiboHotReporter(group int64, corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			bot.ReportWeiboHot(group)
+			bot.ReportWeiboHot(group, true)
 		},
 		Corn:  corn,
 		Model: top_list.Weibo,
@@ -53,7 +53,7 @@ func (bot *CQBot) WeiboHotReporter(group int64, corn string) *ReportJob {
 func (bot *CQBot) D36krHotReporter(group int64, corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			bot.Report36kr(group)
+			bot.Report36kr(group, true)
 		},
 		Corn:  corn,
 		Model: top_list.D36kr,
@@ -63,7 +63,7 @@ func (bot *CQBot) D36krHotReporter(group int64, corn string) *ReportJob {
 func (bot *CQBot) WallStreetNewsReporter(group int64, corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			bot.ReportWallStreetNews(group)
+			bot.ReportWallStreetNews(group, true)
 		},
 		Corn:  corn,
 		Model: top_list.WallStreet,

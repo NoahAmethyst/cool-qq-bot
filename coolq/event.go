@@ -68,6 +68,12 @@ func (ev *event) MarshalJSON() ([]byte, error) {
 	return append([]byte(nil), buf.Bytes()...), nil
 }
 
+func (bot *CQBot) groupMessageAdvancedEvent(c *client.QQClient, m *message.GroupMessage) {
+	bot.askChatGptInGroup(c, m)
+	bot.reactGroupCmd(c, m)
+
+}
+
 func (bot *CQBot) privateMessageEvent(_ *client.QQClient, m *message.PrivateMessage) {
 	bot.checkMedia(m.Elements, m.Sender.Uin)
 	source := message.Source{
@@ -524,21 +530,25 @@ func (bot *CQBot) memberLeaveEvent(_ *client.QQClient, e *client.MemberLeaveGrou
 
 func (bot *CQBot) friendRequestEvent(c *client.QQClient, e *client.NewFriendRequest) {
 	log.Infof("收到来自 %v(%v) 的好友请求: %v", e.RequesterNick, e.RequesterUin, e.Message)
-	flag := strconv.FormatInt(e.RequestId, 10)
-	bot.friendReqCache.Store(flag, e)
-	bot.dispatchEvent("request/friend", global.MSG{
-		"user_id": e.RequesterUin,
-		"comment": e.Message,
-		"flag":    flag,
-	})
+	//flag := strconv.FormatInt(e.RequestId, 10)
+	//bot.friendReqCache.Store(flag, e)
+	//bot.dispatchEvent("request/friend", global.MSG{
+	//	"user_id": e.RequesterUin,
+	//	"comment": e.Message,
+	//	"flag":    flag,
+	//})
+	e.Accept()
 }
 
 func (bot *CQBot) friendAddedEvent(c *client.QQClient, e *client.NewFriendEvent) {
 	log.Infof("添加了新好友: %v(%v)", e.Friend.Nickname, e.Friend.Uin)
-	bot.tempSessionCache.Delete(e.Friend.Uin)
-	bot.dispatchEvent("notice/friend_add", global.MSG{
-		"user_id": e.Friend.Uin,
-	})
+	//bot.tempSessionCache.Delete(e.Friend.Uin)
+	//bot.dispatchEvent("notice/friend_add", global.MSG{
+	//	"user_id": e.Friend.Uin,
+	//})
+
+	bot.SendPrivateMessage(e.Friend.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
+		message.NewText("您已添加Jarvis作为您的助手，您可使用 # 查询在好友聊天中可使用的命令与功能")}})
 }
 
 func (bot *CQBot) groupInvitedEvent(c *client.QQClient, e *client.GroupInvitedRequest) {

@@ -109,7 +109,7 @@ func (s *SentNewsRecord) add(title string) {
 	s.SentList[title] = now
 	if len(s.SentList) > 200 {
 		for _title, _createdAt := range s.SentList {
-			if now.Sub(_createdAt) > 3*time.Hour {
+			if now.Sub(_createdAt) > 24*time.Hour {
 				delete(s.SentList, _title)
 			}
 		}
