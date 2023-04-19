@@ -9,6 +9,7 @@ set your own account in **config.yml**
 * wall street latest news
 * check BTC & ETH & BNB usd price
 * Integrate with chatgpt
+* Translation(有道、腾讯、百度、火山、阿里)
 
 
 
