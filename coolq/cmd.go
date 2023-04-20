@@ -115,7 +115,7 @@ func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 	if textEle.Content == "#" {
 		content := ""
 		for _, _cmdInfo := range groupCmdList {
-			content += fmt.Sprintf("#%s	%s\n", _cmdInfo.cmd, _cmdInfo.desc)
+			content += fmt.Sprintf("#%s	%s\n\n", _cmdInfo.cmd, _cmdInfo.desc)
 		}
 
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
@@ -164,7 +164,7 @@ func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage)
 	if textEle.Content == "#" {
 		content := ""
 		for _, _cmdInfo := range privateCmdList {
-			content += fmt.Sprintf("#%s	%s\n", _cmdInfo.cmd, _cmdInfo.desc)
+			content += fmt.Sprintf("#%s	%s\n\n", _cmdInfo.cmd, _cmdInfo.desc)
 		}
 
 		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
