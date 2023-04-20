@@ -69,12 +69,12 @@ func (ev *event) MarshalJSON() ([]byte, error) {
 }
 
 func (bot *CQBot) groupMessageAdvancedEvent(c *client.QQClient, m *message.GroupMessage) {
-	bot.askChatGptInGroup(c, m)
+	bot.askAIAssistantInGroup(c, m)
 	bot.reactGroupCmd(c, m)
 }
 
 func (bot *CQBot) privateMessageAdvancedEvent(c *client.QQClient, m *message.PrivateMessage) {
-	bot.askChatGptInPrivate(c, m)
+	bot.askAIAssistantInPrivate(c, m)
 	bot.reactPrivateCmd(c, m)
 }
 
