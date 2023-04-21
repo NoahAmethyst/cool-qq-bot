@@ -105,14 +105,13 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 
 	bot.Client.GroupMessageEvent.Subscribe(bot.groupMessageAdvancedEvent)
 	bot.Client.PrivateMessageEvent.Subscribe(bot.privateMessageAdvancedEvent)
-
-	groups := []int64{555784683}
-
 	//add report job
-	for _, _group := range groups {
-		bot.RegisterJob(bot.WeiboHotReporter(_group, "0 0 9,15,21 * * *"))
-		bot.RegisterJob(bot.D36krHotReporter(_group, "0 0 12,23 * * *"))
-		bot.RegisterJob(bot.WallStreetNewsReporter(_group, "0 15,35,55 9-23 * * *"))
+	for _, _group := range cli.GroupList {
+		bot.RegisterJob(bot.WeiboHotReporter(_group.Code, "0 0 9,15,21 * * *"))
+		bot.RegisterJob(bot.D36krHotReporter(_group.Code, "0 0 12,23 * * *"))
+		bot.RegisterJob(bot.WallStreetNewsReporter(_group.Code, "0 15,35,55 9-23 * * *"))
+
+		log.Infof("群%s[%d] 加载机器人", _group.Name, _group.Code)
 
 		content := fmt.Sprintf("%s %s 已启动\n\n", time.Now().Format("2006-01-02 15:04:05"), bot.Client.Nickname)
 		for _model, _ := range JobModels {
@@ -120,7 +119,7 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 		}
 		content += "您也可以添加我为好友在好友聊天中将我作为助手"
 
-		bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{
+		bot.SendGroupMessage(_group.Code, &message.SendingMessage{Elements: []message.IMessageElement{
 			message.NewText(content)}})
 	}
 
