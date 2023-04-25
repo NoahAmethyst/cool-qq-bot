@@ -14,7 +14,12 @@ type Data36krHot struct {
 }
 
 func Load36krHot() ([]Data36krHot, error) {
-	return Parse36krHot()
+	data, err := Parse36krHot()
+	if Data36krDailyRecord == nil {
+		Data36krDailyRecord = make(map[string][]Data36krHot)
+	}
+	Data36krDailyRecord[time.Now().Format("2006-01-02 15:04")] = data
+	return data, err
 }
 
 func Parse36krHot() ([]Data36krHot, error) {

@@ -2,6 +2,8 @@ package main
 
 import (
 	"github.com/Mrs4s/go-cqhttp/cmd/gocq"
+	"github.com/Mrs4s/go-cqhttp/util/cron"
+	"github.com/Mrs4s/go-cqhttp/util/top_list"
 	"time"
 
 	_ "github.com/Mrs4s/go-cqhttp/db/leveldb"   // leveldb
@@ -16,5 +18,6 @@ func main() {
 	var cstZone = time.FixedZone("CST", 8*3600) // 东八
 	time.Local = cstZone
 	gracefulShutdown()
+	cron.AddCronJob(top_list.UploadDailyRecord, "0 55 23 * * *")
 	gocq.Main()
 }

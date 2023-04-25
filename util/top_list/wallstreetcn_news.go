@@ -39,6 +39,10 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 	if len(readyData) == 0 {
 		log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(data))
 	} else {
+		if WallStreetNewsDailyRecord == nil {
+			WallStreetNewsDailyRecord = make(map[string][]WallStreetNews)
+		}
+		WallStreetNewsDailyRecord[time.Now().Format("2006-01-02 15:04")] = readyData
 		SentNews.SaveCache()
 	}
 
@@ -136,6 +140,8 @@ func (s *SentNewsRecord) SaveCache() {
 			"action": "save wall street news to file",
 			"error":  err,
 		}).Send()
+	} else {
+		_ = file_util.TCCosUpload("cache", "wallStreetCache.json", fmt.Sprintf("%s/%s", path, "wallStreetCache.json"))
 	}
 }
 
@@ -149,7 +155,15 @@ func init() {
 	if len(path) == 0 {
 		path = "/tmp"
 	}
-	_ = file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data)
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data); err != nil {
+		log.Info().Fields(map[string]interface{}{
+			"action": "retry load wallstreet json from tencent cos",
+		}).Send()
+		_err := file_util.TCCosDownload("cache", "wallStreetCache.json", fmt.Sprintf("%s/%s", path, "wallStreetCache.json"))
+		if _err == nil {
+			_ = file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data)
+		}
+	}
 	if len(data) > 0 {
 		SentNews.SentList = data
 	}
