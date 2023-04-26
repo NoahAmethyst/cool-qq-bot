@@ -3,11 +3,13 @@ package top_list
 import (
 	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/Mrs4s/go-cqhttp/util/http_util"
 	"github.com/PuerkitoBio/goquery"
 	"github.com/tristan-club/kit/log"
 	"io"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -40,6 +42,11 @@ func LoadWeiboHot() ([]WeiboHot, error) {
 		WeiboHotDailyRecord = make(map[string][]WeiboHot)
 	}
 	WeiboHotDailyRecord[time.Now().Format("2006-01-02 15:04")] = hotList
+	path := os.Getenv(constant.FILE_ROOT)
+	if len(path) == 0 {
+		path = "/tmp"
+	}
+	_, _ = file_util.WriteJsonFile(WeiboHotDailyRecord, path, "weibo_hot", true)
 	return hotList, err
 }
 

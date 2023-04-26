@@ -1,9 +1,12 @@
 package top_list
 
 import (
+	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -19,6 +22,13 @@ func Load36krHot() ([]Data36krHot, error) {
 		Data36krDailyRecord = make(map[string][]Data36krHot)
 	}
 	Data36krDailyRecord[time.Now().Format("2006-01-02 15:04")] = data
+
+	path := os.Getenv(constant.FILE_ROOT)
+	if len(path) == 0 {
+		path = "/tmp"
+	}
+	_, _ = file_util.WriteJsonFile(Data36krDailyRecord, path, "36kr", true)
+
 	return data, err
 }
 
