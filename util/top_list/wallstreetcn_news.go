@@ -62,8 +62,6 @@ func ParseWallStreetNews() ([]WallStreetNews, error) {
 	}
 
 	var data []WallStreetNews
-	{
-	}
 	var Body io.Reader
 	request, err := http.NewRequest("GET", url, Body)
 	if err != nil {
@@ -97,6 +95,8 @@ func ParseWallStreetNews() ([]WallStreetNews, error) {
 			allData = append(allData, map[string]interface{}{"title": text, "content": content, "url": url})
 		}
 	})
+
+	data = make([]WallStreetNews, 11)
 
 	for _i, _data := range allData {
 		if _i > 10 {

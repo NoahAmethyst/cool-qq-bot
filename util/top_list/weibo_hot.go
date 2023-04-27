@@ -76,7 +76,7 @@ func ParseWeiboHot() ([]WeiboHot, error) {
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()
 	}(res.Body)
-	var allData []map[string]interface{}
+	allData := make([]map[string]interface{}, 52)
 	document, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		return hotList, err
@@ -93,6 +93,8 @@ func ParseWeiboHot() ([]WeiboHot, error) {
 			allData = append(allData, map[string]interface{}{"title": text, "url": fmt.Sprintf("https://s.weibo.com%s", url)})
 		}
 	})
+
+	hotList = make([]WeiboHot, len(allData))
 
 	for _i, _data := range allData {
 		hotList = append(hotList, WeiboHot{

@@ -83,11 +83,11 @@ func Parse36krHot() ([]Data36krHot, error) {
 	data = make([]Data36krHot, len(allData))
 
 	for _i, _data := range allData {
-		data[_i] = Data36krHot{
+		data = append(data, Data36krHot{
 			Title: _data["title"].(string),
 			Url:   _data["url"].(string),
 			Rank:  _i + 1,
-		}
+		})
 	}
 	return data, nil
 }
