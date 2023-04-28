@@ -44,11 +44,14 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 		}
 		WallStreetNewsDailyRecord[time.Now().Format("2006-01-02 15:04")] = readyData
 		SentNews.SaveCache()
-		path := os.Getenv(constant.FILE_ROOT)
-		if len(path) == 0 {
-			path = "/tmp"
-		}
-		_, _ = file_util.WriteJsonFile(WallStreetNewsDailyRecord, path, "wallstreet_news", true)
+
+		go func(_data map[string][]WallStreetNews) {
+			path := os.Getenv(constant.FILE_ROOT)
+			if len(path) == 0 {
+				path = "/tmp"
+			}
+			_, _ = file_util.WriteJsonFile(_data, path, "wallstreet_news", true)
+		}(WallStreetNewsDailyRecord)
 	}
 
 	return readyData, err
@@ -96,7 +99,7 @@ func ParseWallStreetNews() ([]WallStreetNews, error) {
 		}
 	})
 
-	data = make([]WallStreetNews, 11)
+	data = make([]WallStreetNews, 0, 11)
 
 	for _i, _data := range allData {
 		if _i > 10 {

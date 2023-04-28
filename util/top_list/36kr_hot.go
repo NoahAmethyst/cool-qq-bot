@@ -23,11 +23,13 @@ func Load36krHot() ([]Data36krHot, error) {
 	}
 	Data36krDailyRecord[time.Now().Format("2006-01-02 15:04")] = data
 
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-	_, _ = file_util.WriteJsonFile(Data36krDailyRecord, path, "36kr", true)
+	go func(_data map[string][]Data36krHot) {
+		path := os.Getenv(constant.FILE_ROOT)
+		if len(path) == 0 {
+			path = "/tmp"
+		}
+		_, _ = file_util.WriteJsonFile(Data36krDailyRecord, path, "36kr", true)
+	}(Data36krDailyRecord)
 
 	return data, err
 }
@@ -68,7 +70,7 @@ func Parse36krHot() ([]Data36krHot, error) {
 		url, boolUrl := s.Attr("href")
 		text := selection.Find("a p").Text()
 		if boolUrl {
-			allData = append(allData, map[string]interface{}{"title": string(text), "url": "https://36kr.com" + url})
+			allData = append(allData, map[string]interface{}{"title": text, "url": "https://36kr.com" + url})
 		}
 	})
 	document.Find(".hotlist-item-other-info").Each(func(i int, selection *goquery.Selection) {
@@ -76,11 +78,11 @@ func Parse36krHot() ([]Data36krHot, error) {
 		url, boolUrl := s.Attr("href")
 		text := s.Text()
 		if boolUrl {
-			allData = append(allData, map[string]interface{}{"title": string(text), "url": "https://36kr.com" + url})
+			allData = append(allData, map[string]interface{}{"title": text, "url": "https://36kr.com" + url})
 		}
 	})
 
-	data = make([]Data36krHot, len(allData))
+	data = make([]Data36krHot, 0, len(allData))
 
 	for _i, _data := range allData {
 		data = append(data, Data36krHot{

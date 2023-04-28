@@ -42,11 +42,15 @@ func LoadWeiboHot() ([]WeiboHot, error) {
 		WeiboHotDailyRecord = make(map[string][]WeiboHot)
 	}
 	WeiboHotDailyRecord[time.Now().Format("2006-01-02 15:04")] = hotList
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-	_, _ = file_util.WriteJsonFile(WeiboHotDailyRecord, path, "weibo_hot", true)
+
+	go func(_data map[string][]WeiboHot) {
+		path := os.Getenv(constant.FILE_ROOT)
+		if len(path) == 0 {
+			path = "/tmp"
+		}
+		_, _ = file_util.WriteJsonFile(_data, path, "weibo_hot", true)
+	}(WeiboHotDailyRecord)
+
 	return hotList, err
 }
 
@@ -76,7 +80,7 @@ func ParseWeiboHot() ([]WeiboHot, error) {
 	defer func(Body io.ReadCloser) {
 		_ = Body.Close()
 	}(res.Body)
-	allData := make([]map[string]interface{}, 52)
+	allData := make([]map[string]interface{}, 0, 52)
 	document, err := goquery.NewDocumentFromReader(res.Body)
 	if err != nil {
 		return hotList, err
@@ -94,7 +98,7 @@ func ParseWeiboHot() ([]WeiboHot, error) {
 		}
 	})
 
-	hotList = make([]WeiboHot, len(allData))
+	hotList = make([]WeiboHot, 0, len(allData))
 
 	for _i, _data := range allData {
 		hotList = append(hotList, WeiboHot{
