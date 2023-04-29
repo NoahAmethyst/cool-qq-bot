@@ -3,6 +3,7 @@ package coolq
 import (
 	"github.com/Mrs4s/go-cqhttp/util/cron"
 	"github.com/Mrs4s/go-cqhttp/util/top_list"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -34,6 +35,10 @@ func (r *ReportJob) JobType() int {
 }
 
 func (bot *CQBot) RegisterJob(job IJob) {
+	if job == nil {
+		log.Error("Register job failed:nil job")
+		return
+	}
 	job.RunJob()
 }
 
