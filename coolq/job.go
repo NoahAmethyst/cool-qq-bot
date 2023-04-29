@@ -3,7 +3,6 @@ package coolq
 import (
 	"github.com/Mrs4s/go-cqhttp/util/cron"
 	"github.com/Mrs4s/go-cqhttp/util/top_list"
-	"reflect"
 )
 
 const (
@@ -35,9 +34,7 @@ func (r *ReportJob) JobType() int {
 }
 
 func (bot *CQBot) RegisterJob(job IJob) {
-	reflect.ValueOf(job).
-		MethodByName("RunJob").
-		Call(nil)
+	job.RunJob()
 }
 
 func (bot *CQBot) WeiboHotReporter(group int64, corn string) *ReportJob {

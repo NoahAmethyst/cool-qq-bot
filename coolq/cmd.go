@@ -119,7 +119,7 @@ func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 		}
 
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(fmt.Sprintf("你可以使用以下命令：\n%s", content))}})
+			message.NewText(fmt.Sprintf("你可以使用以下命令：\n\n%s", content))}})
 		return
 	}
 
@@ -168,7 +168,7 @@ func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage)
 		}
 
 		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(fmt.Sprintf("你可以使用以下命令：\n%s", content))}})
+			message.NewText(fmt.Sprintf("你可以使用以下命令：\n\n%s", content))}})
 		return
 	}
 
