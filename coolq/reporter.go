@@ -148,7 +148,6 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 				time.Sleep(3 * time.Second)
 			}
 		}
-
 	}
 }
 

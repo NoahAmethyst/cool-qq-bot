@@ -30,11 +30,23 @@ func (bot *CQBot) askAIAssistantInPrivate(_ *client.QQClient, m *message.Private
 
 	var answer *openai_util.AIAssistantResp
 	var err error
+	successChan := make(chan bool, 1)
+	defer close(successChan)
+	go func(uid int64) {
+		select {
+		case <-successChan:
+			return
+		case <-time.After(time.Second * 10):
+			bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("OPENAI正在响应，请稍等...")}})
+		}
+	}(m.Sender.Uin)
 	if !ok {
 		answer, err = openai_util.AskAIAssistant(textEle.Content)
 	} else {
 		answer, err = openai_util.AskAIAssistant(textEle.Content, v)
 	}
+	successChan <- true
 
 	if err != nil {
 		log.Errorf("ask ai assistent error:%s", err.Error())
@@ -58,11 +70,24 @@ func (bot *CQBot) askAIAssistantInGroup(_ *client.QQClient, m *message.GroupMess
 
 	var answer *openai_util.AIAssistantResp
 	var err error
+	successChan := make(chan bool, 1)
+	defer close(successChan)
+	go func(group int64) {
+		select {
+		case <-successChan:
+			return
+		case <-time.After(time.Second * 10):
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("OPENAI正在响应，请稍等...")}})
+		}
+	}(m.GroupCode)
+
 	if !ok {
 		answer, err = openai_util.AskAIAssistant(textEle.Content)
 	} else {
 		answer, err = openai_util.AskAIAssistant(textEle.Content, v)
 	}
+	successChan <- true
 
 	if err != nil {
 		log.Errorf("ask ai assistent error:%s", err.Error())
@@ -81,7 +106,23 @@ func (bot *CQBot) askChatGptInPrivate(_ *client.QQClient, m *message.PrivateMess
 	if done {
 		return
 	}
+
+	successChan := make(chan bool, 1)
+	defer close(successChan)
+	go func(uid int64) {
+		select {
+		case <-successChan:
+			return
+		case <-time.After(time.Second * 10):
+			bot.SendPrivateMessage(uid, 0, &message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("OPENAI正在响应，请稍等...")}})
+		}
+	}(m.Sender.Uin)
+
 	answer := askChatGpt(textEle)
+
+	successChan <- true
+
 	bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewText(answer)}})
 }
@@ -110,6 +151,20 @@ func (bot *CQBot) askChatGptInGroup(_ *client.QQClient, m *message.GroupMessage)
 	if done {
 		return
 	}
+
+	successChan := make(chan bool, 1)
+	defer close(successChan)
+	go func(group int64) {
+		select {
+		case <-successChan:
+			return
+		case <-time.After(time.Second * 10):
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("OPENAI正在响应，请稍等...")}})
+		}
+	}(m.GroupCode)
+
+	successChan <- true
 
 	answer := askChatGpt(textEle)
 
