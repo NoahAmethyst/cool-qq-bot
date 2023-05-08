@@ -35,6 +35,4 @@ func Test_WallStreetcn_Latest(t *testing.T) {
 		t.Logf("%+v", _data)
 	}
 
-	top_list.SentNews.SaveCache()
-
 }

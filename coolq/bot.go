@@ -107,9 +107,9 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	bot.Client.PrivateMessageEvent.Subscribe(bot.privateMessageAdvancedEvent)
 	//add report job
 	for _, _group := range cli.GroupList {
-		bot.RegisterJob(bot.WeiboHotReporter(_group.Code, "0 0 9,15,21 * * *"))
-		bot.RegisterJob(bot.D36krHotReporter(_group.Code, "0 0 12,23 * * *"))
-		bot.RegisterJob(bot.WallStreetNewsReporter(_group.Code, "0 15,35,55 9-23 * * *"))
+		bot.RegisterJob(bot.WeiboHotReporter(_group.Code, "0 0 9,14,19,21,23 * * *"))
+		bot.RegisterJob(bot.D36krHotReporter(_group.Code, "0 0 12,22 * * *"))
+		bot.RegisterJob(bot.WallStreetNewsReporter(_group.Code, "0 5,15,25,35,45,55 9-23 * * *"))
 
 		log.Infof("群%s[%d] 加载机器人", _group.Name, _group.Code)
 

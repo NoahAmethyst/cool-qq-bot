@@ -1,15 +1,13 @@
 package top_list
 
 import (
-	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/tristan-club/kit/log"
 	"io"
 	"net/http"
 	"os"
-	"sync"
+	"strings"
 	"time"
 )
 
@@ -19,42 +17,35 @@ type WallStreetNews struct {
 	Url     string
 }
 
-var SentNews SentNewsRecord
-
-type SentNewsRecord struct {
-	SentList map[string]time.Time
-	sync.RWMutex
-}
-
 func LoadWallStreetNews() ([]WallStreetNews, error) {
 	data, err := ParseWallStreetNews()
-	var readyData []WallStreetNews
-	for _, _data := range data {
-		if !SentNews.checkSent(_data.Title) {
-			readyData = append(readyData, _data)
-			SentNews.add(_data.Title)
-		}
-	}
-
-	if len(readyData) == 0 {
-		log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(data))
+	currData := make([]WallStreetNews, 0, 10)
+	if WallStreetNewsDailyRecord == nil {
+		WallStreetNewsDailyRecord = make(map[string][]WallStreetNews)
+		currData = data
 	} else {
-		if WallStreetNewsDailyRecord == nil {
-			WallStreetNewsDailyRecord = make(map[string][]WallStreetNews)
-		}
-		WallStreetNewsDailyRecord[time.Now().Format("2006-01-02 15:04")] = readyData
-		SentNews.SaveCache()
-
-		go func(_data map[string][]WallStreetNews) {
-			path := os.Getenv(constant.FILE_ROOT)
-			if len(path) == 0 {
-				path = "/tmp"
+		for _, _data := range data {
+			for _, news := range WallStreetNewsDailyRecord {
+				for _, _existNew := range news {
+					if strings.EqualFold(_data.Title, _existNew.Title) {
+						continue
+					}
+					currData = append(currData, _data)
+				}
 			}
-			_, _ = file_util.WriteJsonFile(_data, path, "wallstreet_news", true)
-		}(WallStreetNewsDailyRecord)
+		}
 	}
+	WallStreetNewsDailyRecord[time.Now().Format("2006-01-02 15:04")] = currData
 
-	return readyData, err
+	go func(_data map[string][]WallStreetNews) {
+		path := os.Getenv(constant.FILE_ROOT)
+		if len(path) == 0 {
+			path = "/tmp"
+		}
+		_, _ = file_util.WriteJsonFile(_data, path, "wallstreet_news", true)
+	}(WallStreetNewsDailyRecord)
+
+	return data, err
 }
 
 func ParseWallStreetNews() ([]WallStreetNews, error) {
@@ -112,67 +103,4 @@ func ParseWallStreetNews() ([]WallStreetNews, error) {
 		})
 	}
 	return data, nil
-}
-
-func (s *SentNewsRecord) add(title string) {
-	s.Lock()
-	defer s.Unlock()
-	now := time.Now()
-	s.SentList[title] = now
-	if len(s.SentList) > 200 {
-		for _title, _createdAt := range s.SentList {
-			if now.Sub(_createdAt) > 24*time.Hour {
-				delete(s.SentList, _title)
-			}
-		}
-	}
-}
-
-func (s *SentNewsRecord) checkSent(title string) bool {
-	s.RLock()
-	defer s.RUnlock()
-	_, ok := s.SentList[title]
-	return ok
-}
-
-func (s *SentNewsRecord) SaveCache() {
-	s.RLock()
-	defer s.RUnlock()
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-	_, err := file_util.WriteJsonFile(s.SentList, path, "wallStreetCache", false)
-	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "save wall street news to file",
-			"error":  err,
-		}).Send()
-	} else {
-		_ = file_util.TCCosUpload("cache", "wallStreetCache.json", fmt.Sprintf("%s/%s", path, "wallStreetCache.json"))
-	}
-}
-
-func init() {
-	SentNews = SentNewsRecord{
-		SentList: map[string]time.Time{},
-		RWMutex:  sync.RWMutex{},
-	}
-	data := make(map[string]time.Time)
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data); err != nil {
-		log.Info().Fields(map[string]interface{}{
-			"action": "retry load wallstreet json from tencent cos",
-		}).Send()
-		_err := file_util.TCCosDownload("cache", "wallStreetCache.json", fmt.Sprintf("%s/%s", path, "wallStreetCache.json"))
-		if _err == nil {
-			_ = file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data)
-		}
-	}
-	if len(data) > 0 {
-		SentNews.SentList = data
-	}
 }
