@@ -35,7 +35,9 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 			}
 		}
 	}
-	WallStreetNewsDailyRecord[time.Now().Format("2006-01-02 15:04")] = currData
+	if len(currData) > 0 {
+		WallStreetNewsDailyRecord[time.Now().Format("2006-01-02 15:04")] = currData
+	}
 
 	go func(_data map[string][]WallStreetNews) {
 		path := os.Getenv(constant.FILE_ROOT)
