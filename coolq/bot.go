@@ -114,7 +114,7 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 		log.Infof("群%s[%d] 加载机器人", _group.Name, _group.Code)
 
 		content := fmt.Sprintf("%s %s 已启动\n\n", time.Now().Format("2006-01-02 15:04:05"), bot.Client.Nickname)
-		for _model, _ := range JobModels {
+		for _model := range JobModels {
 			content += fmt.Sprintf("开启 %s 定时推送\n\n", _model)
 		}
 		content += "您也可以添加我为好友在好友聊天中将我作为助手"
