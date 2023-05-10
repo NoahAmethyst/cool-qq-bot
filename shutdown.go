@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/Mrs4s/go-cqhttp/coolq"
 	"github.com/tristan-club/kit/log"
 	"os"
 	"os/signal"
@@ -15,7 +14,5 @@ func gracefulShutdown() {
 	go func() {
 		sig := <-signalChannel
 		log.Info().Msgf("shut down,sign:%v", sig)
-		coolq.SentNews.SaveCache()
-		log.Info().Msgf("save wall street cache to file")
 	}()
 }

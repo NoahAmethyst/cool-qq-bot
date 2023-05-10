@@ -46,7 +46,7 @@ func initCli() {
 		} else {
 			config := openai.DefaultConfig(apiKey)
 			config.HTTPClient.Timeout = time.Minute * 60
-			config.BaseURL = "https://cold-weasel-95.deno.dev/v1"
+			config.BaseURL = "https://open.aiproxy.xyz/v1"
 			cli = openai.NewClientWithConfig(config)
 		}
 	}

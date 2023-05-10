@@ -3,24 +3,13 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/coin"
-	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/Mrs4s/go-cqhttp/util/top_list"
 	"github.com/tristan-club/kit/log"
 
-	"os"
 	"strings"
-	"sync"
 	"time"
 )
-
-var SentNews SentNewsRecord
-
-type SentNewsRecord struct {
-	SentList map[int64]map[string]time.Time
-	sync.RWMutex
-}
 
 func (bot *CQBot) ReportCoinPrice(group int64, isGroup bool) {
 
@@ -123,9 +112,9 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 
 		var readyData []top_list.WallStreetNews
 		for _, _data := range hotList {
-			if !SentNews.checkSent(group, _data.Title) {
+			if !bot.state.wallstreetSentNews.checkSent(group, _data.Title) {
 				readyData = append(readyData, _data)
-				SentNews.add(group, _data.Title)
+				bot.state.wallstreetSentNews.add(group, _data.Title)
 			}
 		}
 
@@ -135,7 +124,7 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 				bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("没有华尔街最新资讯")}})
 			}
 		} else {
-			SentNews.SaveCache()
+			bot.state.wallstreetSentNews.SaveCache()
 			//倒序输出，因为最新资讯在第一个
 			for i := len(readyData) - 1; i >= 0; i-- {
 				content := fmt.Sprintf("%s\n\n摘要：%s\n\n链接：%s", hotList[i].Title, hotList[i].Content, hotList[i].Url)
@@ -148,79 +137,5 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 				time.Sleep(3 * time.Second)
 			}
 		}
-	}
-}
-
-func (s *SentNewsRecord) add(group int64, title string) {
-	s.Lock()
-	defer s.Unlock()
-	now := time.Now()
-	if _, ok := s.SentList[group]; !ok {
-		s.SentList[group] = map[string]time.Time{
-			title: now,
-		}
-	} else {
-		s.SentList[group][title] = now
-	}
-	if len(s.SentList[group]) > 200 {
-		for _title, _createdAt := range s.SentList[group] {
-			if now.Sub(_createdAt) > 24*time.Hour {
-				delete(s.SentList[group], _title)
-			}
-		}
-	}
-}
-
-func (s *SentNewsRecord) checkSent(group int64, title string) bool {
-	s.RLock()
-	defer s.RUnlock()
-	if v, ok := s.SentList[group]; !ok {
-		return ok
-	} else {
-		_, ok := v[title]
-		return ok
-	}
-
-}
-
-func (s *SentNewsRecord) SaveCache() {
-	s.RLock()
-	defer s.RUnlock()
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-	_, err := file_util.WriteJsonFile(s.SentList, path, "wallStreetCache", false)
-	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "save wall street news to file",
-			"error":  err,
-		}).Send()
-	} else {
-		_ = file_util.TCCosUpload("cache", "wallStreetCache.json", fmt.Sprintf("%s/%s", path, "wallStreetCache.json"))
-	}
-}
-
-func init() {
-	SentNews = SentNewsRecord{
-		SentList: map[int64]map[string]time.Time{},
-		RWMutex:  sync.RWMutex{},
-	}
-	data := make(map[int64]map[string]time.Time)
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data); err != nil {
-		log.Info().Fields(map[string]interface{}{
-			"action": "retry load wallstreet json from tencent cos",
-		}).Send()
-		_err := file_util.TCCosDownload("cache", "wallStreetCache.json", fmt.Sprintf("%s/%s", path, "wallStreetCache.json"))
-		if _err == nil {
-			_ = file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data)
-		}
-	}
-	if len(data) > 0 {
-		SentNews.SentList = data
 	}
 }

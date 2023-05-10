@@ -30,11 +30,11 @@ func (bot *CQBot) askAIAssistantInPrivate(_ *client.QQClient, m *message.Private
 
 	var answer *openai_util.AIAssistantResp
 	var err error
-	successChan := make(chan bool, 1)
-	defer close(successChan)
+	recvChan := make(chan struct{}, 1)
+	defer close(recvChan)
 	go func(uid int64) {
 		select {
-		case <-successChan:
+		case <-recvChan:
 			return
 		case <-time.After(time.Second * 10):
 			bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
@@ -46,7 +46,7 @@ func (bot *CQBot) askAIAssistantInPrivate(_ *client.QQClient, m *message.Private
 	} else {
 		answer, err = openai_util.AskAIAssistant(textEle.Content, v)
 	}
-	successChan <- true
+	recvChan <- struct{}{}
 
 	if err != nil {
 		log.Errorf("ask ai assistent error:%s", err.Error())
@@ -70,11 +70,11 @@ func (bot *CQBot) askAIAssistantInGroup(_ *client.QQClient, m *message.GroupMess
 
 	var answer *openai_util.AIAssistantResp
 	var err error
-	successChan := make(chan bool, 1)
-	defer close(successChan)
+	recvChan := make(chan struct{}, 1)
+	defer close(recvChan)
 	go func(group int64) {
 		select {
-		case <-successChan:
+		case <-recvChan:
 			return
 		case <-time.After(time.Second * 10):
 			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{
@@ -87,7 +87,7 @@ func (bot *CQBot) askAIAssistantInGroup(_ *client.QQClient, m *message.GroupMess
 	} else {
 		answer, err = openai_util.AskAIAssistant(textEle.Content, v)
 	}
-	successChan <- true
+	recvChan <- struct{}{}
 
 	if err != nil {
 		log.Errorf("ask ai assistent error:%s", err.Error())
@@ -107,11 +107,11 @@ func (bot *CQBot) askChatGptInPrivate(_ *client.QQClient, m *message.PrivateMess
 		return
 	}
 
-	successChan := make(chan bool, 1)
-	defer close(successChan)
+	recvChan := make(chan struct{}, 1)
+	defer close(recvChan)
 	go func(uid int64) {
 		select {
-		case <-successChan:
+		case <-recvChan:
 			return
 		case <-time.After(time.Second * 10):
 			bot.SendPrivateMessage(uid, 0, &message.SendingMessage{Elements: []message.IMessageElement{
@@ -121,7 +121,7 @@ func (bot *CQBot) askChatGptInPrivate(_ *client.QQClient, m *message.PrivateMess
 
 	answer := askChatGpt(textEle)
 
-	successChan <- true
+	recvChan <- struct{}{}
 
 	bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewText(answer)}})
@@ -152,11 +152,11 @@ func (bot *CQBot) askChatGptInGroup(_ *client.QQClient, m *message.GroupMessage)
 		return
 	}
 
-	successChan := make(chan bool, 1)
-	defer close(successChan)
+	recvChan := make(chan struct{}, 1)
+	defer close(recvChan)
 	go func(group int64) {
 		select {
-		case <-successChan:
+		case <-recvChan:
 			return
 		case <-time.After(time.Second * 10):
 			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{
@@ -164,7 +164,7 @@ func (bot *CQBot) askChatGptInGroup(_ *client.QQClient, m *message.GroupMessage)
 		}
 	}(m.GroupCode)
 
-	successChan <- true
+	recvChan <- struct{}{}
 
 	answer := askChatGpt(textEle)
 
@@ -255,7 +255,6 @@ func (s *dialogueSession) delParentId(uid int64) {
 	s.Lock()
 	defer s.Unlock()
 	delete(s.parentId, uid)
-
 }
 
 func init() {

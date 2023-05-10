@@ -35,6 +35,7 @@ type CQBot struct {
 	friendReqCache   syncx.Map[string, *client.NewFriendRequest]
 	tempSessionCache syncx.Map[int64, *client.TempSessionInfo]
 	nextTokenCache   *utils.Cache[*guildMemberPageToken]
+	state            *State
 }
 
 // Event 事件
@@ -69,6 +70,7 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	bot := &CQBot{
 		Client:         cli,
 		nextTokenCache: utils.NewCache[*guildMemberPageToken](time.Second * 10),
+		state:          &State{wallstreetSentNews: initWallStreetSentNews()},
 	}
 	//bot.Client.PrivateMessageEvent.Subscribe(bot.privateMessageEvent)
 	//bot.Client.GroupMessageEvent.Subscribe(bot.groupMessageEvent)
