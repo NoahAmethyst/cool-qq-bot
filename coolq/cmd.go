@@ -87,6 +87,7 @@ func init() {
 			bot.TransTextInPrivate(privateMessage)
 		},
 		CMDExist: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			log.Warnf("收到关闭命令，来源[%s][%d]", privateMessage.Sender.Nickname, privateMessage.Sender.Uin)
 			bot.SendPrivateMessage(privateMessage.Sender.Uin, 0, &message.SendingMessage{
 				Elements: []message.IMessageElement{
 					message.NewText("正在关闭Jarvis...")},

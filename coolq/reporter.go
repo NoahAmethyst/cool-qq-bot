@@ -110,7 +110,7 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 		//	fmt.Sprintf("爬取华尔街见闻最新资讯失败：%s", err.Error()))}})
 	} else {
 
-		var readyData []top_list.WallStreetNews
+		readyData := make([]top_list.WallStreetNews, 0, 10)
 		for _, _data := range hotList {
 			if !bot.state.wallstreetSentNews.checkSent(group, _data.Title) {
 				readyData = append(readyData, _data)
