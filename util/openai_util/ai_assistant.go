@@ -125,10 +125,7 @@ func AskAIAssistant(content string, option ...string) (*AIAssistantResp, error) 
 	// Unmarshal response body to struct
 	var response AIAssistantResp
 	err = json.Unmarshal(responseBodyBytes, &response)
-	if err != nil {
-		panic(err)
-	}
 
-	return &response, nil
+	return &response, err
 
 }
