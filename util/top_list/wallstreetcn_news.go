@@ -31,7 +31,7 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 		}
 		for _, _data := range data {
 			if _, ok := restoredSet[encrypt.HashStr(_data.Title)]; !ok {
-				currData = append(currData)
+				currData = append(currData, _data)
 			}
 		}
 	} else {
