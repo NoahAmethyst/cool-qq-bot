@@ -18,18 +18,14 @@ type Data36krHot struct {
 
 func Load36krHot() ([]Data36krHot, error) {
 	data, err := Parse36krHot()
-	if Data36krDailyRecord == nil {
-		Data36krDailyRecord = make(map[string][]Data36krHot)
-	}
-	Data36krDailyRecord[time.Now().Format("2006-01-02 15:04")] = data
-
-	go func(_data map[string][]Data36krHot) {
+	Data36krDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), data)
+	go func() {
 		path := os.Getenv(constant.FILE_ROOT)
 		if len(path) == 0 {
 			path = "/tmp"
 		}
-		_, _ = file_util.WriteJsonFile(Data36krDailyRecord, path, "36kr", true)
-	}(Data36krDailyRecord)
+		_, _ = file_util.WriteJsonFile(Data36krDailyRecord.GetData(), path, "36kr", true)
+	}()
 
 	return data, err
 }

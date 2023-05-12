@@ -38,18 +38,16 @@ func ParseWeiboHotByApi() (map[string]interface{}, error) {
 
 func LoadWeiboHot() ([]WeiboHot, error) {
 	hotList, err := ParseWeiboHot()
-	if WeiboHotDailyRecord == nil {
-		WeiboHotDailyRecord = make(map[string][]WeiboHot)
-	}
-	WeiboHotDailyRecord[time.Now().Format("2006-01-02 15:04")] = hotList
 
-	go func(_data map[string][]WeiboHot) {
+	WeiboHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
+
+	go func() {
 		path := os.Getenv(constant.FILE_ROOT)
 		if len(path) == 0 {
 			path = "/tmp"
 		}
-		_, _ = file_util.WriteJsonFile(_data, path, "weibo_hot", true)
-	}(WeiboHotDailyRecord)
+		_, _ = file_util.WriteJsonFile(WeiboHotDailyRecord.GetData(), path, "weibo_hot", true)
+	}()
 
 	return hotList, err
 }

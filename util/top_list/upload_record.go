@@ -6,12 +6,85 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/tristan-club/kit/log"
 	"os"
+	"sync"
 	"time"
 )
 
-var Data36krDailyRecord map[string][]Data36krHot
-var WallStreetNewsDailyRecord map[string][]WallStreetNews
-var WeiboHotDailyRecord map[string][]WeiboHot
+var Data36krDailyRecord d36DR
+var WallStreetNewsDailyRecord wallStreetNewsDailyRecord
+var WeiboHotDailyRecord weiboHotDailyRecord
+
+type d36DR struct {
+	data map[string][]Data36krHot
+	sync.RWMutex
+}
+
+func (d *d36DR) Add(k string, v []Data36krHot) {
+	d.Lock()
+	defer d.Unlock()
+	if d.data == nil {
+		d.data = map[string][]Data36krHot{}
+	}
+	d.data[k] = v
+}
+
+func (d *d36DR) GetData() map[string][]Data36krHot {
+	d.RLock()
+	d.RUnlock()
+	data := make(map[string][]Data36krHot)
+	for k, v := range d.data {
+		data[k] = v
+	}
+	return data
+}
+
+type wallStreetNewsDailyRecord struct {
+	data map[string][]WallStreetNews
+	sync.RWMutex
+}
+
+func (d *wallStreetNewsDailyRecord) Add(k string, v []WallStreetNews) {
+	d.Lock()
+	defer d.Unlock()
+	if d.data == nil {
+		d.data = map[string][]WallStreetNews{}
+	}
+	d.data[k] = v
+}
+
+func (d *wallStreetNewsDailyRecord) GetData() map[string][]WallStreetNews {
+	d.RLock()
+	d.RUnlock()
+	data := make(map[string][]WallStreetNews)
+	for k, v := range d.data {
+		data[k] = v
+	}
+	return data
+}
+
+type weiboHotDailyRecord struct {
+	data map[string][]WeiboHot
+	sync.RWMutex
+}
+
+func (d *weiboHotDailyRecord) Add(k string, v []WeiboHot) {
+	d.Lock()
+	defer d.Unlock()
+	if d.data == nil {
+		d.data = map[string][]WeiboHot{}
+	}
+	d.data[k] = v
+}
+
+func (d *weiboHotDailyRecord) GetData() map[string][]WeiboHot {
+	d.RLock()
+	d.RUnlock()
+	data := make(map[string][]WeiboHot)
+	for k, v := range d.data {
+		data[k] = v
+	}
+	return data
+}
 
 // time.Now().Format("2006-01-02 15:04:05")
 func UploadDailyRecord() {
@@ -22,7 +95,7 @@ func UploadDailyRecord() {
 
 	//写微博热搜当日文件
 	{
-		weiboFilePath, err := file_util.WriteJsonFile(WeiboHotDailyRecord, path, "weibo_hot", true)
+		weiboFilePath, err := file_util.WriteJsonFile(WeiboHotDailyRecord.GetData(), path, "weibo_hot", true)
 		if err != nil {
 			log.Error().Fields(map[string]interface{}{
 				"action": "write weibo hot daily record",
@@ -37,14 +110,14 @@ func UploadDailyRecord() {
 					"error":  err,
 				}).Send()
 			} else {
-				WeiboHotDailyRecord = nil
+				WeiboHotDailyRecord.data = nil
 			}
 		}
 	}
 
 	//写华尔街资讯当日文件
 	{
-		wallStreetFilePath, err := file_util.WriteJsonFile(WeiboHotDailyRecord, path, "wallstreet_news", true)
+		wallStreetFilePath, err := file_util.WriteJsonFile(WallStreetNewsDailyRecord.GetData(), path, "wallstreet_news", true)
 		if err != nil {
 			log.Error().Fields(map[string]interface{}{
 				"action": "write weibo hot daily record",
@@ -59,14 +132,14 @@ func UploadDailyRecord() {
 					"error":  err,
 				}).Send()
 			} else {
-				WallStreetNewsDailyRecord = nil
+				WallStreetNewsDailyRecord.data = nil
 			}
 		}
 	}
 
 	//写36氪日榜当日文件
 	{
-		d36krFilePath, err := file_util.WriteJsonFile(WeiboHotDailyRecord, path, "36kr", true)
+		d36krFilePath, err := file_util.WriteJsonFile(Data36krDailyRecord.GetData(), path, "36kr", true)
 		if err != nil {
 			log.Error().Fields(map[string]interface{}{
 				"action": "write weibo hot daily record",
@@ -81,7 +154,7 @@ func UploadDailyRecord() {
 					"error":  err,
 				}).Send()
 			} else {
-				Data36krDailyRecord = nil
+				Data36krDailyRecord.data = nil
 			}
 		}
 	}

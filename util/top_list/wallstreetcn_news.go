@@ -2,12 +2,12 @@ package top_list
 
 import (
 	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/Mrs4s/go-cqhttp/util/encrypt"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/PuerkitoBio/goquery"
 	"io"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 )
 
@@ -19,33 +19,36 @@ type WallStreetNews struct {
 
 func LoadWallStreetNews() ([]WallStreetNews, error) {
 	data, err := ParseWallStreetNews()
-	currData := make([]WallStreetNews, 0, 10)
-	if WallStreetNewsDailyRecord == nil {
-		WallStreetNewsDailyRecord = make(map[string][]WallStreetNews)
-		currData = data
-	} else {
-		for _, _data := range data {
-			for _, news := range WallStreetNewsDailyRecord {
-				for _, _existNew := range news {
-					if strings.EqualFold(_data.Title, _existNew.Title) {
-						continue
-					}
-					currData = append(currData, _data)
-				}
+	currData := make([]WallStreetNews, 0, 50)
+
+	if recordData := WallStreetNewsDailyRecord.GetData(); len(recordData) > 0 {
+		restoredSet := make(map[uint32]struct{})
+
+		for _, news := range recordData {
+			for _, _existNew := range news {
+				restoredSet[encrypt.HashStr(_existNew.Title)] = struct{}{}
 			}
 		}
-	}
-	if len(currData) > 0 {
-		WallStreetNewsDailyRecord[time.Now().Format("2006-01-02 15:04")] = currData
+		for _, _data := range data {
+			if _, ok := restoredSet[encrypt.HashStr(_data.Title)]; !ok {
+				currData = append(currData)
+			}
+		}
+	} else {
+		currData = data
 	}
 
-	go func(_data map[string][]WallStreetNews) {
+	if len(currData) > 0 {
+		WallStreetNewsDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), currData)
+	}
+
+	go func() {
 		path := os.Getenv(constant.FILE_ROOT)
 		if len(path) == 0 {
 			path = "/tmp"
 		}
-		_, _ = file_util.WriteJsonFile(_data, path, "wallstreet_news", true)
-	}(WallStreetNewsDailyRecord)
+		_, _ = file_util.WriteJsonFile(WallStreetNewsDailyRecord.GetData(), path, "wallstreet_news", true)
+	}()
 
 	return data, err
 }
