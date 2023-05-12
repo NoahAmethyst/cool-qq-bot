@@ -11,9 +11,18 @@ var TencentEng *translator_engine.TencentTransEngine
 var BaiduEng *translator_engine.BaiduTransEngine
 var AliEng *translator_engine.AliTransEngine
 var VolcEng *translator_engine.VolcTransEngine
-var EngList []translator_engine.ITransEngine
 
-var currIndex int
+var EngBalance *engBalance
+
+type engBalance struct {
+	EngList     []translator_engine.ITransEngine
+	lastIndex   int
+	balanceFunc func(i int) translator_engine.ITransEngine
+}
+
+func (b *engBalance) GetEng() translator_engine.ITransEngine {
+	return EngBalance.balanceFunc(EngBalance.lastIndex)
+}
 
 func TransText(eng translator_engine.ITransEngine, src, from, to string) (*translator_engine.TransResult, error) {
 	if eng == nil {
@@ -23,15 +32,11 @@ func TransText(eng translator_engine.ITransEngine, src, from, to string) (*trans
 }
 
 func BalanceTranText(src, from, to string) (*translator_engine.TransResult, error) {
-	if len(EngList) == 0 {
+	if len(EngBalance.EngList) == 0 {
 		return nil, errors.New("No translate engine initialized")
 	}
 
-	defer func() {
-		currIndex++
-	}()
-	i := currIndex % len(EngList)
-	return TransText(EngList[i], src, from, to)
+	return TransText(EngBalance.GetEng(), src, from, to)
 
 }
 
@@ -56,29 +61,43 @@ func getVolcConfig() (string, string) {
 
 func init() {
 
+	EngBalance = &engBalance{
+		EngList:   make([]translator_engine.ITransEngine, 0, 6),
+		lastIndex: 0,
+		balanceFunc: func(i int) translator_engine.ITransEngine {
+			if i < len(EngBalance.EngList)-1 {
+				i++
+			} else {
+				i = 0
+			}
+			EngBalance.lastIndex = i
+			return EngBalance.EngList[i]
+		},
+	}
+
 	youdaoAppKey, youdaoSecretKey := getYoudaoCfg()
 	if YoudaoEng = translator_engine.EngFactory.BuildYoudaoEng(youdaoAppKey, youdaoSecretKey); YoudaoEng != nil {
-		EngList = append(EngList, YoudaoEng)
+		EngBalance.EngList = append(EngBalance.EngList, YoudaoEng)
 	}
 
 	tcSecretId, tcSecretKey := getTencentCfg()
 	if TencentEng, _ = translator_engine.EngFactory.BuildTencentEng(tcSecretId, tcSecretKey); TencentEng != nil {
-		EngList = append(EngList, TencentEng)
+		EngBalance.EngList = append(EngBalance.EngList, TencentEng)
 	}
 
 	baiduApiKey, baiduSecretKey := getBaiduCfg()
 	if BaiduEng = translator_engine.EngFactory.BuildBaiduEng(baiduApiKey, baiduSecretKey); BaiduEng != nil {
-		EngList = append(EngList, BaiduEng)
+		EngBalance.EngList = append(EngBalance.EngList, BaiduEng)
 	}
 
 	aliAccessId, aliAccessSecret := getAliCfg()
 	if AliEng, _ = translator_engine.EngFactory.BuildAliEngine(aliAccessId, aliAccessSecret); AliEng != nil {
-		EngList = append(EngList, AliEng)
+		EngBalance.EngList = append(EngBalance.EngList, AliEng)
 	}
 
 	volcAccessKey, volcAccessScret := getVolcConfig()
 	if VolcEng = translator_engine.EngFactory.BuildVolcEngine(volcAccessKey, volcAccessScret); VolcEng != nil {
-		EngList = append(EngList, VolcEng)
+		EngBalance.EngList = append(EngBalance.EngList, VolcEng)
 	}
 
 }
