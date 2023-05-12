@@ -3,6 +3,7 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/Mrs4s/go-cqhttp/util/encrypt"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/tristan-club/kit/log"
 	"os"
@@ -18,7 +19,7 @@ type State struct {
 // WallStreetSentNews 华尔街日报发送记录
 type WallStreetSentNews struct {
 	sync.RWMutex
-	SentList map[int64]map[string]time.Time
+	SentList map[int64]map[uint32]time.Time
 }
 
 // AssistantModel Todo 用户chatgpt模型选择
@@ -30,16 +31,16 @@ func (s *WallStreetSentNews) add(group int64, title string) {
 	defer s.Unlock()
 	now := time.Now()
 	if _, ok := s.SentList[group]; !ok {
-		s.SentList[group] = map[string]time.Time{
-			title: now,
+		s.SentList[group] = map[uint32]time.Time{
+			encrypt.HashStr(title): now,
 		}
 	} else {
-		s.SentList[group][title] = now
+		s.SentList[group][encrypt.HashStr(title)] = now
 	}
 	if len(s.SentList[group]) > 200 {
-		for _title, _createdAt := range s.SentList[group] {
+		for _titleHash, _createdAt := range s.SentList[group] {
 			if now.Sub(_createdAt) > 24*time.Hour {
-				delete(s.SentList[group], _title)
+				delete(s.SentList[group], _titleHash)
 			}
 		}
 	}
@@ -51,7 +52,7 @@ func (s *WallStreetSentNews) checkSent(group int64, title string) bool {
 	if v, ok := s.SentList[group]; !ok {
 		return ok
 	} else {
-		_, ok := v[title]
+		_, ok := v[encrypt.HashStr(title)]
 		return ok
 	}
 
@@ -77,10 +78,10 @@ func (s *WallStreetSentNews) SaveCache() {
 
 func initWallStreetSentNews() *WallStreetSentNews {
 	SentNews := WallStreetSentNews{
-		SentList: map[int64]map[string]time.Time{},
+		SentList: map[int64]map[uint32]time.Time{},
 		RWMutex:  sync.RWMutex{},
 	}
-	data := make(map[int64]map[string]time.Time)
+	data := make(map[int64]map[uint32]time.Time)
 	path := os.Getenv(constant.FILE_ROOT)
 	if len(path) == 0 {
 		path = "/tmp"

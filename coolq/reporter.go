@@ -109,12 +109,10 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 		//bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
 		//	fmt.Sprintf("爬取华尔街见闻最新资讯失败：%s", err.Error()))}})
 	} else {
-
 		readyData := make([]top_list.WallStreetNews, 0, 10)
 		for _, _data := range hotList {
 			if !bot.state.wallstreetSentNews.checkSent(group, _data.Title) {
 				readyData = append(readyData, _data)
-				bot.state.wallstreetSentNews.add(group, _data.Title)
 			}
 		}
 
@@ -124,18 +122,19 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 				bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("没有华尔街最新资讯")}})
 			}
 		} else {
-			bot.state.wallstreetSentNews.SaveCache()
+
 			//倒序输出，因为最新资讯在第一个
 			for i := len(readyData) - 1; i >= 0; i-- {
-				content := fmt.Sprintf("%s\n\n摘要：%s\n\n链接：%s", hotList[i].Title, hotList[i].Content, hotList[i].Url)
+				bot.state.wallstreetSentNews.add(group, readyData[i].Title)
+				content := fmt.Sprintf("%s\n\n摘要：%s\n\n链接：%s", readyData[i].Title, readyData[i].Content, readyData[i].Url)
 				if isGroup {
 					bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 				} else {
 					bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 				}
-
-				time.Sleep(3 * time.Second)
+				time.Sleep(1 * time.Second)
 			}
+			bot.state.wallstreetSentNews.SaveCache()
 		}
 	}
 }
