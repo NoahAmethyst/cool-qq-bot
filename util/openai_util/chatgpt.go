@@ -3,7 +3,6 @@ package openai_util
 import (
 	"context"
 	"github.com/Mrs4s/go-cqhttp/constant"
-	"github.com/pkg/errors"
 	openai "github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 	"os"
@@ -12,7 +11,7 @@ import (
 
 var cli *openai.Client
 
-func AskChatGpt(content string) (string, error) {
+func AskChatGpt(content string) (*openai.ChatCompletionResponse, error) {
 	initCli()
 	resp, err := cli.CreateChatCompletion(
 		context.Background(),
@@ -27,14 +26,7 @@ func AskChatGpt(content string) (string, error) {
 		},
 	)
 	log.Infof("收到openai响应:%+v", resp)
-	if len(resp.Choices) > 0 && len(resp.Choices[0].Message.Content) > 0 {
-		return resp.Choices[0].Message.Content, err
-	}
-	if err == nil {
-		err = errors.New("openai响应为空")
-	}
-
-	return "", err
+	return &resp, err
 
 }
 

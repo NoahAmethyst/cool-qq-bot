@@ -199,14 +199,15 @@ func parseGMAsk(m *message.GroupMessage, bot *CQBot) (*message.TextElement, bool
 }
 
 func askChatGpt(textEle *message.TextElement) string {
-	answer, err := openai_util.AskChatGpt(textEle.Content)
+	var answer string
+	resp, err := openai_util.AskChatGpt(textEle.Content)
 	//重试机制
 	if err != nil {
 		maxRetry := 6
 		for i := 0; i < maxRetry; i++ {
 			time.Sleep(500 * time.Millisecond)
 			log.Warnf("call openai failed cause:%s,retry:%d", err.Error(), i+1)
-			answer, err = openai_util.AskChatGpt(textEle.Content)
+			resp, err = openai_util.AskChatGpt(textEle.Content)
 			if err == nil {
 				break
 			}
@@ -215,6 +216,13 @@ func askChatGpt(textEle *message.TextElement) string {
 
 	if err != nil {
 		answer = fmt.Sprintf("调用openAi 失败：%s", err.Error())
+	} else {
+		if resp == nil || len(resp.Choices) == 0 {
+			log.Warnf("openai 返回空结构：%v", resp)
+			answer = fmt.Sprintf("openai返回空结构")
+		} else {
+			answer = resp.Choices[0].Message.Content
+		}
 	}
 	return answer
 }
