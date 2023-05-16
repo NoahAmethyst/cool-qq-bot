@@ -17,6 +17,7 @@ const (
 	CMDWallStreet = "华尔街"
 	CMDCoin       = "比特币"
 	CMDTrans      = "翻译"
+	CMDImage      = "图片"
 	CMDExist      = "关闭"
 )
 
@@ -38,6 +39,7 @@ func init() {
 		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
 		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
 		{CMDTrans, "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文"},
+		{CMDImage, "AI作图，使用DELL.2生成图片，你需要提供提示词"},
 	}
 
 	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
@@ -58,7 +60,10 @@ func init() {
 			bot.ReportCoinPrice(groupMessage.GroupCode, true)
 		},
 		CMDTrans: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.TransTextInGroup(groupMessage)
+			bot.transTextInGroup(groupMessage)
+		},
+		CMDImage: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.generateImgInGroup(groupMessage)
 		},
 	}
 
@@ -68,6 +73,7 @@ func init() {
 		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
 		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
 		{CMDTrans, "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文 "},
+		{CMDImage, "AI作图，使用DELL.2生成图片，你需要提供提示词"},
 	}
 
 	privateCmdHandlers = map[string]func(bot *CQBot, privateMessage *message.PrivateMessage){
@@ -84,7 +90,10 @@ func init() {
 			bot.ReportCoinPrice(privateMessage.Sender.Uin, false)
 		},
 		CMDTrans: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.TransTextInPrivate(privateMessage)
+			bot.transTextInPrivate(privateMessage)
+		},
+		CMDImage: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.generateImgInPrivate(privateMessage)
 		},
 		CMDExist: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			log.Warnf("收到关闭命令，来源[%s][%d]", privateMessage.Sender.Nickname, privateMessage.Sender.Uin)

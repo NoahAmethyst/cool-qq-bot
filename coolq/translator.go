@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-func (bot *CQBot) TransTextInPrivate(m *message.PrivateMessage) {
+func (bot *CQBot) transTextInPrivate(m *message.PrivateMessage) {
 	var textEle *message.TextElement
 	for _, _ele := range m.Elements {
 		switch _ele.Type() {
@@ -26,6 +26,9 @@ func (bot *CQBot) TransTextInPrivate(m *message.PrivateMessage) {
 
 	text, done := parseSourceText(textEle)
 	if done {
+		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
+			message.NewText(
+				"缺少待翻译文本")}})
 		return
 	}
 
@@ -48,7 +51,7 @@ func (bot *CQBot) TransTextInPrivate(m *message.PrivateMessage) {
 	}
 }
 
-func (bot *CQBot) TransTextInGroup(m *message.GroupMessage) {
+func (bot *CQBot) transTextInGroup(m *message.GroupMessage) {
 	var textEle *message.TextElement
 	for _, _ele := range m.Elements {
 		switch _ele.Type() {
@@ -65,6 +68,9 @@ func (bot *CQBot) TransTextInGroup(m *message.GroupMessage) {
 
 	text, done := parseSourceText(textEle)
 	if done {
+		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewReply(m),
+			message.NewText(
+				"缺少待翻译文本")}})
 		return
 	}
 
@@ -89,18 +95,23 @@ func (bot *CQBot) TransTextInGroup(m *message.GroupMessage) {
 }
 
 func parseSourceText(textEle *message.TextElement) (string, bool) {
-	//re := regexp.MustCompile(`^#(\S+)\s(.*)$`)
-	//
-	//match := re.FindStringSubmatch(textEle.Content)
-	//
-	//if len(match) != 3 {
-	//	return "", true
-	//}
+	var text string
+	re := regexp.MustCompile(`#(\S+)\s+(?s)(.*)`)
 
-	//text := strings.TrimSpace(match[2])
+	match := re.FindStringSubmatch(textEle.Content)
 
-	match := strings.ReplaceAll(textEle.Content, "#翻译 ", "")
-	text := strings.TrimSpace(match)
+	if len(match) != 3 {
+		return text, true
+	}
+
+	text = strings.TrimSpace(match[2])
+
+	if len(text) == 0 {
+		return text, true
+	}
+
+	//match := strings.ReplaceAll(textEle.Content, "#翻译 ", "")
+	//text := strings.TrimSpace(match)
 	return text, false
 }
 
