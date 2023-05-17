@@ -16,7 +16,7 @@ func initCli() {
 			openaiCli = openai.NewClient(apiKey)
 		} else {
 			config := openai.DefaultConfig(apiKey)
-			config.HTTPClient.Timeout = time.Minute * 60
+			config.HTTPClient.Timeout = time.Minute * 120
 			config.BaseURL = "https://open.aiproxy.xyz/v1"
 			openaiCli = openai.NewClientWithConfig(config)
 		}
