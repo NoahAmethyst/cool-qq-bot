@@ -57,6 +57,8 @@ func (bot *CQBot) generateImgInPrivate(m *message.PrivateMessage) {
 			bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewText("DELL.2生成图片为空")}})
 		} else {
+			bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("正在上传图片，请稍后...")}})
 			if f, path, err := file_util.DownloadImgFromUrl(r.Data[0].URL); err == nil {
 				if msg, err := bot.uploadLocalImage(message.Source{
 					SourceType: message.SourcePrivate,
