@@ -70,8 +70,8 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	bot := &CQBot{
 		Client:         cli,
 		nextTokenCache: utils.NewCache[*guildMemberPageToken](time.Second * 10),
-		state:          &State{wallstreetSentNews: initWallStreetSentNews()},
 	}
+	bot.initState()
 	//bot.Client.PrivateMessageEvent.Subscribe(bot.privateMessageEvent)
 	//bot.Client.GroupMessageEvent.Subscribe(bot.groupMessageEvent)
 	//if base.ReportSelfMessage {

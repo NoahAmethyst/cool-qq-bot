@@ -11,22 +11,33 @@ import (
 	"time"
 )
 
+var once sync.Once
+
 type State struct {
-	wallstreetSentNews *WallStreetSentNews
-	assistantModel     *AssistantModel
+	wallstreetSentNews     *wallStreetSentNews
+	assistantModel         *assistantModel
+	groupDialogueSession   *aiAssistantSession
+	privateDialogueSession *aiAssistantSession
 }
 
-// WallStreetSentNews 华尔街日报发送记录
-type WallStreetSentNews struct {
+// wallStreetSentNews 华尔街日报发送记录
+type wallStreetSentNews struct {
 	sync.RWMutex
 	SentList map[int64]map[uint32]time.Time
 }
 
-// AssistantModel Todo 用户chatgpt模型选择
-type AssistantModel struct {
+// assistantModel Todo 用户chatgpt模型选择
+type assistantModel struct {
 }
 
-func (s *WallStreetSentNews) add(group int64, title string) {
+// aiAssistantSession record ai assistant chat conversation to maintain the context of the conversation
+type aiAssistantSession struct {
+	sessionChan map[int64]chan string
+	parentId    map[int64]string
+	sync.RWMutex
+}
+
+func (s *wallStreetSentNews) add(group int64, title string) {
 	s.Lock()
 	defer s.Unlock()
 	now := time.Now()
@@ -46,7 +57,7 @@ func (s *WallStreetSentNews) add(group int64, title string) {
 	}
 }
 
-func (s *WallStreetSentNews) checkSent(group int64, title string) bool {
+func (s *wallStreetSentNews) checkSent(group int64, title string) bool {
 	s.RLock()
 	defer s.RUnlock()
 	if v, ok := s.SentList[group]; !ok {
@@ -58,7 +69,7 @@ func (s *WallStreetSentNews) checkSent(group int64, title string) bool {
 
 }
 
-func (s *WallStreetSentNews) SaveCache() {
+func (s *wallStreetSentNews) SaveCache() {
 	s.RLock()
 	defer s.RUnlock()
 	path := os.Getenv(constant.FILE_ROOT)
@@ -76,8 +87,68 @@ func (s *WallStreetSentNews) SaveCache() {
 	}
 }
 
-func initWallStreetSentNews() *WallStreetSentNews {
-	SentNews := WallStreetSentNews{
+func (s *aiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
+	s.Lock()
+	defer s.Unlock()
+	if s.sessionChan[uid] == nil {
+		s.sessionChan[uid] = make(chan string)
+		go func(int64) {
+			for {
+				select {
+				case id := <-s.sessionChan[uid]:
+					s.setParentMsgId(uid, id)
+				case <-time.After(time.Minute * 10):
+					s.delParentId(uid)
+				}
+			}
+		}(uid)
+	}
+	s.sessionChan[uid] <- parentMsgId
+}
+
+func (s *aiAssistantSession) getParentMsgId(uid int64) (string, bool) {
+	s.RLock()
+	defer s.RUnlock()
+	v, ok := s.parentId[uid]
+	return v, ok
+}
+
+func (s *aiAssistantSession) setParentMsgId(uid int64, parentMsgId string) {
+	s.Lock()
+	defer s.Unlock()
+	s.parentId[uid] = parentMsgId
+}
+
+func (s *aiAssistantSession) delParentId(uid int64) {
+	s.Lock()
+	defer s.Unlock()
+	delete(s.parentId, uid)
+}
+
+func (b *CQBot) initState() {
+	once.Do(func() {
+		if b.state == nil {
+			b.state = &State{
+				wallstreetSentNews: initWallStreetSentNews(),
+				assistantModel:     &assistantModel{},
+				groupDialogueSession: &aiAssistantSession{
+					sessionChan: map[int64]chan string{},
+					parentId:    map[int64]string{},
+					RWMutex:     sync.RWMutex{},
+				},
+				privateDialogueSession: &aiAssistantSession{
+					sessionChan: map[int64]chan string{},
+					parentId:    map[int64]string{},
+					RWMutex:     sync.RWMutex{},
+				},
+			}
+		}
+	})
+
+}
+
+func initWallStreetSentNews() *wallStreetSentNews {
+	SentNews := wallStreetSentNews{
 		SentList: map[int64]map[uint32]time.Time{},
 		RWMutex:  sync.RWMutex{},
 	}

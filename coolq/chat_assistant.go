@@ -7,18 +7,8 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/openai_util"
 	log "github.com/sirupsen/logrus"
 	"strings"
-	"sync"
 	"time"
 )
-
-var groupDialogueSession dialogueSession
-var privateDialogueSession dialogueSession
-
-type dialogueSession struct {
-	sessionChan map[int64]chan string
-	parentId    map[int64]string
-	sync.RWMutex
-}
 
 func (bot *CQBot) askAIAssistantInPrivate(_ *client.QQClient, m *message.PrivateMessage) {
 	textEle, done := parsePMAsk(m)
@@ -26,7 +16,7 @@ func (bot *CQBot) askAIAssistantInPrivate(_ *client.QQClient, m *message.Private
 		return
 	}
 
-	v, ok := privateDialogueSession.getParentMsgId(m.Sender.Uin)
+	v, ok := bot.state.privateDialogueSession.getParentMsgId(m.Sender.Uin)
 
 	var answer *openai_util.AIAssistantResp
 	var err error
@@ -53,7 +43,7 @@ func (bot *CQBot) askAIAssistantInPrivate(_ *client.QQClient, m *message.Private
 		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
 			message.NewText(err.Error())}})
 	} else {
-		privateDialogueSession.putParentMsgId(m.Sender.Uin, answer.ID)
+		bot.state.privateDialogueSession.putParentMsgId(m.Sender.Uin, answer.ID)
 		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
 			message.NewText(answer.Text)}})
 	}
@@ -66,7 +56,7 @@ func (bot *CQBot) askAIAssistantInGroup(_ *client.QQClient, m *message.GroupMess
 		return
 	}
 
-	v, ok := groupDialogueSession.getParentMsgId(m.Sender.Uin)
+	v, ok := bot.state.groupDialogueSession.getParentMsgId(m.Sender.Uin)
 
 	var answer *openai_util.AIAssistantResp
 	var err error
@@ -94,7 +84,7 @@ func (bot *CQBot) askAIAssistantInGroup(_ *client.QQClient, m *message.GroupMess
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewReply(m),
 			message.NewText(err.Error())}})
 	} else {
-		groupDialogueSession.putParentMsgId(m.Sender.Uin, answer.ID)
+		bot.state.groupDialogueSession.putParentMsgId(m.Sender.Uin, answer.ID)
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewReply(m),
 			message.NewText(answer.Text)}})
 	}
@@ -225,55 +215,4 @@ func askChatGpt(textEle *message.TextElement) string {
 		}
 	}
 	return answer
-}
-
-func (s *dialogueSession) putParentMsgId(uid int64, parentMsgId string) {
-	s.Lock()
-	defer s.Unlock()
-	if s.sessionChan[uid] == nil {
-		s.sessionChan[uid] = make(chan string)
-		go func(int64) {
-			for {
-				select {
-				case id := <-s.sessionChan[uid]:
-					s.setParentMsgId(uid, id)
-				case <-time.After(time.Minute * 10):
-					s.delParentId(uid)
-				}
-			}
-		}(uid)
-	}
-	s.sessionChan[uid] <- parentMsgId
-}
-
-func (s *dialogueSession) getParentMsgId(uid int64) (string, bool) {
-	s.RLock()
-	defer s.RUnlock()
-	v, ok := s.parentId[uid]
-	return v, ok
-}
-
-func (s *dialogueSession) setParentMsgId(uid int64, parentMsgId string) {
-	s.Lock()
-	defer s.Unlock()
-	s.parentId[uid] = parentMsgId
-}
-
-func (s *dialogueSession) delParentId(uid int64) {
-	s.Lock()
-	defer s.Unlock()
-	delete(s.parentId, uid)
-}
-
-func init() {
-	groupDialogueSession = dialogueSession{
-		sessionChan: map[int64]chan string{},
-		parentId:    map[int64]string{},
-		RWMutex:     sync.RWMutex{},
-	}
-	privateDialogueSession = dialogueSession{
-		sessionChan: map[int64]chan string{},
-		parentId:    map[int64]string{},
-		RWMutex:     sync.RWMutex{},
-	}
 }
