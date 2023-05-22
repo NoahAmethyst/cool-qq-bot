@@ -1,6 +1,7 @@
 package gotest
 
 import (
+	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"testing"
 )
 
