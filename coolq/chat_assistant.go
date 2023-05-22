@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/client"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/util/openai_util"
+	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	log "github.com/sirupsen/logrus"
 	"strings"
 	"time"
@@ -18,7 +18,7 @@ func (bot *CQBot) askAIAssistantInPrivate(_ *client.QQClient, m *message.Private
 
 	v, ok := bot.state.privateDialogueSession.getParentMsgId(m.Sender.Uin)
 
-	var answer *openai_util.AIAssistantResp
+	var answer *ai_util.AIAssistantResp
 	var err error
 	recvChan := make(chan struct{}, 1)
 	defer close(recvChan)
@@ -32,9 +32,9 @@ func (bot *CQBot) askAIAssistantInPrivate(_ *client.QQClient, m *message.Private
 		}
 	}(m.Sender.Uin)
 	if !ok {
-		answer, err = openai_util.AskAIAssistant(textEle.Content)
+		answer, err = ai_util.AskAIAssistant(textEle.Content)
 	} else {
-		answer, err = openai_util.AskAIAssistant(textEle.Content, v)
+		answer, err = ai_util.AskAIAssistant(textEle.Content, v)
 	}
 	recvChan <- struct{}{}
 
@@ -58,7 +58,7 @@ func (bot *CQBot) askAIAssistantInGroup(_ *client.QQClient, m *message.GroupMess
 
 	v, ok := bot.state.groupDialogueSession.getParentMsgId(m.Sender.Uin)
 
-	var answer *openai_util.AIAssistantResp
+	var answer *ai_util.AIAssistantResp
 	var err error
 	recvChan := make(chan struct{}, 1)
 	defer close(recvChan)
@@ -73,9 +73,9 @@ func (bot *CQBot) askAIAssistantInGroup(_ *client.QQClient, m *message.GroupMess
 	}(m.GroupCode)
 
 	if !ok {
-		answer, err = openai_util.AskAIAssistant(textEle.Content)
+		answer, err = ai_util.AskAIAssistant(textEle.Content)
 	} else {
-		answer, err = openai_util.AskAIAssistant(textEle.Content, v)
+		answer, err = ai_util.AskAIAssistant(textEle.Content, v)
 	}
 	recvChan <- struct{}{}
 
@@ -190,14 +190,14 @@ func parseGMAsk(m *message.GroupMessage, bot *CQBot) (*message.TextElement, bool
 
 func askChatGpt(textEle *message.TextElement) string {
 	var answer string
-	resp, err := openai_util.AskChatGpt(textEle.Content)
+	resp, err := ai_util.AskChatGpt(textEle.Content)
 	//重试机制
 	if err != nil {
 		maxRetry := 6
 		for i := 0; i < maxRetry; i++ {
 			time.Sleep(500 * time.Millisecond)
 			log.Warnf("call openai failed cause:%s,retry:%d", err.Error(), i+1)
-			resp, err = openai_util.AskChatGpt(textEle.Content)
+			resp, err = ai_util.AskChatGpt(textEle.Content)
 			if err == nil {
 				break
 			}

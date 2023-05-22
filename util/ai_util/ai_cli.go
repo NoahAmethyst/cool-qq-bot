@@ -1,4 +1,4 @@
-package openai_util
+package ai_util
 
 import (
 	"github.com/Mrs4s/go-cqhttp/constant"

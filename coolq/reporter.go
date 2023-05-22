@@ -12,8 +12,9 @@ import (
 )
 
 func (bot *CQBot) ReportCoinPrice(group int64, isGroup bool) {
+	var coinContent strings.Builder
+	coinContent.WriteString(fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04")))
 
-	coinContent := fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04"))
 	var priceContents []string
 	for _, symbol := range coin.Symbols {
 		coinInfo, err := coin.Get24HPriceInfo(symbol)
@@ -38,12 +39,12 @@ func (bot *CQBot) ReportCoinPrice(group int64, isGroup bool) {
 
 	} else {
 		for _, _content := range priceContents {
-			coinContent += _content
+			coinContent.WriteString(_content)
 		}
 		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent)}})
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent.String())}})
 		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent)}})
+			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent.String())}})
 		}
 
 	}
@@ -51,7 +52,8 @@ func (bot *CQBot) ReportCoinPrice(group int64, isGroup bool) {
 }
 
 func (bot *CQBot) ReportWeiboHot(group int64, isGroup bool) {
-	hotContent := fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04"))
+	var hotContent strings.Builder
+	hotContent.WriteString(fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04")))
 	if hotList, err := top_list.LoadWeiboHot(); err != nil {
 		log.Error().Msgf("get hot list error:%s", err.Error())
 		if isGroup {
@@ -64,19 +66,20 @@ func (bot *CQBot) ReportWeiboHot(group int64, isGroup bool) {
 
 	} else {
 		for _, hot := range hotList {
-			hotContent += fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title)
+			hotContent.WriteString(fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title))
 		}
 		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent)}})
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
 		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent)}})
+			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
 		}
 
 	}
 }
 
 func (bot *CQBot) Report36kr(group int64, isGroup bool) {
-	hotContent := fmt.Sprintf("%s 36氪24H热榜\n", time.Now().Format("2006-01-02 15:04"))
+	var hotContent strings.Builder
+	hotContent.WriteString(fmt.Sprintf("%s 36氪24H热榜\n", time.Now().Format("2006-01-02 15:04")))
 	if hotList, err := top_list.Load36krHot(); err != nil {
 		log.Error().Msgf("get hot list error:%s", err.Error())
 		if isGroup {
@@ -92,12 +95,12 @@ func (bot *CQBot) Report36kr(group int64, isGroup bool) {
 			if _i > 10 {
 				break
 			}
-			hotContent += fmt.Sprintf("%d	%s\n%s\n\n", _hot.Rank, _hot.Title, _hot.Url)
+			hotContent.WriteString(fmt.Sprintf("%d	%s\n%s\n\n", _hot.Rank, _hot.Title, _hot.Url))
 		}
 		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent)}})
+			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
 		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent)}})
+			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
 		}
 
 	}
@@ -122,7 +125,6 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 				bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("没有华尔街最新资讯")}})
 			}
 		} else {
-
 			//倒序输出，因为最新资讯在第一个
 			for i := len(readyData) - 1; i >= 0; i-- {
 				bot.state.wallstreetSentNews.add(group, readyData[i].Title)

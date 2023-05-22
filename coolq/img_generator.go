@@ -3,8 +3,8 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
-	"github.com/Mrs4s/go-cqhttp/util/openai_util"
 	log "github.com/sirupsen/logrus"
 	"time"
 )
@@ -44,7 +44,7 @@ func (bot *CQBot) generateImgInPrivate(m *message.PrivateMessage) {
 		}
 	}(m.Sender.Uin)
 
-	r, err := openai_util.GenerateImage(text)
+	r, err := ai_util.GenerateImage(text)
 
 	recvChan <- struct{}{}
 
@@ -123,7 +123,7 @@ func (bot *CQBot) generateImgInGroup(m *message.GroupMessage) {
 		}
 	}(m.Sender.Uin)
 
-	r, err := openai_util.GenerateImage(text)
+	r, err := ai_util.GenerateImage(text)
 
 	recvChan <- struct{}{}
 

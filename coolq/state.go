@@ -3,6 +3,7 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/Mrs4s/go-cqhttp/util/encrypt"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/tristan-club/kit/log"
@@ -24,17 +25,6 @@ type State struct {
 type wallStreetSentNews struct {
 	sync.RWMutex
 	SentList map[int64]map[uint32]time.Time
-}
-
-// assistantModel Todo 用户chatgpt模型选择
-type assistantModel struct {
-}
-
-// aiAssistantSession record ai assistant chat conversation to maintain the context of the conversation
-type aiAssistantSession struct {
-	sessionChan map[int64]chan string
-	parentId    map[int64]string
-	sync.RWMutex
 }
 
 func (s *wallStreetSentNews) add(group int64, title string) {
@@ -87,6 +77,31 @@ func (s *wallStreetSentNews) SaveCache() {
 	}
 }
 
+// assistantModel  用户chatgpt模型选择
+type assistantModel struct {
+	selectedModel map[int64]ai_util.ChatModel
+	sync.RWMutex
+}
+
+func (a *assistantModel) setModel(uid int64, model ai_util.ChatModel) {
+	a.Lock()
+	defer a.Unlock()
+	a.selectedModel[uid] = model
+}
+
+func (a *assistantModel) getModel(uid int64) ai_util.ChatModel {
+	a.RLock()
+	defer a.RUnlock()
+	return a.selectedModel[uid]
+}
+
+// aiAssistantSession record ai assistant chat conversation to maintain the context of the conversation
+type aiAssistantSession struct {
+	sessionChan map[int64]chan string
+	parentId    map[int64]string
+	sync.RWMutex
+}
+
 func (s *aiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
 	s.Lock()
 	defer s.Unlock()
@@ -125,10 +140,10 @@ func (s *aiAssistantSession) delParentId(uid int64) {
 	delete(s.parentId, uid)
 }
 
-func (b *CQBot) initState() {
+func (bot *CQBot) initState() {
 	once.Do(func() {
-		if b.state == nil {
-			b.state = &State{
+		if bot.state == nil {
+			bot.state = &State{
 				wallstreetSentNews: initWallStreetSentNews(),
 				assistantModel:     &assistantModel{},
 				groupDialogueSession: &aiAssistantSession{
