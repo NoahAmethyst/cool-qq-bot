@@ -111,6 +111,9 @@ func UploadDailyRecord() {
 				}).Send()
 			} else {
 				WeiboHotDailyRecord.data = nil
+				if err := file_util.ClearFile(weiboFilePath); err != nil {
+					_ = os.Remove(weiboFilePath)
+				}
 			}
 		}
 	}
@@ -133,6 +136,9 @@ func UploadDailyRecord() {
 				}).Send()
 			} else {
 				WallStreetNewsDailyRecord.data = nil
+				if err := file_util.ClearFile(wallStreetFilePath); err != nil {
+					_ = os.Remove(wallStreetFilePath)
+				}
 			}
 		}
 	}
@@ -155,6 +161,50 @@ func UploadDailyRecord() {
 				}).Send()
 			} else {
 				Data36krDailyRecord.data = nil
+				if err := file_util.ClearFile(d36krFilePath); err != nil {
+					_ = os.Remove(d36krFilePath)
+				}
+			}
+		}
+	}
+}
+
+func init() {
+	path := os.Getenv(constant.FILE_ROOT)
+	if len(path) == 0 {
+		path = "/tmp"
+	}
+
+	//加载微博每日记录
+	{
+		data := make(map[string][]WeiboHot)
+		if err := file_util.LoadJsonFile(fmt.Sprintf("%s/weibo_hot.json", path), &data); err == nil {
+			WeiboHotDailyRecord = weiboHotDailyRecord{
+				data:    data,
+				RWMutex: sync.RWMutex{},
+			}
+		}
+
+	}
+
+	//加载华尔街每日记录
+	{
+		data := make(map[string][]WallStreetNews)
+		if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallstreet_news.json", path), &data); err == nil {
+			WallStreetNewsDailyRecord = wallStreetNewsDailyRecord{
+				data:    data,
+				RWMutex: sync.RWMutex{},
+			}
+		}
+	}
+
+	//加载36氪每日记录
+	{
+		data := make(map[string][]Data36krHot)
+		if err := file_util.LoadJsonFile(fmt.Sprintf("%s/36kr.json", path), &data); err == nil {
+			Data36krDailyRecord = d36DR{
+				data:    data,
+				RWMutex: sync.RWMutex{},
 			}
 		}
 	}

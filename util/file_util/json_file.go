@@ -49,5 +49,18 @@ func LoadJsonFile(file string, data interface{}) error {
 		}).Send()
 	}
 	return err
+}
 
+func ClearFile(filePath string) error {
+	file, err := os.OpenFile(filePath, os.O_WRONLY, 0666)
+	if err != nil {
+		return err
+	}
+	defer func(file *os.File) {
+		_ = file.Close()
+	}(file)
+
+	// clear file
+	err = file.Truncate(0)
+	return err
 }
