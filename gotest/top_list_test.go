@@ -5,6 +5,17 @@ import (
 	"testing"
 )
 
+func Test_Zhihu(t *testing.T) {
+	data, err := top_list.GetZhihuHot()
+	if err != nil {
+		panic(err)
+	}
+	for _, _data := range data {
+		t.Logf("%+v", _data)
+	}
+
+}
+
 func Test_36kr(t *testing.T) {
 
 	data, _ := top_list.Load36krHot()

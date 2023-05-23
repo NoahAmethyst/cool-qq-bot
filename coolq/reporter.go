@@ -128,7 +128,7 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 			//倒序输出，因为最新资讯在第一个
 			for i := len(readyData) - 1; i >= 0; i-- {
 				bot.state.wallstreetSentNews.add(group, readyData[i].Title)
-				content := fmt.Sprintf("%s\n\n摘要：%s\n\n链接：%s", readyData[i].Title, readyData[i].Content, readyData[i].Url)
+				content := fmt.Sprintf("华尔街资讯：%s\n\n摘要：%s\n\n链接：%s", readyData[i].Title, readyData[i].Content, readyData[i].Url)
 				if isGroup {
 					bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 				} else {
