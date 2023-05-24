@@ -6,7 +6,7 @@ import (
 )
 
 func Test_Zhihu(t *testing.T) {
-	data, err := top_list.GetZhihuHot()
+	data, err := top_list.LoadZhihuHot()
 	if err != nil {
 		panic(err)
 	}

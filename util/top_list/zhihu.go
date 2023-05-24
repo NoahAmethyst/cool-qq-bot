@@ -3,15 +3,20 @@ package top_list
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
+	"os"
+	"time"
 )
 
 type ZhihuHot struct {
 	Title   string
 	Url     string
 	Excerpt string
+	Rank    int
 	Created int64
 }
 
@@ -69,10 +74,26 @@ type zhihuHotList struct {
 	FbBillMainRise int         `json:"fb_bill_main_rise"`
 }
 
-func GetZhihuHot() ([]ZhihuHot, error) {
-	hostList := make([]ZhihuHot, 0, 10)
+func LoadZhihuHot() ([]ZhihuHot, error) {
+	hotList, err := parseZhihuHot(10)
+
+	ZhihuHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
+
+	go func() {
+		path := os.Getenv(constant.FILE_ROOT)
+		if len(path) == 0 {
+			path = "/tmp"
+		}
+		_, _ = file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu_hot", true)
+	}()
+
+	return hotList, err
+}
+
+func parseZhihuHot(limit int) ([]ZhihuHot, error) {
+	hostList := make([]ZhihuHot, 0, limit)
 	var respData zhihuHotList
-	resp, err := http.Get("https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=100")
+	resp, err := http.Get(fmt.Sprintf("https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=%d", limit))
 	if err != nil {
 		return hostList, err
 	}
@@ -83,14 +104,12 @@ func GetZhihuHot() ([]ZhihuHot, error) {
 		body, _ := io.ReadAll(resp.Body)
 		_ = json.Unmarshal(body, &respData)
 		for _index, _data := range respData.Data {
-			if _index > 10 {
-				break
-			}
 			hostList = append(hostList, ZhihuHot{
 				Title:   _data.Target.Title,
 				Url:     _data.Target.Url,
 				Excerpt: _data.Target.Excerpt,
 				Created: int64(_data.Target.Created),
+				Rank:    _index,
 			})
 		}
 	} else {

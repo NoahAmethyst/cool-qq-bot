@@ -17,7 +17,7 @@ type Data36krHot struct {
 }
 
 func Load36krHot() ([]Data36krHot, error) {
-	data, err := Parse36krHot()
+	data, err := parse36krHot()
 	Data36krDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), data)
 	go func() {
 		path := os.Getenv(constant.FILE_ROOT)
@@ -30,7 +30,7 @@ func Load36krHot() ([]Data36krHot, error) {
 	return data, err
 }
 
-func Parse36krHot() ([]Data36krHot, error) {
+func parse36krHot() ([]Data36krHot, error) {
 	var data []Data36krHot
 	url := "https://36kr.com/"
 	timeout := 120 * time.Second //超时时间2mine

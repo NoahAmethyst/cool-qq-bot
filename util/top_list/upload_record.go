@@ -13,6 +13,7 @@ import (
 var Data36krDailyRecord d36DR
 var WallStreetNewsDailyRecord wallStreetNewsDailyRecord
 var WeiboHotDailyRecord weiboHotDailyRecord
+var ZhihuHotDailyRecord zhihuHotDailyRecord
 
 type d36DR struct {
 	data map[string][]Data36krHot
@@ -81,6 +82,30 @@ func (d *weiboHotDailyRecord) GetData() map[string][]WeiboHot {
 	d.RUnlock()
 	data := make(map[string][]WeiboHot)
 	for k, v := range d.data {
+		data[k] = v
+	}
+	return data
+}
+
+type zhihuHotDailyRecord struct {
+	data map[string][]ZhihuHot
+	sync.RWMutex
+}
+
+func (z *zhihuHotDailyRecord) Add(k string, v []ZhihuHot) {
+	z.Lock()
+	defer z.Unlock()
+	if z.data == nil {
+		z.data = map[string][]ZhihuHot{}
+	}
+	z.data[k] = v
+}
+
+func (z *zhihuHotDailyRecord) GetData() map[string][]ZhihuHot {
+	z.RLock()
+	z.RUnlock()
+	data := make(map[string][]ZhihuHot)
+	for k, v := range z.data {
 		data[k] = v
 	}
 	return data
@@ -167,6 +192,31 @@ func UploadDailyRecord() {
 			}
 		}
 	}
+
+	//写知乎热榜当日文件
+	{
+		zhihuFilePath, err := file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu", true)
+		if err != nil {
+			log.Error().Fields(map[string]interface{}{
+				"action": "write zhihu hot daily record",
+				"error":  err,
+			}).Send()
+		} else {
+			cosPath := fmt.Sprintf("%s/%s", "zhihu", time.Now().Format("2006"))
+			cosFileName := fmt.Sprintf("%s_%s.json", "zhihu", time.Now().Format("0102"))
+			if err = file_util.TCCosUpload(cosPath, cosFileName, zhihuFilePath); err != nil {
+				log.Error().Fields(map[string]interface{}{
+					"action": "upload wall street news daily record to tencent cos",
+					"error":  err,
+				}).Send()
+			} else {
+				Data36krDailyRecord.data = nil
+				if err := file_util.ClearFile(zhihuFilePath); err != nil {
+					_ = os.Remove(zhihuFilePath)
+				}
+			}
+		}
+	}
 }
 
 func init() {
@@ -203,6 +253,17 @@ func init() {
 		data := make(map[string][]Data36krHot)
 		if err := file_util.LoadJsonFile(fmt.Sprintf("%s/36kr.json", path), &data); err == nil {
 			Data36krDailyRecord = d36DR{
+				data:    data,
+				RWMutex: sync.RWMutex{},
+			}
+		}
+	}
+
+	//加载知乎热榜每日记录
+	{
+		data := make(map[string][]ZhihuHot)
+		if err := file_util.LoadJsonFile(fmt.Sprintf("%s/zhihu.json", path), &data); err == nil {
+			ZhihuHotDailyRecord = zhihuHotDailyRecord{
 				data:    data,
 				RWMutex: sync.RWMutex{},
 			}

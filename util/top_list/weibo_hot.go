@@ -37,7 +37,7 @@ func ParseWeiboHotByApi() (map[string]interface{}, error) {
 }
 
 func LoadWeiboHot() ([]WeiboHot, error) {
-	hotList, err := ParseWeiboHot()
+	hotList, err := parseWeiboHot()
 
 	WeiboHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
 
@@ -52,7 +52,7 @@ func LoadWeiboHot() ([]WeiboHot, error) {
 	return hotList, err
 }
 
-func ParseWeiboHot() ([]WeiboHot, error) {
+func parseWeiboHot() ([]WeiboHot, error) {
 	url := "https://s.weibo.com/top/summary?cate=realtimehot"
 	timeout := 120 * time.Second //超时时间2mine
 	client := &http.Client{

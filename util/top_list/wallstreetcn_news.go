@@ -18,7 +18,7 @@ type WallStreetNews struct {
 }
 
 func LoadWallStreetNews() ([]WallStreetNews, error) {
-	data, err := ParseWallStreetNews()
+	data, err := parseWallStreetNews()
 	currData := make([]WallStreetNews, 0, 50)
 
 	if recordData := WallStreetNewsDailyRecord.GetData(); len(recordData) > 0 {
@@ -53,7 +53,7 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 	return data, err
 }
 
-func ParseWallStreetNews() ([]WallStreetNews, error) {
+func parseWallStreetNews() ([]WallStreetNews, error) {
 	url := "https://wallstreetcn.com/news/global"
 	timeout := 120 * time.Second //超时时间2mine
 	client := &http.Client{
