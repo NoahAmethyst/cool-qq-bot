@@ -4,7 +4,8 @@ import (
 	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
-	"github.com/tristan-club/kit/log"
+	"github.com/rs/zerolog/log"
+
 	"os"
 	"sync"
 	"time"

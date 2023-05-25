@@ -2,8 +2,8 @@ package ai_util
 
 import (
 	"context"
+	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
-	"github.com/tristan-club/kit/log"
 )
 
 func GenerateImage(prompt string) (*openai.ImageResponse, error) {

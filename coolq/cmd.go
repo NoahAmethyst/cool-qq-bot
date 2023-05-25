@@ -15,6 +15,7 @@ const (
 	CMDWeibo      = "微博"
 	CMD36kr       = "36"
 	CMDWallStreet = "华尔街"
+	CMDZhihu      = "知乎"
 	CMDCoin       = "比特币"
 	CMDTrans      = "翻译"
 	CMDImage      = "图片"
@@ -36,6 +37,7 @@ func init() {
 		{CMDHeart, "心跳检查"},
 		{CMDWeibo, "拉取微博热搜"},
 		{CMD36kr, "拉取36氪热榜"},
+		{CMDZhihu, "拉取知乎热榜，默认最新10条，你也可以根据需要设置拉取条数，命令模板【#知乎 100"},
 		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
 		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
 		{CMDTrans, "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文"},
@@ -71,6 +73,7 @@ func init() {
 		{CMDWeibo, "拉取微博热搜"},
 		{CMD36kr, "拉取36氪热榜"},
 		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
+		{CMDZhihu, "拉取知乎热榜，默认最新10条，你也可以根据需要设置拉取条数，命令模板【#知乎 100"},
 		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
 		{CMDTrans, "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文 "},
 		{CMDImage, "AI作图，使用DELL.2生成图片，你需要提供提示词"},

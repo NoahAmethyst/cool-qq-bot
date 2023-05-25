@@ -6,7 +6,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/Mrs4s/go-cqhttp/util/http_util"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/tristan-club/kit/log"
+	"github.com/rs/zerolog/log"
 	"io"
 	"net/http"
 	"os"

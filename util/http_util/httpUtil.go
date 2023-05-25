@@ -4,7 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/rs/zerolog/log"
-	"github.com/tristan-club/wizard/pkg/util"
+	"io"
+
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -78,7 +79,9 @@ func Post(url string, params interface{}, headers map[string]string) ([]byte, er
 		return nil, err
 	}
 
-	defer res.Body.Close()
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(res.Body)
 
 	content, err := ioutil.ReadAll(res.Body)
 	if err != nil {
@@ -111,7 +114,7 @@ func PostJSON(url string, params interface{}, headers map[string]string, ret int
 		return err
 	}
 
-	if !util.IsNil(ret) {
+	if ret != nil {
 		err = json.Unmarshal(b, ret)
 	}
 

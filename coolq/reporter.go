@@ -5,7 +5,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/coin"
 	"github.com/Mrs4s/go-cqhttp/util/top_list"
-	"github.com/tristan-club/kit/log"
+	"github.com/rs/zerolog/log"
 
 	"strings"
 	"time"
@@ -128,7 +128,7 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 			//倒序输出，因为最新资讯在第一个
 			for i := len(readyData) - 1; i >= 0; i-- {
 				bot.state.wallstreetSentNews.add(group, readyData[i].Title)
-				content := fmt.Sprintf("华尔街资讯：%s\n\n摘要：%s\n\n链接：%s", readyData[i].Title, readyData[i].Content, readyData[i].Url)
+				content := fmt.Sprintf("%s\n\n摘要：%s\n\n链接：%s", readyData[i].Title, readyData[i].Content, readyData[i].Url)
 				if isGroup {
 					bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 				} else {
@@ -137,6 +137,22 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 				time.Sleep(1 * time.Second)
 			}
 			bot.state.wallstreetSentNews.SaveCache()
+		}
+	}
+}
+
+func (bot *CQBot) ReportZhihuHot(group int64, isGroup bool) {
+	if hotList, err := top_list.LoadZhihuHot(); err != nil {
+		log.Error().Msgf("拉取知乎热榜失败：%s", err.Error())
+	} else {
+		for i := 0; i < len(hotList); i++ {
+			content := fmt.Sprintf("知乎热榜#%d %s\n\n摘要：%s\n\n链接：%s", hotList[i].Rank, hotList[i].Title, hotList[i].Excerpt, hotList[i].Url)
+			if isGroup {
+				bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+			} else {
+				bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+			}
+			time.Sleep(1 * time.Second)
 		}
 	}
 }

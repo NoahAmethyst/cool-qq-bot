@@ -4,8 +4,9 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 	"github.com/tencentyun/cos-go-sdk-v5"
-	"github.com/tristan-club/kit/log"
+
 	"net/http"
 	"net/url"
 	"os"

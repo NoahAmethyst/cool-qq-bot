@@ -23,8 +23,6 @@ require (
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.41
 	github.com/tidwall/gjson v1.14.3
-	github.com/tristan-club/kit v0.0.15
-	github.com/tristan-club/wizard v0.0.16
 	github.com/wdvxdr1123/go-silk v0.0.0-20210316130616-d47b553def60
 	go.mongodb.org/mongo-driver v1.8.3
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa

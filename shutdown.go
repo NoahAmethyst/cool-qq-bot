@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/tristan-club/kit/log"
+	"github.com/rs/zerolog/log"
 	"os"
 	"os/signal"
 	"syscall"

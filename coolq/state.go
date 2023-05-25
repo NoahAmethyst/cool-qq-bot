@@ -6,7 +6,8 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/Mrs4s/go-cqhttp/util/encrypt"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
-	"github.com/tristan-club/kit/log"
+	"github.com/rs/zerolog/log"
+
 	"os"
 	"sync"
 	"time"
