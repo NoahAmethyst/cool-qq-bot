@@ -75,7 +75,7 @@ type zhihuHotList struct {
 }
 
 func LoadZhihuHot() ([]ZhihuHot, error) {
-	hotList, err := parseZhihuHot(10)
+	hotList, err := parseZhihuHot()
 
 	ZhihuHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
 
@@ -87,11 +87,12 @@ func LoadZhihuHot() ([]ZhihuHot, error) {
 		_, _ = file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu_hot", true)
 	}()
 
-	return hotList, err
+	//only return top 10 of the hot list
+	return hotList[:10], err
 }
 
-func parseZhihuHot(limit int) ([]ZhihuHot, error) {
-	hostList := make([]ZhihuHot, 0, limit)
+func parseZhihuHot() ([]ZhihuHot, error) {
+	hostList := make([]ZhihuHot, 0, 100)
 	var respData zhihuHotList
 	resp, err := http.Get("https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=100")
 	if err != nil {
@@ -104,9 +105,6 @@ func parseZhihuHot(limit int) ([]ZhihuHot, error) {
 		body, _ := io.ReadAll(resp.Body)
 		_ = json.Unmarshal(body, &respData)
 		for _index, _data := range respData.Data {
-			if _index >= limit {
-				break
-			}
 			hostList = append(hostList, ZhihuHot{
 				Title:   _data.Target.Title,
 				Url:     _data.Target.Url,

@@ -196,6 +196,8 @@ func UploadDailyRecord() {
 
 	//写知乎热榜当日文件
 	{
+		// cause zhihu hot not register as corn job so load data by this time incase it has no data
+		_, _ = LoadZhihuHot()
 		zhihuFilePath, err := file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu", true)
 		if err != nil {
 			log.Error().Fields(map[string]interface{}{
