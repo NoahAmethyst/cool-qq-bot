@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -105,9 +106,11 @@ func parseZhihuHot() ([]ZhihuHot, error) {
 		body, _ := io.ReadAll(resp.Body)
 		_ = json.Unmarshal(body, &respData)
 		for _index, _data := range respData.Data {
+			currUrl := strings.ReplaceAll(_data.Target.Url, ".api", "")
+			currUrl = strings.ReplaceAll(currUrl, "questions", "question")
 			hostList = append(hostList, ZhihuHot{
 				Title:   _data.Target.Title,
-				Url:     _data.Target.Url,
+				Url:     currUrl,
 				Excerpt: _data.Target.Excerpt,
 				Created: int64(_data.Target.Created),
 				Rank:    _index + 1,

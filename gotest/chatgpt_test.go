@@ -6,7 +6,7 @@ import (
 )
 
 func Test_Chatgpt(t *testing.T) {
-	replyMsg, err := ai_util.AskChatGpt("hello")
+	replyMsg, err := ai_util.AskChatGpt("请告诉我如何制作一份美味的牛排")
 	if err != nil {
 		panic(err)
 	}
