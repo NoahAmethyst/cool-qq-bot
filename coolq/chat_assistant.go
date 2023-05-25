@@ -130,7 +130,7 @@ func parsePMAsk(m *message.PrivateMessage) (*message.TextElement, bool) {
 
 	if textEle == nil ||
 		(!strings.Contains(textEle.Content, "？") &&
-			!strings.Contains(textEle.Content, "？")) {
+			!strings.Contains(textEle.Content, "?")) {
 		return nil, true
 	}
 	return textEle, false
