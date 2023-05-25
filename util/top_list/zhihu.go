@@ -93,7 +93,7 @@ func LoadZhihuHot() ([]ZhihuHot, error) {
 func parseZhihuHot(limit int) ([]ZhihuHot, error) {
 	hostList := make([]ZhihuHot, 0, limit)
 	var respData zhihuHotList
-	resp, err := http.Get(fmt.Sprintf("https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=%d", limit))
+	resp, err := http.Get("https://www.zhihu.com/api/v3/feed/topstory/hot-lists/total?limit=100")
 	if err != nil {
 		return hostList, err
 	}
@@ -104,12 +104,15 @@ func parseZhihuHot(limit int) ([]ZhihuHot, error) {
 		body, _ := io.ReadAll(resp.Body)
 		_ = json.Unmarshal(body, &respData)
 		for _index, _data := range respData.Data {
+			if _index >= limit {
+				break
+			}
 			hostList = append(hostList, ZhihuHot{
 				Title:   _data.Target.Title,
 				Url:     _data.Target.Url,
 				Excerpt: _data.Target.Excerpt,
 				Created: int64(_data.Target.Created),
-				Rank:    _index,
+				Rank:    _index + 1,
 			})
 		}
 	} else {

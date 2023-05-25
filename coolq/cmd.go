@@ -58,6 +58,9 @@ func init() {
 		CMDWallStreet: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.ReportWallStreetNews(groupMessage.GroupCode, true)
 		},
+		CMDZhihu: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.ReportZhihuHot(groupMessage.GroupCode, true)
+		},
 		CMDCoin: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.ReportCoinPrice(groupMessage.GroupCode, true)
 		},
@@ -88,6 +91,9 @@ func init() {
 		},
 		CMDWallStreet: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			bot.ReportWallStreetNews(privateMessage.Sender.Uin, false)
+		},
+		CMDZhihu: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.ReportZhihuHot(privateMessage.Sender.Uin, false)
 		},
 		CMDCoin: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			bot.ReportCoinPrice(privateMessage.Sender.Uin, false)
