@@ -106,7 +106,7 @@ func parseZhihuHot() ([]ZhihuHot, error) {
 		body, _ := io.ReadAll(resp.Body)
 		_ = json.Unmarshal(body, &respData)
 		for _index, _data := range respData.Data {
-			currUrl := strings.ReplaceAll(_data.Target.Url, ".api", "")
+			currUrl := strings.ReplaceAll(_data.Target.Url, "api.", "")
 			currUrl = strings.ReplaceAll(currUrl, "questions", "question")
 			hostList = append(hostList, ZhihuHot{
 				Title:   _data.Target.Title,
