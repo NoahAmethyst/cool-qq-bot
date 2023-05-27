@@ -14,7 +14,9 @@ func Test_Chatgpt(t *testing.T) {
 }
 
 func Test_OpenAIGenerateImg(t *testing.T) {
-	imgResp, err := ai_util.GenerateImage(" A dream of a distant galaxy, by Caspar David Friedrich, matte painting trending on artstation HQ.")
+
+	prompt := `Create an high quality image of a vast, awe-inspiring scene that blends elements of science fiction, cyberpunk, and the infinite expanse of the universe. The image should feature an enormous planet dominating the background, with intricate details on the surface visible from afar, such as glowing cities, sprawling forests, and deep canyons. The sky around the planet should be filled with swirling clouds, electric storms, and perhaps even space debris or satellites adding to the intrigue.`
+	imgResp, err := ai_util.GenerateImage(prompt)
 	if err != nil {
 		panic(err)
 	}
