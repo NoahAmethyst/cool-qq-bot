@@ -8,4 +8,5 @@ const (
 	OPENAI_API_KEY = "OPENAI_API_KEY"
 	NOT_MIRROR     = "NOT_MIRROR"
 	FILE_ROOT      = "FILE_ROOT"
+	OWNER          = "OWNER"
 )

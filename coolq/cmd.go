@@ -128,10 +128,16 @@ func init() {
 			bot.closeReporter(privateMessage.Sender.Uin, false)
 		},
 		CMDExist: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			if bot.state.owner != privateMessage.Sender.Uin {
+				bot.SendPrivateMessage(privateMessage.Sender.Uin, 0, &message.SendingMessage{
+					Elements: []message.IMessageElement{
+						message.NewText(fmt.Sprintf("不是 %s 所有者，无法执行此命令", bot.Client.Nickname))},
+				})
+			}
 			log.Warnf("收到关闭命令，来源[%s][%d]", privateMessage.Sender.Nickname, privateMessage.Sender.Uin)
 			bot.SendPrivateMessage(privateMessage.Sender.Uin, 0, &message.SendingMessage{
 				Elements: []message.IMessageElement{
-					message.NewText("正在关闭Jarvis...")},
+					message.NewText(fmt.Sprintf("%s 正在关闭...", bot.Client.Nickname))},
 			})
 			os.Exit(0)
 		},

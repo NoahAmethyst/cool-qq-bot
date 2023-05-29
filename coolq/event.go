@@ -552,7 +552,7 @@ func (bot *CQBot) friendAddedEvent(c *client.QQClient, e *client.NewFriendEvent)
 	//})
 
 	bot.SendPrivateMessage(e.Friend.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
-		message.NewText("您已添加Jarvis作为您的助手\n如需助手问答，请在您的消息中带上问号\n\n您可使用 # 查询在好友聊天中可使用的命令")}})
+		message.NewText(fmt.Sprintf("您已添加 %s 作为您的助手\n如需助手问答，请在您的消息中带上问号\n\n您可使用 # 查询在好友聊天中可使用的命令", bot.Client.Nickname))}})
 }
 
 func (bot *CQBot) groupInvitedEvent(c *client.QQClient, e *client.GroupInvitedRequest) {

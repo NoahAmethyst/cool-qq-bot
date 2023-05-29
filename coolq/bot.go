@@ -318,6 +318,9 @@ func (bot *CQBot) SendGroupMessage(groupID int64, m *message.SendingMessage) int
 	bot.checkMedia(newElem, groupID)
 	ret := bot.Client.SendGroupMessage(groupID, m)
 	if ret == nil || ret.Id == -1 {
+		if bot.state.owner > 0 {
+			bot.SendPrivateMessage(bot.state.owner, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(fmt.Sprintf("群消息发送失败: 账号可能被风控.群：%d", groupID))}})
+		}
 		log.Warnf("群消息发送失败: 账号可能被风控.群：%d", groupID)
 		return -1
 	}

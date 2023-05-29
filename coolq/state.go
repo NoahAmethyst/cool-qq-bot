@@ -7,6 +7,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/encrypt"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/rs/zerolog/log"
+	"strconv"
 
 	"os"
 	"sync"
@@ -16,6 +17,7 @@ import (
 var once sync.Once
 
 type State struct {
+	owner                  int64
 	reportState            *reportState
 	wallstreetSentNews     *wallStreetSentNews
 	assistantModel         *assistantModel
@@ -235,8 +237,13 @@ func (s *aiAssistantSession) delParentId(uid int64) {
 
 func (bot *CQBot) initState() {
 	once.Do(func() {
+		var owner int64
+		if len(os.Getenv(constant.OWNER)) > 0 {
+			owner, _ = strconv.ParseInt(os.Getenv(constant.OWNER), 10, 64)
+		}
 		if bot.state == nil {
 			bot.state = &State{
+				owner:              owner,
 				reportState:        initReportState(),
 				wallstreetSentNews: initWallStreetSentNews(),
 				assistantModel:     &assistantModel{},
