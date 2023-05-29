@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-func (bot *CQBot) OpenReporter(id int64, isGroup bool) {
+func (bot *CQBot) openReporter(id int64, isGroup bool) {
 	var msg *message.SendingMessage
 	if bot.state.reportState.exist(id, isGroup) {
 		msg = &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("定时推送已处于开启状态，无需再次开启")}}
@@ -28,7 +28,7 @@ func (bot *CQBot) OpenReporter(id int64, isGroup bool) {
 
 }
 
-func (bot *CQBot) CloseReporter(id int64, isGroup bool) {
+func (bot *CQBot) closeReporter(id int64, isGroup bool) {
 	var msg *message.SendingMessage
 	if bot.state.reportState.exist(id, isGroup) {
 		msg = &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("定时推送已关闭")}}

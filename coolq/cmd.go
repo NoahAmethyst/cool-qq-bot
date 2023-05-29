@@ -75,10 +75,10 @@ func init() {
 			bot.generateImgInGroup(groupMessage)
 		},
 		CMDOpenReporter: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.OpenReporter(groupMessage.GroupCode, true)
+			bot.openReporter(groupMessage.GroupCode, true)
 		},
 		CMDCloseReporter: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.CloseReporter(groupMessage.GroupCode, true)
+			bot.closeReporter(groupMessage.GroupCode, true)
 		},
 	}
 
@@ -121,11 +121,11 @@ func init() {
 		},
 
 		CMDOpenReporter: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.OpenReporter(privateMessage.Sender.Uin, false)
+			bot.openReporter(privateMessage.Sender.Uin, false)
 		},
 
 		CMDCloseReporter: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.CloseReporter(privateMessage.Sender.Uin, false)
+			bot.closeReporter(privateMessage.Sender.Uin, false)
 		},
 		CMDExist: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			log.Warnf("收到关闭命令，来源[%s][%d]", privateMessage.Sender.Nickname, privateMessage.Sender.Uin)
