@@ -4,6 +4,18 @@
 
 在 **config.yml** 中设置你自己的账号
 
+在 **device.json**中 protol字段配置设备信息：
+
+| 值 | 类型 | 限制 |
+| --- | --- | --- |
+| 0 | Default/Unset | 当前版本下默认为iPad |
+| 1 | Android Phone | 无 |
+| 2 | Android Watch | 无法接收 notify 事件、无法接收口令红包、无法接收撤回消息 |
+| 3 | MacOS | 无 |
+| 4 | 企点 | 只能登录企点账号或企点子账号 |
+| 5 | iPad | 无 |
+| 6 | aPad | 无 |
+
 #### 本qq机器人已开发以下功能：
 * 微博热搜推送
 * 36氪每日热榜推送 
