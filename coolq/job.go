@@ -42,30 +42,48 @@ func (bot *CQBot) RegisterJob(job IJob) {
 	job.RunJob()
 }
 
-func (bot *CQBot) WeiboHotReporter(group int64, corn string) *ReportJob {
+func (bot *CQBot) WeiboHotReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			bot.ReportWeiboHot(group, true)
+			for id := range bot.state.reportState.getReportList(true) {
+				bot.ReportWeiboHot(id, true)
+			}
+
+			for id := range bot.state.reportState.getReportList(false) {
+				bot.ReportWeiboHot(id, false)
+			}
 		},
 		Corn:  corn,
 		Model: top_list.Weibo,
 	}
 }
 
-func (bot *CQBot) D36krHotReporter(group int64, corn string) *ReportJob {
+func (bot *CQBot) D36krHotReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			bot.Report36kr(group, true)
+			for id := range bot.state.reportState.getReportList(true) {
+				bot.Report36kr(id, true)
+			}
+
+			for id := range bot.state.reportState.getReportList(false) {
+				bot.Report36kr(id, false)
+			}
 		},
 		Corn:  corn,
 		Model: top_list.D36kr,
 	}
 }
 
-func (bot *CQBot) WallStreetNewsReporter(group int64, corn string) *ReportJob {
+func (bot *CQBot) WallStreetNewsReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			bot.ReportWallStreetNews(group, true)
+			for id := range bot.state.reportState.getReportList(true) {
+				bot.ReportWallStreetNews(id, true)
+			}
+
+			for id := range bot.state.reportState.getReportList(false) {
+				bot.ReportWallStreetNews(id, false)
+			}
 		},
 		Corn:  corn,
 		Model: top_list.WallStreet,

@@ -85,7 +85,7 @@ func LoadZhihuHot() ([]ZhihuHot, error) {
 		if len(path) == 0 {
 			path = "/tmp"
 		}
-		_, _ = file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu_hot", true)
+		_, _ = file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu", true)
 	}()
 
 	//only return top 10 of the hot list

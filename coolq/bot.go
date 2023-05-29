@@ -107,22 +107,30 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 
 	bot.Client.GroupMessageEvent.Subscribe(bot.groupMessageAdvancedEvent)
 	bot.Client.PrivateMessageEvent.Subscribe(bot.privateMessageAdvancedEvent)
+
 	//add report job
+	bot.RegisterJob(bot.WeiboHotReporter("0 0 9,14,19,21,23 * * *"))
+	bot.RegisterJob(bot.D36krHotReporter("0 0 12,22 * * *"))
+	bot.RegisterJob(bot.WallStreetNewsReporter("0 5,15,25,35,45,55 9-23 * * *"))
+
+	//notify bot start in group
 	for _, _group := range cli.GroupList {
-		bot.RegisterJob(bot.WeiboHotReporter(_group.Code, "0 0 9,14,19,21,23 * * *"))
-		bot.RegisterJob(bot.D36krHotReporter(_group.Code, "0 0 12,22 * * *"))
-		bot.RegisterJob(bot.WallStreetNewsReporter(_group.Code, "0 5,15,25,35,45,55 9-23 * * *"))
-
 		log.Infof("群%s[%d] 加载机器人", _group.Name, _group.Code)
-
-		content := fmt.Sprintf("%s %s 已启动\n\n", time.Now().Format("2006-01-02 15:04:05"), bot.Client.Nickname)
-		for _model := range JobModels {
-			content += fmt.Sprintf("开启 %s 定时推送\n\n", _model)
+		var strBuilder strings.Builder
+		strBuilder.WriteString(fmt.Sprintf("%s %s 已启动\n\n", time.Now().Format("2006-01-02 15:04:05"), bot.Client.Nickname))
+		if bot.state.reportState.exist(_group.Code, true) {
+			for _model := range JobModels {
+				strBuilder.WriteString(fmt.Sprintf("开启 %s 定时推送\n\n", _model))
+			}
+			strBuilder.WriteString(fmt.Sprintf("如需关闭请使用【#%s】\n\n", CMDCloseReporter))
+		} else {
+			strBuilder.WriteString(fmt.Sprintf("本群未开启资讯定时推送，如需开启请使用【#%s】\n\n", CMDOpenReporter))
 		}
-		content += "您也可以添加我为好友在好友聊天中将我作为助手"
+
+		strBuilder.WriteString("您也可以添加我为好友在好友聊天中将我作为助手")
 
 		bot.SendGroupMessage(_group.Code, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(content)}})
+			message.NewText(strBuilder.String())}})
 	}
 
 	go func() {

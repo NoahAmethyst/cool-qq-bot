@@ -11,6 +11,39 @@ import (
 	"time"
 )
 
+func (bot *CQBot) OpenReporter(id int64, isGroup bool) {
+	var msg *message.SendingMessage
+	if bot.state.reportState.exist(id, isGroup) {
+		msg = &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("定时推送已处于开启状态，无需再次开启")}}
+	} else {
+		msg = &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("定时推送已开启")}}
+		bot.state.reportState.add(id, isGroup)
+	}
+
+	if isGroup {
+		bot.SendGroupMessage(id, msg)
+	} else {
+		bot.SendPrivateMessage(id, 0, msg)
+	}
+
+}
+
+func (bot *CQBot) CloseReporter(id int64, isGroup bool) {
+	var msg *message.SendingMessage
+	if bot.state.reportState.exist(id, isGroup) {
+		msg = &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("定时推送已关闭")}}
+		bot.state.reportState.del(id, isGroup)
+	} else {
+		msg = &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("定时推送已处于关闭状态，无需再次关闭")}}
+	}
+
+	if isGroup {
+		bot.SendGroupMessage(id, msg)
+	} else {
+		bot.SendPrivateMessage(id, 0, msg)
+	}
+}
+
 func (bot *CQBot) ReportCoinPrice(group int64, isGroup bool) {
 	var coinContent strings.Builder
 	coinContent.WriteString(fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04")))
@@ -106,7 +139,8 @@ func (bot *CQBot) Report36kr(group int64, isGroup bool) {
 	}
 }
 
-func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
+func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) bool {
+	hasNews := true
 	if hotList, err := top_list.LoadWallStreetNews(); err != nil {
 		log.Error().Msgf("爬取华尔街见闻最新资讯失败：%s", err.Error())
 		//bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
@@ -121,9 +155,7 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 
 		if len(readyData) == 0 {
 			log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(hotList))
-			if !isGroup {
-				bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("没有华尔街最新资讯")}})
-			}
+			hasNews = false
 		} else {
 			//倒序输出，因为最新资讯在第一个
 			for i := len(readyData) - 1; i >= 0; i-- {
@@ -139,6 +171,7 @@ func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) {
 			bot.state.wallstreetSentNews.SaveCache()
 		}
 	}
+	return hasNews
 }
 
 func (bot *CQBot) ReportZhihuHot(group int64, isGroup bool) {
