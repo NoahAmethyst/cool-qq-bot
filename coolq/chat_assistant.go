@@ -160,7 +160,6 @@ func (bot *CQBot) askChatGptInGroup(_ *client.QQClient, m *message.GroupMessage)
 
 	bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewReply(m),
 		message.NewText(answer)}})
-
 }
 
 func parseGMAsk(m *message.GroupMessage, bot *CQBot) (*message.TextElement, bool) {
