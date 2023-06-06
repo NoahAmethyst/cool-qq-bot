@@ -126,7 +126,10 @@ func parseIndexList(params []string) map[int64]struct{} {
 		if err != nil {
 			index = 0
 		}
-		indexList[index] = struct{}{}
+		if index-1 < 0 {
+			index = 0
+		}
+		indexList[index-1] = struct{}{}
 	}
 
 	for _, _index := range s2 {
@@ -137,7 +140,10 @@ func parseIndexList(params []string) map[int64]struct{} {
 		if err != nil {
 			index = 0
 		}
-		indexList[index] = struct{}{}
+		if index-1 < 0 {
+			index = 0
+		}
+		indexList[index-1] = struct{}{}
 	}
 
 	return indexList
