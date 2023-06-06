@@ -24,28 +24,36 @@ const (
 	CMDExist         = "关闭"
 )
 
-var groupCmdList []cmdInfo
+var groupCmdList []string
 var groupCmdHandlers map[string]func(*CQBot, *message.GroupMessage)
-var privateCmdList []cmdInfo
+
+var privateCmdList []string
 var privateCmdHandlers map[string]func(bot *CQBot, privateMessage *message.PrivateMessage)
 
-type cmdInfo struct {
-	cmd  string
-	desc string
-}
+var cmdInfo map[string]string
 
 func init() {
-	groupCmdList = []cmdInfo{
-		{CMDHeart, "心跳检查"},
-		{CMDWeibo, "拉取微博热搜"},
-		{CMD36kr, "拉取36氪热榜"},
-		{CMDZhihu, "拉取知乎热榜，默认最新10条"},
-		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
-		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
-		{CMDTrans, "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文"},
-		{CMDImage, "AI作图，使用DELL.2生成图片，你需要提供提示词"},
-		{CMDOpenReporter, "开启微博、华尔街最新资讯、36氪定时推送"},
-		{CMDCloseReporter, "关闭微博、华尔街最新资讯、36氪定时推送"},
+	cmdInfo = map[string]string{
+		CMDWeibo:         "拉取微博热搜，可以在命令后添加排名获取指定热搜链接，如：\"#微博 1,2,3\"",
+		CMD36kr:          "拉取36氪热榜",
+		CMDZhihu:         "拉取知乎热榜，默认最新10条",
+		CMDWallStreet:    "拉取华尔街见闻最新资讯",
+		CMDCoin:          "获取BTC,ETH,BNB最新币价（USD）",
+		CMDTrans:         "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文",
+		CMDImage:         "AI作图，使用DELL.2生成图片，你需要提供提示词",
+		CMDOpenReporter:  "开启微博、华尔街最新资讯、36氪定时推送",
+		CMDCloseReporter: "关闭微博、华尔街最新资讯、36氪定时推送",
+	}
+	groupCmdList = []string{
+		CMDWeibo,
+		CMD36kr,
+		CMDZhihu,
+		CMDWallStreet,
+		CMDCoin,
+		CMDTrans,
+		CMDImage,
+		CMDOpenReporter,
+		CMDCloseReporter,
 	}
 
 	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
@@ -54,7 +62,7 @@ func init() {
 				message.NewText("存活")}})
 		},
 		CMDWeibo: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportWeiboHot(groupMessage.GroupCode, true)
+			bot.groupWeiboHot(groupMessage)
 		},
 		CMD36kr: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.Report36kr(groupMessage.GroupCode, true)
@@ -82,21 +90,21 @@ func init() {
 		},
 	}
 
-	privateCmdList = []cmdInfo{
-		{CMDWeibo, "拉取微博热搜"},
-		{CMD36kr, "拉取36氪热榜"},
-		{CMDWallStreet, "拉取华尔街见闻最新资讯"},
-		{CMDZhihu, "拉取知乎热榜，默认最新10条"},
-		{CMDCoin, "获取BTC,ETH,BNB最新币价（USD）"},
-		{CMDTrans, "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文 "},
-		{CMDImage, "AI作图，使用DELL.2生成图片，你需要提供提示词"},
-		{CMDOpenReporter, "开启微博、华尔街最新资讯、36氪定时推送"},
-		{CMDCloseReporter, "关闭微博、华尔街最新资讯、36氪定时推送"},
+	privateCmdList = []string{
+		CMDWeibo,
+		CMD36kr,
+		CMDWallStreet,
+		CMDZhihu,
+		CMDCoin,
+		CMDTrans,
+		CMDImage,
+		CMDOpenReporter,
+		CMDCloseReporter,
 	}
 
 	privateCmdHandlers = map[string]func(bot *CQBot, privateMessage *message.PrivateMessage){
 		CMDWeibo: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.ReportWeiboHot(privateMessage.Sender.Uin, false)
+			bot.privateWeiboHot(privateMessage)
 		},
 		CMD36kr: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			bot.Report36kr(privateMessage.Sender.Uin, false)
@@ -162,8 +170,8 @@ func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 
 	if textEle.Content == "#" {
 		content := ""
-		for _, _cmdInfo := range groupCmdList {
-			content += fmt.Sprintf("#%s\t%s\n\n", _cmdInfo.cmd, _cmdInfo.desc)
+		for _, _cmd := range groupCmdList {
+			content += fmt.Sprintf("#%s\t%s\n\n", _cmd, cmdInfo[_cmd])
 		}
 
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
@@ -211,8 +219,8 @@ func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage)
 
 	if textEle.Content == "#" {
 		content := ""
-		for _, _cmdInfo := range privateCmdList {
-			content += fmt.Sprintf("#%s\t%s\n\n", _cmdInfo.cmd, _cmdInfo.desc)
+		for _, _cmd := range privateCmdList {
+			content += fmt.Sprintf("#%s\t%s\n\n", _cmd, cmdInfo[_cmd])
 		}
 
 		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{

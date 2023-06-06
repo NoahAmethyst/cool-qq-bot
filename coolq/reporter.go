@@ -6,6 +6,8 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/coin"
 	"github.com/Mrs4s/go-cqhttp/util/top_list"
 	"github.com/rs/zerolog/log"
+	"regexp"
+	"strconv"
 
 	"strings"
 	"time"
@@ -81,6 +83,107 @@ func (bot *CQBot) ReportCoinPrice(group int64, isGroup bool) {
 		}
 
 	}
+}
+
+func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
+
+	content := privateMessage.ToString()
+
+	params := parseParam(content)
+	if len(params) == 2 {
+		indexList := parseIndexList(params)
+
+		bot.ReportSpecificWeibo(privateMessage.Sender.Uin, indexList, false)
+	} else {
+		bot.ReportWeiboHot(privateMessage.Sender.Uin, false)
+	}
+
+}
+
+func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
+	content := groupMessage.ToString()
+
+	params := parseParam(content)
+	if len(params) == 2 {
+		indexList := parseIndexList(params)
+
+		bot.ReportSpecificWeibo(groupMessage.GroupCode, indexList, true)
+	} else {
+		bot.ReportWeiboHot(groupMessage.GroupCode, true)
+	}
+}
+
+func parseIndexList(params []string) map[int64]struct{} {
+	_indexList := strings.TrimSpace(params[1])
+	s1 := strings.Split(_indexList, ",")
+	s2 := strings.Split(_indexList, "，")
+	indexList := make(map[int64]struct{})
+	for _, _index := range s1 {
+		if strings.Contains(_index, "，") {
+			continue
+		}
+		index, err := strconv.ParseInt(_index, 10, 64)
+		if err != nil {
+			index = 0
+		}
+		indexList[index] = struct{}{}
+	}
+
+	for _, _index := range s2 {
+		if strings.Contains(_index, ",") {
+			continue
+		}
+		index, err := strconv.ParseInt(_index, 10, 64)
+		if err != nil {
+			index = 0
+		}
+		indexList[index] = struct{}{}
+	}
+
+	return indexList
+}
+
+func parseParam(content string) []string {
+	re := regexp.MustCompile(`#(\S+)\s+(?s)(.*)`)
+
+	match := re.FindStringSubmatch(content)
+
+	params := make([]string, 0, 2)
+
+	if len(match) > 1 {
+		params = match[1:]
+	}
+
+	return params
+}
+
+func (bot *CQBot) ReportSpecificWeibo(group int64, indexList map[int64]struct{}, isGroup bool) {
+	layout := "2006-01-02 15:04"
+	data := top_list.WeiboHotDailyRecord.GetData()
+	var lastestT time.Time
+	for t := range data {
+		reportTime, _ := time.Parse(layout, t)
+		if lastestT.Before(reportTime) {
+			lastestT = reportTime
+		}
+	}
+
+	k := lastestT.Format(layout)
+	if _data, ok := data[k]; !ok {
+		log.Warn().Msgf("can't get latest weibo daily report")
+		bot.ReportWeiboHot(group, isGroup)
+	} else {
+		for _index := range indexList {
+			content := fmt.Sprintf("微博热搜#%d\n%s\n链接:%s", _index+1, _data[_index].Title, _data[_index].Url)
+			if isGroup {
+				bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+			} else {
+				bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+			}
+		}
+
+	}
+
 }
 
 func (bot *CQBot) ReportWeiboHot(group int64, isGroup bool) {
