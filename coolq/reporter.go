@@ -99,7 +99,7 @@ func (bot *CQBot) ReportWeiboHot(group int64, isGroup bool) {
 
 	} else {
 		for _, hot := range hotList {
-			hotContent.WriteString(fmt.Sprintf("%d	%s\n", hot.Rank, hot.Title))
+			hotContent.WriteString(fmt.Sprintf("%d	%s\n链接:%s\n", hot.Rank, hot.Title, hot.Url))
 		}
 		if isGroup {
 			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
