@@ -3,6 +3,7 @@ package http_util
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 	"io"
 
@@ -30,9 +31,15 @@ func Get(url string, headers map[string]string) ([]byte, error) {
 		return nil, err
 	}
 
-	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return nil, errors.New(resp.Status)
+	}
 
-	body, err := ioutil.ReadAll(resp.Body)
+	defer func(Body io.ReadCloser) {
+		_ = Body.Close()
+	}(resp.Body)
+
+	body, err := io.ReadAll(resp.Body)
 
 	if err != nil {
 		return nil, err

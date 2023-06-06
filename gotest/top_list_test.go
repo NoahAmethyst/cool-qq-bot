@@ -1,6 +1,7 @@
 package gotest
 
 import (
+	"github.com/Mrs4s/go-cqhttp/util/coin"
 	"github.com/Mrs4s/go-cqhttp/util/top_list"
 	"testing"
 )
@@ -45,5 +46,12 @@ func Test_WallStreetcn_Latest(t *testing.T) {
 	for _, _data := range data {
 		t.Logf("%+v", _data)
 	}
+}
 
+func Test_GetCoin(t *testing.T) {
+	data, err := coin.Get24HPriceInfo(coin.BTC)
+	if err != nil {
+		panic(err)
+	}
+	t.Logf("%+v", data)
 }
