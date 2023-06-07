@@ -131,7 +131,10 @@ func (p *groupImgGenerator) Target() int64 {
 }
 
 func generateImg(generator imgGenerator) {
-
+	if generator == nil {
+		log.Warnf("nil image generator")
+		return
+	}
 	if !generator.Check() {
 		log.Warnf("generator[%s] not set bot or message", reflect.TypeOf(generator).Name())
 		return
