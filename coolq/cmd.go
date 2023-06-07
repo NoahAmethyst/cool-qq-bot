@@ -80,7 +80,10 @@ func init() {
 			bot.transTextInGroup(groupMessage)
 		},
 		CMDImage: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.generateImgInGroup(groupMessage)
+			generateImg(&groupImgGenerator{
+				bot: bot,
+				m:   groupMessage,
+			})
 		},
 		CMDOpenReporter: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.openReporter(groupMessage.GroupCode, true)
@@ -125,7 +128,10 @@ func init() {
 			bot.transTextInPrivate(privateMessage)
 		},
 		CMDImage: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.generateImgInPrivate(privateMessage)
+			generateImg(&privateImgGenerator{
+				bot: bot,
+				m:   privateMessage,
+			})
 		},
 
 		CMDOpenReporter: func(bot *CQBot, privateMessage *message.PrivateMessage) {
