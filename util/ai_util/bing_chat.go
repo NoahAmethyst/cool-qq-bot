@@ -28,6 +28,7 @@ func AskBingChat(content string) (*BingChatResp, error) {
 	chat.SetRemote(remoteConversationUrl, remoteConversationWs)
 
 	message, err := chat.SendMessage(content)
+	defer chat.Close()
 	if err != nil {
 		return resp, err
 	}
