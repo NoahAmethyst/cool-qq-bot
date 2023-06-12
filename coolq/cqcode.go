@@ -284,7 +284,7 @@ func toElements(e []message.IMessageElement, source message.Source) (r []cqcode.
 	return
 }
 
-// ToMessageContent 将消息转换成 Content. 忽略 Reply
+// ToMessageContent 将消息转换成 Content. 忽略 SendMessage
 // 不同于 onebot 的 Array Message, 此函数转换出来的 Content 的 data 段为实际类型
 // 方便数据库查询
 func ToMessageContent(e []message.IMessageElement) (r []global.MSG) {
@@ -411,7 +411,7 @@ func (bot *CQBot) ConvertStringMessage(raw string, sourceType message.SourceType
 		if t == "reply" { // reply 特殊处理
 			if len(r) > 0 {
 				if _, ok := r[0].(*message.ReplyElement); ok {
-					log.Warnf("警告: 一条信息只能包含一个 Reply 元素.")
+					log.Warnf("警告: 一条信息只能包含一个 SendMessage 元素.")
 					return
 				}
 			}
@@ -423,7 +423,7 @@ func (bot *CQBot) ConvertStringMessage(raw string, sourceType message.SourceType
 				var org db.StoredMessage
 				sender, senderErr := strconv.ParseInt(d["qq"], 10, 64)
 				if senderErr != nil && err != nil {
-					log.Warnf("警告: 自定义 Reply 元素中必须包含 Uin 或 id")
+					log.Warnf("警告: 自定义 SendMessage 元素中必须包含 Uin 或 id")
 					break
 				}
 				msgTime, timeErr := strconv.ParseInt(d["time"], 10, 64)
@@ -472,7 +472,7 @@ func (bot *CQBot) ConvertStringMessage(raw string, sourceType message.SourceType
 					}, r...)
 				}
 			default:
-				log.Warnf("警告: Reply 元素中必须包含 text 或 id")
+				log.Warnf("警告: SendMessage 元素中必须包含 text 或 id")
 			}
 			return
 		}
@@ -583,7 +583,7 @@ func (bot *CQBot) ConvertObjectMessage(m gjson.Result, sourceType message.Source
 		if t == "reply" && sourceType&(message.SourceGroup|message.SourcePrivate) != 0 {
 			if len(r) > 0 {
 				if _, ok := r[0].(*message.ReplyElement); ok {
-					log.Warnf("警告: 一条信息只能包含一个 Reply 元素.")
+					log.Warnf("警告: 一条信息只能包含一个 SendMessage 元素.")
 					return
 				}
 			}
@@ -595,7 +595,7 @@ func (bot *CQBot) ConvertObjectMessage(m gjson.Result, sourceType message.Source
 				var org db.StoredMessage
 				sender, senderErr := strconv.ParseInt(e.Get("data.[user_id,qq]").String(), 10, 64)
 				if senderErr != nil && err != nil {
-					log.Warnf("警告: 自定义 Reply 元素中必须包含 user_id 或 id")
+					log.Warnf("警告: 自定义 SendMessage 元素中必须包含 user_id 或 id")
 					break
 				}
 				msgTime, timeErr := strconv.ParseInt(e.Get("data.time").String(), 10, 64)
@@ -644,7 +644,7 @@ func (bot *CQBot) ConvertObjectMessage(m gjson.Result, sourceType message.Source
 					}, r...)
 				}
 			default:
-				log.Warnf("警告: Reply 元素中必须包含 text 或 id")
+				log.Warnf("警告: SendMessage 元素中必须包含 text 或 id")
 			}
 			return
 		}

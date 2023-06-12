@@ -5,55 +5,42 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/trans"
 	translator_engine "github.com/NoahAmethyst/translator-engine"
+	log "github.com/sirupsen/logrus"
 	"regexp"
 	"strings"
 )
 
-func (bot *CQBot) transTextInPrivate(m *message.PrivateMessage) {
-	var textEle *message.TextElement
-	for _, _ele := range m.Elements {
-		switch _ele.Type() {
-		case message.Text:
-			textEle = _ele.(*message.TextElement)
-		default:
-
-		}
-	}
-
-	if textEle == nil {
-		return
-	}
-
-	text, done := parseSourceText(textEle)
-	if done {
-		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(
-				"缺少待翻译文本")}})
-		return
-	}
-
-	from := translator_engine.AUTO
-	var to string
-	if isChinese(text) {
-		to = translator_engine.EN
-	} else {
-		to = translator_engine.ZH
-	}
-
-	if r, err := trans.BalanceTranText(text, from, to); err != nil {
-		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(
-				fmt.Sprintf("翻译失败：%s", err.Error()))}})
-	} else {
-		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(
-				r.Dst)}})
-	}
+type translator interface {
+	Reply(content string)
+	GetText() *message.TextElement
+	Check() bool
+	Target() int64
 }
 
-func (bot *CQBot) transTextInGroup(m *message.GroupMessage) {
+type privateTranslator struct {
+	bot *CQBot
+	m   *message.PrivateMessage
+}
+
+func (p *privateTranslator) Reply(msg string) {
+
+	p.bot.SendPrivateMessage(p.Target(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
+		message.NewText(
+			msg)}})
+
+}
+
+func (p *privateTranslator) Target() int64 {
+	return p.m.Sender.Uin
+}
+
+func (p *privateTranslator) Check() bool {
+	return p.bot != nil && p.m != nil
+}
+
+func (p *privateTranslator) GetText() *message.TextElement {
 	var textEle *message.TextElement
-	for _, _ele := range m.Elements {
+	for _, _ele := range p.m.Elements {
 		switch _ele.Type() {
 		case message.Text:
 			textEle = _ele.(*message.TextElement)
@@ -61,16 +48,58 @@ func (bot *CQBot) transTextInGroup(m *message.GroupMessage) {
 
 		}
 	}
+	return textEle
+}
+
+type groupTranslator struct {
+	bot *CQBot
+	m   *message.GroupMessage
+}
+
+func (p *groupTranslator) Reply(msg string) {
+
+	p.bot.SendGroupMessage(p.Target(), &message.SendingMessage{Elements: []message.IMessageElement{
+		message.NewReply(p.m),
+		message.NewText(
+			msg)}})
+
+}
+
+func (p *groupTranslator) Target() int64 {
+	return p.m.GroupCode
+}
+
+func (p *groupTranslator) Check() bool {
+	return p.bot != nil && p.m != nil
+}
+
+func (p *groupTranslator) GetText() *message.TextElement {
+	var textEle *message.TextElement
+	for _, _ele := range p.m.Elements {
+		switch _ele.Type() {
+		case message.Text:
+			textEle = _ele.(*message.TextElement)
+		default:
+
+		}
+	}
+	return textEle
+}
+
+func TransText(t translator) {
+
+	if t == nil || !t.Check() {
+		log.Warn("invalid translator")
+		return
+	}
+	textEle := t.GetText()
 
 	if textEle == nil {
 		return
 	}
-
 	text, done := parseSourceText(textEle)
 	if done {
-		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewReply(m),
-			message.NewText(
-				"缺少待翻译文本")}})
+		t.Reply("缺少待翻译文本")
 		return
 	}
 
@@ -83,13 +112,9 @@ func (bot *CQBot) transTextInGroup(m *message.GroupMessage) {
 	}
 
 	if r, err := trans.BalanceTranText(text, from, to); err != nil {
-		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewReply(m),
-			message.NewText(
-				fmt.Sprintf("翻译失败：%s", err.Error()))}})
+		t.Reply(fmt.Sprintf("翻译失败：%s", err.Error()))
 	} else {
-		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{message.NewReply(m),
-			message.NewText(
-				r.Dst)}})
+		t.Reply(r.Dst)
 	}
 
 }

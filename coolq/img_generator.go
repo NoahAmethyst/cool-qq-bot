@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-type imgGenerator interface {
+type ImgGenerator interface {
 	SendMessage(content string)
 	SendImg(stream io.ReadSeeker, filePath, url string) error
 	GetText() *message.TextElement
@@ -130,7 +130,7 @@ func (p *groupImgGenerator) Target() int64 {
 	return p.m.GroupCode
 }
 
-func generateImg(generator imgGenerator) {
+func GenerateImage(generator ImgGenerator) {
 	if generator == nil {
 		log.Warnf("nil image generator")
 		return

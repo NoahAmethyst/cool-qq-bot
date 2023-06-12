@@ -77,10 +77,13 @@ func init() {
 			bot.ReportCoinPrice(groupMessage.GroupCode, true)
 		},
 		CMDTrans: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.transTextInGroup(groupMessage)
+			TransText(&groupTranslator{
+				bot: bot,
+				m:   groupMessage,
+			})
 		},
 		CMDImage: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			generateImg(&groupImgGenerator{
+			GenerateImage(&groupImgGenerator{
 				bot: bot,
 				m:   groupMessage,
 			})
@@ -125,10 +128,13 @@ func init() {
 			bot.ReportCoinPrice(privateMessage.Sender.Uin, false)
 		},
 		CMDTrans: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.transTextInPrivate(privateMessage)
+			TransText(&privateTranslator{
+				bot: bot,
+				m:   privateMessage,
+			})
 		},
 		CMDImage: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			generateImg(&privateImgGenerator{
+			GenerateImage(&privateImgGenerator{
 				bot: bot,
 				m:   privateMessage,
 			})
