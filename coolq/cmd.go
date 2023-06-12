@@ -11,17 +11,18 @@ import (
 )
 
 const (
-	CMDHeart         = "心跳"
-	CMDWeibo         = "微博"
-	CMD36kr          = "36"
-	CMDWallStreet    = "华尔街"
-	CMDZhihu         = "知乎"
-	CMDCoin          = "比特币"
-	CMDTrans         = "翻译"
-	CMDImage         = "图片"
-	CMDOpenReporter  = "开启推送"
-	CMDCloseReporter = "关闭推送"
-	CMDExist         = "关闭"
+	CMDHeart                = "心跳"
+	CMDWeibo                = "微博"
+	CMD36kr                 = "36"
+	CMDWallStreet           = "华尔街"
+	CMDZhihu                = "知乎"
+	CMDCoin                 = "比特币"
+	CMDTrans                = "翻译"
+	CMDImage                = "图片"
+	CMDOpenReporter         = "开启推送"
+	CMDCloseReporter        = "关闭推送"
+	CMDSwitchAssistantModel = "模式"
+	CMDExist                = "关闭"
 )
 
 var groupCmdList []string
@@ -34,15 +35,16 @@ var cmdInfo map[string]string
 
 func init() {
 	cmdInfo = map[string]string{
-		CMDWeibo:         "拉取微博热搜，可以在命令后添加排名获取指定热搜链接，如：\"#微博 1,2,3\"",
-		CMD36kr:          "拉取36氪热榜",
-		CMDZhihu:         "拉取知乎热榜，默认最新10条",
-		CMDWallStreet:    "拉取华尔街见闻最新资讯",
-		CMDCoin:          "获取BTC,ETH,BNB最新币价（USD）",
-		CMDTrans:         "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文",
-		CMDImage:         "AI作图，使用DELL.2生成图片，你需要提供提示词",
-		CMDOpenReporter:  "开启微博、华尔街最新资讯、36氪定时推送",
-		CMDCloseReporter: "关闭微博、华尔街最新资讯、36氪定时推送",
+		CMDWeibo:                "拉取微博热搜，可以在命令后添加排名获取指定热搜链接，如：\"#微博 1,2,3\"",
+		CMD36kr:                 "拉取36氪热榜",
+		CMDZhihu:                "拉取知乎热榜，默认最新10条",
+		CMDWallStreet:           "拉取华尔街见闻最新资讯",
+		CMDCoin:                 "获取BTC,ETH,BNB最新币价（USD）",
+		CMDTrans:                "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文",
+		CMDImage:                "AI作图，使用DELL.2生成图片，你需要提供提示词",
+		CMDOpenReporter:         "开启微博、华尔街最新资讯、36氪定时推送",
+		CMDCloseReporter:        "关闭微博、华尔街最新资讯、36氪定时推送",
+		CMDSwitchAssistantModel: "更换助手模式，0:Chatgpt(默认),1:Bing Chat",
 	}
 	groupCmdList = []string{
 		CMDWeibo,
@@ -52,6 +54,7 @@ func init() {
 		CMDCoin,
 		CMDTrans,
 		CMDImage,
+		CMDSwitchAssistantModel,
 		CMDOpenReporter,
 		CMDCloseReporter,
 	}
@@ -77,13 +80,20 @@ func init() {
 			bot.ReportCoinPrice(groupMessage.GroupCode, true)
 		},
 		CMDTrans: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			TransText(&groupTranslator{
+			TransText(&GroupTranslator{
 				bot: bot,
 				m:   groupMessage,
 			})
 		},
 		CMDImage: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			GenerateImage(&groupImgGenerator{
+			GenerateImage(&GroupImgGenerator{
+				bot: bot,
+				m:   groupMessage,
+			})
+		},
+
+		CMDSwitchAssistantModel: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			ChangeModel(&GroupAssistant{
 				bot: bot,
 				m:   groupMessage,
 			})
@@ -104,6 +114,7 @@ func init() {
 		CMDCoin,
 		CMDTrans,
 		CMDImage,
+		CMDSwitchAssistantModel,
 		CMDOpenReporter,
 		CMDCloseReporter,
 	}
@@ -128,13 +139,20 @@ func init() {
 			bot.ReportCoinPrice(privateMessage.Sender.Uin, false)
 		},
 		CMDTrans: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			TransText(&privateTranslator{
+			TransText(&PrivateTranslator{
 				bot: bot,
 				m:   privateMessage,
 			})
 		},
 		CMDImage: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			GenerateImage(&privateImgGenerator{
+			GenerateImage(&PrivateImgGenerator{
+				bot: bot,
+				m:   privateMessage,
+			})
+		},
+
+		CMDSwitchAssistantModel: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			ChangeModel(&PrivateAssistant{
 				bot: bot,
 				m:   privateMessage,
 			})

@@ -10,19 +10,19 @@ import (
 	"strings"
 )
 
-type translator interface {
+type Translator interface {
 	Reply(content string)
 	GetText() *message.TextElement
 	Check() bool
 	Target() int64
 }
 
-type privateTranslator struct {
+type PrivateTranslator struct {
 	bot *CQBot
 	m   *message.PrivateMessage
 }
 
-func (p *privateTranslator) Reply(msg string) {
+func (p *PrivateTranslator) Reply(msg string) {
 
 	p.bot.SendPrivateMessage(p.Target(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewText(
@@ -30,15 +30,15 @@ func (p *privateTranslator) Reply(msg string) {
 
 }
 
-func (p *privateTranslator) Target() int64 {
+func (p *PrivateTranslator) Target() int64 {
 	return p.m.Sender.Uin
 }
 
-func (p *privateTranslator) Check() bool {
+func (p *PrivateTranslator) Check() bool {
 	return p.bot != nil && p.m != nil
 }
 
-func (p *privateTranslator) GetText() *message.TextElement {
+func (p *PrivateTranslator) GetText() *message.TextElement {
 	var textEle *message.TextElement
 	for _, _ele := range p.m.Elements {
 		switch _ele.Type() {
@@ -51,12 +51,12 @@ func (p *privateTranslator) GetText() *message.TextElement {
 	return textEle
 }
 
-type groupTranslator struct {
+type GroupTranslator struct {
 	bot *CQBot
 	m   *message.GroupMessage
 }
 
-func (p *groupTranslator) Reply(msg string) {
+func (p *GroupTranslator) Reply(msg string) {
 
 	p.bot.SendGroupMessage(p.Target(), &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewReply(p.m),
@@ -65,15 +65,15 @@ func (p *groupTranslator) Reply(msg string) {
 
 }
 
-func (p *groupTranslator) Target() int64 {
+func (p *GroupTranslator) Target() int64 {
 	return p.m.GroupCode
 }
 
-func (p *groupTranslator) Check() bool {
+func (p *GroupTranslator) Check() bool {
 	return p.bot != nil && p.m != nil
 }
 
-func (p *groupTranslator) GetText() *message.TextElement {
+func (p *GroupTranslator) GetText() *message.TextElement {
 	var textEle *message.TextElement
 	for _, _ele := range p.m.Elements {
 		switch _ele.Type() {
@@ -86,7 +86,7 @@ func (p *groupTranslator) GetText() *message.TextElement {
 	return textEle
 }
 
-func TransText(t translator) {
+func TransText(t Translator) {
 
 	if t == nil || !t.Check() {
 		log.Warn("invalid translator")

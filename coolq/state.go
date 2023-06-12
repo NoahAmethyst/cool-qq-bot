@@ -246,7 +246,9 @@ func (bot *CQBot) initState() {
 				owner:              owner,
 				reportState:        initReportState(),
 				wallstreetSentNews: initWallStreetSentNews(),
-				assistantModel:     &assistantModel{},
+				assistantModel: &assistantModel{
+					selectedModel: map[int64]ai_util.ChatModel{},
+				},
 				groupDialogueSession: &aiAssistantSession{
 					sessionChan: map[int64]chan string{},
 					parentId:    map[int64]string{},

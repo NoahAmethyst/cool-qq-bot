@@ -7,7 +7,6 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	log "github.com/sirupsen/logrus"
 	"io"
-	"reflect"
 	"time"
 )
 
@@ -19,27 +18,27 @@ type ImgGenerator interface {
 	Target() int64
 }
 
-type privateImgGenerator struct {
+type PrivateImgGenerator struct {
 	bot *CQBot
 	m   *message.PrivateMessage
 }
 
-func (p *privateImgGenerator) Check() bool {
+func (p *PrivateImgGenerator) Check() bool {
 	return p.bot != nil && p.m != nil
 }
 
-func (p *privateImgGenerator) Target() int64 {
+func (p *PrivateImgGenerator) Target() int64 {
 	return p.m.Sender.Uin
 }
 
-func (p *privateImgGenerator) SendMessage(content string) {
+func (p *PrivateImgGenerator) SendMessage(content string) {
 
 	p.bot.SendPrivateMessage(p.Target(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewText(
 			content)}})
 }
 
-func (p *privateImgGenerator) SendImg(stream io.ReadSeeker, filePath, url string) error {
+func (p *PrivateImgGenerator) SendImg(stream io.ReadSeeker, filePath, url string) error {
 
 	img, err := p.bot.uploadLocalImage(message.Source{
 		SourceType: message.SourcePrivate,
@@ -63,7 +62,7 @@ func (p *privateImgGenerator) SendImg(stream io.ReadSeeker, filePath, url string
 	return err
 }
 
-func (p *privateImgGenerator) GetText() *message.TextElement {
+func (p *PrivateImgGenerator) GetText() *message.TextElement {
 	var textEle *message.TextElement
 	for _, _ele := range p.m.Elements {
 		switch _ele.Type() {
@@ -75,23 +74,23 @@ func (p *privateImgGenerator) GetText() *message.TextElement {
 	return textEle
 }
 
-type groupImgGenerator struct {
+type GroupImgGenerator struct {
 	bot *CQBot
 	m   *message.GroupMessage
 }
 
-func (p *groupImgGenerator) Check() bool {
+func (p *GroupImgGenerator) Check() bool {
 	return p.bot != nil && p.m != nil
 }
 
-func (p *groupImgGenerator) SendMessage(content string) {
+func (p *GroupImgGenerator) SendMessage(content string) {
 
 	p.bot.SendGroupMessage(p.Target(), &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewText(
 			content)}})
 }
 
-func (p *groupImgGenerator) SendImg(stream io.ReadSeeker, filePath, url string) error {
+func (p *GroupImgGenerator) SendImg(stream io.ReadSeeker, filePath, url string) error {
 
 	img, err := p.bot.uploadLocalImage(message.Source{
 		SourceType: message.SourceGroup,
@@ -114,7 +113,7 @@ func (p *groupImgGenerator) SendImg(stream io.ReadSeeker, filePath, url string) 
 	return err
 }
 
-func (p *groupImgGenerator) GetText() *message.TextElement {
+func (p *GroupImgGenerator) GetText() *message.TextElement {
 	var textEle *message.TextElement
 	for _, _ele := range p.m.Elements {
 		switch _ele.Type() {
@@ -126,17 +125,13 @@ func (p *groupImgGenerator) GetText() *message.TextElement {
 	return textEle
 }
 
-func (p *groupImgGenerator) Target() int64 {
+func (p *GroupImgGenerator) Target() int64 {
 	return p.m.GroupCode
 }
 
 func GenerateImage(generator ImgGenerator) {
-	if generator == nil {
-		log.Warnf("nil image generator")
-		return
-	}
-	if !generator.Check() {
-		log.Warnf("generator[%s] not set bot or message", reflect.TypeOf(generator).Name())
+	if generator == nil || !generator.Check() {
+		log.Warnf("invalid image generator")
 		return
 	}
 
