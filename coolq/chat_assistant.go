@@ -15,12 +15,14 @@ var chatModelHandlers map[ai_util.ChatModel]func(assistant Assistant, recvChan c
 type Assistant interface {
 	Reply(content string)
 	GetText() *message.TextElement
+	Mention() *message.AtElement
 	Check() bool
 	Chat() int64
 	Sender() int64
 	Model() ai_util.ChatModel
 	ChangeModel(model ai_util.ChatModel)
-	Session() *aiAssistantSession
+	Session() *AiAssistantSession
+	Me() int64
 }
 
 type PrivateAssistant struct {
@@ -61,6 +63,23 @@ func (p *PrivateAssistant) GetText() *message.TextElement {
 	return textEle
 }
 
+func (p *PrivateAssistant) Mention() *message.AtElement {
+	var mentionEle *message.AtElement
+	for _, _ele := range p.m.Elements {
+		switch _ele.Type() {
+		case message.At:
+			mentionEle = _ele.(*message.AtElement)
+		default:
+			mentionEle = &message.AtElement{}
+		}
+	}
+	return mentionEle
+}
+
+func (p *PrivateAssistant) Me() int64 {
+	return p.bot.Client.Uin
+}
+
 func (p *PrivateAssistant) Model() ai_util.ChatModel {
 	return p.bot.state.assistantModel.getModel(p.m.Sender.Uin)
 }
@@ -70,7 +89,7 @@ func (p *PrivateAssistant) ChangeModel(model ai_util.ChatModel) {
 
 }
 
-func (p *PrivateAssistant) Session() *aiAssistantSession {
+func (p *PrivateAssistant) Session() *AiAssistantSession {
 	return p.bot.state.privateDialogueSession
 }
 
@@ -113,6 +132,23 @@ func (p *GroupAssistant) GetText() *message.TextElement {
 	return textEle
 }
 
+func (p *GroupAssistant) Mention() *message.AtElement {
+	var mentionEle *message.AtElement
+	for _, _ele := range p.m.Elements {
+		switch _ele.Type() {
+		case message.At:
+			mentionEle = _ele.(*message.AtElement)
+		default:
+			mentionEle = &message.AtElement{}
+		}
+	}
+	return mentionEle
+}
+
+func (p *GroupAssistant) Me() int64 {
+	return p.bot.Client.Uin
+}
+
 func (p *GroupAssistant) Model() ai_util.ChatModel {
 	return p.bot.state.assistantModel.getModel(p.m.Sender.Uin)
 }
@@ -122,7 +158,7 @@ func (p *GroupAssistant) ChangeModel(model ai_util.ChatModel) {
 
 }
 
-func (p *GroupAssistant) Session() *aiAssistantSession {
+func (p *GroupAssistant) Session() *AiAssistantSession {
 	return p.bot.state.groupDialogueSession
 }
 
@@ -181,7 +217,9 @@ func AskAssistant(assistant Assistant) {
 		return
 	}
 
-	if !strings.Contains(textEle.Content, "?") && !strings.Contains(textEle.Content, "？") {
+	if !strings.Contains(textEle.Content, "?") &&
+		!strings.Contains(textEle.Content, "？") &&
+		assistant.Me() != assistant.Mention().Target {
 		return
 	}
 
@@ -234,14 +272,32 @@ func askRemoteChatGpt(assistant Assistant, recvChan chan struct{}) {
 
 func askBingChat(assistant Assistant, recvChan chan struct{}) {
 	defer close(recvChan)
-	answer, err := ai_util.AskBingChat(assistant.GetText().Content)
+	var err error
+	bingChatCli := assistant.Session().getConversation(assistant.Sender())
+	if bingChatCli == nil {
+		bingChatCli, err = ai_util.NewBingChat()
+	}
+	if err != nil {
+		assistant.Reply(fmt.Sprintf("创建bingchat会话失败:%s", err.Error()))
+		return
+	}
+	answer, err := ai_util.AskBingChat(bingChatCli, assistant.GetText().Content)
 	recvChan <- struct{}{}
 	if err != nil {
 		assistant.Reply(fmt.Sprintf("询问bingchat失败:%s", err.Error()))
+		assistant.Session().closeConversation(assistant.Sender())
 		return
 	}
 	var strBuilder strings.Builder
 	strBuilder.WriteString(answer.Answer)
+
+	if len(answer.Reference) > 0 {
+		strBuilder.WriteString("\n\n参考资料:")
+	}
+	for title, link := range answer.Reference {
+		strBuilder.WriteString(fmt.Sprintf("\n%s %s", title, link))
+	}
+
 	if len(answer.Suggestions) > 0 {
 		strBuilder.WriteString("\n\n您也可以这样提问")
 	}
@@ -249,13 +305,7 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 		strBuilder.WriteString(fmt.Sprintf("\n%d: %s", i+1, suggest))
 	}
 
-	if len(answer.Reference) > 0 {
-		strBuilder.WriteString("\n\n参考:")
-	}
-	for title, link := range answer.Reference {
-		strBuilder.WriteString(fmt.Sprintf("\n%s %s", title, link))
-	}
-
+	assistant.Session().putConversation(assistant.Sender(), bingChatCli)
 	assistant.Reply(strBuilder.String())
 
 }

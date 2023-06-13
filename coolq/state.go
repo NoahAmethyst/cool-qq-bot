@@ -6,6 +6,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/Mrs4s/go-cqhttp/util/encrypt"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
+	bingchat_api "github.com/NoahAmethyst/bingchat-api"
 	"github.com/rs/zerolog/log"
 	"strconv"
 
@@ -21,8 +22,8 @@ type State struct {
 	reportState            *reportState
 	wallstreetSentNews     *wallStreetSentNews
 	assistantModel         *assistantModel
-	groupDialogueSession   *aiAssistantSession
-	privateDialogueSession *aiAssistantSession
+	groupDialogueSession   *AiAssistantSession
+	privateDialogueSession *AiAssistantSession
 }
 
 type reportState struct {
@@ -182,6 +183,19 @@ func (a *assistantModel) setModel(uid int64, model ai_util.ChatModel) {
 	a.Lock()
 	defer a.Unlock()
 	a.selectedModel[uid] = model
+	path := os.Getenv(constant.FILE_ROOT)
+	if len(path) == 0 {
+		path = "/tmp"
+	}
+	_, err := file_util.WriteJsonFile(a.selectedModel, path, "assistant_model", false)
+	if err != nil {
+		log.Error().Fields(map[string]interface{}{
+			"action": "save assistant_model to file",
+			"error":  err,
+		}).Send()
+	} else {
+		_ = file_util.TCCosUpload("cache", "assistant_model.json", fmt.Sprintf("%s/%s", path, "assistant_model.json"))
+	}
 }
 
 func (a *assistantModel) getModel(uid int64) ai_util.ChatModel {
@@ -190,14 +204,16 @@ func (a *assistantModel) getModel(uid int64) ai_util.ChatModel {
 	return a.selectedModel[uid]
 }
 
-// aiAssistantSession record ai assistant chat conversation to maintain the context of the conversation
-type aiAssistantSession struct {
-	sessionChan map[int64]chan string
-	parentId    map[int64]string
+// AiAssistantSession record ai assistant chat conversation to maintain the context of the conversation
+type AiAssistantSession struct {
+	sessionChan         map[int64]chan string
+	parentId            map[int64]string
+	stillUse            map[int64]chan struct{}
+	sessionConversation map[int64]bingchat_api.IBingChat
 	sync.RWMutex
 }
 
-func (s *aiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
+func (s *AiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
 	s.Lock()
 	defer s.Unlock()
 	if s.sessionChan[uid] == nil {
@@ -216,20 +232,20 @@ func (s *aiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
 	s.sessionChan[uid] <- parentMsgId
 }
 
-func (s *aiAssistantSession) getParentMsgId(uid int64) (string, bool) {
+func (s *AiAssistantSession) getParentMsgId(uid int64) (string, bool) {
 	s.RLock()
 	defer s.RUnlock()
 	v, ok := s.parentId[uid]
 	return v, ok
 }
 
-func (s *aiAssistantSession) setParentMsgId(uid int64, parentMsgId string) {
+func (s *AiAssistantSession) setParentMsgId(uid int64, parentMsgId string) {
 	s.Lock()
 	defer s.Unlock()
 	s.parentId[uid] = parentMsgId
 }
 
-func (s *aiAssistantSession) delParentId(uid int64) {
+func (s *AiAssistantSession) delParentId(uid int64) {
 	s.Lock()
 	defer s.Unlock()
 	delete(s.parentId, uid)
@@ -246,23 +262,60 @@ func (bot *CQBot) initState() {
 				owner:              owner,
 				reportState:        initReportState(),
 				wallstreetSentNews: initWallStreetSentNews(),
-				assistantModel: &assistantModel{
-					selectedModel: map[int64]ai_util.ChatModel{},
-				},
-				groupDialogueSession: &aiAssistantSession{
+				assistantModel:     initAssistantModel(),
+				groupDialogueSession: &AiAssistantSession{
 					sessionChan: map[int64]chan string{},
 					parentId:    map[int64]string{},
 					RWMutex:     sync.RWMutex{},
 				},
-				privateDialogueSession: &aiAssistantSession{
-					sessionChan: map[int64]chan string{},
-					parentId:    map[int64]string{},
-					RWMutex:     sync.RWMutex{},
+				privateDialogueSession: &AiAssistantSession{
+					sessionChan:         map[int64]chan string{},
+					parentId:            map[int64]string{},
+					stillUse:            map[int64]chan struct{}{},
+					sessionConversation: map[int64]bingchat_api.IBingChat{},
+					RWMutex:             sync.RWMutex{},
 				},
 			}
 		}
 	})
+}
 
+func (s *AiAssistantSession) putConversation(uid int64, conversation bingchat_api.IBingChat) {
+	s.Lock()
+	defer s.Unlock()
+	if s.sessionConversation[uid] == nil {
+		s.sessionConversation[uid] = conversation
+	}
+	if s.stillUse[uid] == nil {
+		s.stillUse[uid] = make(chan struct{})
+		go func(int64) {
+			for {
+				select {
+				case <-s.stillUse[uid]:
+
+				case <-time.After(time.Minute * 5):
+					s.closeConversation(uid)
+				}
+			}
+		}(uid)
+	}
+	s.stillUse[uid] <- struct{}{}
+}
+
+func (s *AiAssistantSession) getConversation(uid int64) bingchat_api.IBingChat {
+	s.RLock()
+	defer s.RUnlock()
+	return s.sessionConversation[uid]
+}
+
+func (s *AiAssistantSession) closeConversation(uid int64) {
+	s.Lock()
+	defer s.Unlock()
+	if _, ok := s.sessionConversation[uid]; ok {
+		s.sessionConversation[uid].Close()
+	}
+	delete(s.stillUse, uid)
+	delete(s.sessionConversation, uid)
 }
 
 func initReportState() *reportState {
@@ -329,4 +382,29 @@ func initWallStreetSentNews() *wallStreetSentNews {
 		sentNews.SentList = data
 	}
 	return &sentNews
+}
+
+func initAssistantModel() *assistantModel {
+	_assistantModel := assistantModel{
+		selectedModel: map[int64]ai_util.ChatModel{},
+		RWMutex:       sync.RWMutex{},
+	}
+	data := make(map[int64]ai_util.ChatModel)
+	path := os.Getenv(constant.FILE_ROOT)
+	if len(path) == 0 {
+		path = "/tmp"
+	}
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/assistant_model.json", path), &data); err != nil {
+		log.Info().Fields(map[string]interface{}{
+			"action": "retry load assistant_model json from tencent cos",
+		}).Send()
+		_err := file_util.TCCosDownload("cache", "assistant_model.json", fmt.Sprintf("%s/%s", path, "assistant_model.json"))
+		if _err == nil {
+			_ = file_util.LoadJsonFile(fmt.Sprintf("%s/assistant_model.json", path), &data)
+		}
+	}
+	if len(data) > 0 {
+		_assistantModel.selectedModel = data
+	}
+	return &_assistantModel
 }

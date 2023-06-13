@@ -19,14 +19,17 @@ type BingChatResp struct {
 	Suggestions []string
 }
 
-func AskBingChat(content string) (*BingChatResp, error) {
-	var resp *BingChatResp
+func NewBingChat() (bingchat_api.IBingChat, error) {
 	chat, err := bingchat_api.NewBingChat(os.Getenv("COOKIE"), bingchat_api.ConversationBalanceStyle, 2*time.Minute)
 	if err != nil {
-		return resp, err
+		return chat, err
 	}
 	chat.SetRemote(remoteConversationUrl, remoteConversationWs)
+	return chat, err
+}
 
+func AskBingChat(chat bingchat_api.IBingChat, content string) (*BingChatResp, error) {
+	var resp *BingChatResp
 	message, err := chat.SendMessage(content)
 	defer chat.Close()
 	if err != nil {
@@ -41,18 +44,15 @@ func AskBingChat(content string) (*BingChatResp, error) {
 		respBuilder.WriteString(msg)
 	}
 
+	answer := strings.ReplaceAll(respBuilder.String(), "**", "")
+	//Remove all reference symbols
+	var re = regexp.MustCompile(`\[\^(\d+)\^]`)
+	answer = re.ReplaceAllString(answer, "")
+
 	resp = &BingChatResp{
-		Reference:   make(map[string]string),
-		Answer:      strings.ReplaceAll(respBuilder.String(), "**", ""),
+		Reference:   message.References,
+		Answer:      answer,
 		Suggestions: message.Suggest,
-	}
-
-	// Parse reference
-	linkRegex := regexp.MustCompile(`\[(.*?)\]\((.*?)\)`)
-	links := linkRegex.FindAllStringSubmatch(respBuilder.String(), -1)
-
-	for _, link := range links {
-		resp.Reference[link[1]] = link[2]
 	}
 
 	return resp, err
