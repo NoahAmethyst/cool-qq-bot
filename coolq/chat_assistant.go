@@ -304,7 +304,12 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 	}
 
 	assistant.Session().putConversation(assistant.Sender(), bingChatCli)
-	assistant.Reply(strBuilder.String())
+
+	if len(strBuilder.String()) > 0 {
+		assistant.Reply(strBuilder.String())
+	} else {
+		assistant.Reply("BingChat 响应超时")
+	}
 
 }
 
