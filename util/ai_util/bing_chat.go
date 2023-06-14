@@ -31,17 +31,26 @@ func NewBingChat() (bingchat_api.IBingChat, error) {
 func AskBingChat(chat bingchat_api.IBingChat, content string) (*BingChatResp, error) {
 	var resp *BingChatResp
 	message, err := chat.SendMessage(content)
-	defer chat.Close()
 	if err != nil {
 		return resp, err
 	}
 	var respBuilder strings.Builder
+	done := false
 	for {
-		msg, ok := <-message.Notify
-		if !ok {
+		select {
+		case msg, ok := <-message.Notify:
+			if !ok {
+				done = true
+				break
+			}
+			respBuilder.WriteString(msg)
+		case <-time.After(2 * time.Minute):
+			done = true
 			break
 		}
-		respBuilder.WriteString(msg)
+		if done {
+			break
+		}
 	}
 
 	answer := strings.ReplaceAll(respBuilder.String(), "**", "")

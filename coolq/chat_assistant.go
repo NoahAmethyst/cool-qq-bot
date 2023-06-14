@@ -31,11 +31,9 @@ type PrivateAssistant struct {
 }
 
 func (p *PrivateAssistant) Reply(msg string) {
-
 	p.bot.SendPrivateMessage(p.Chat(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewText(
 			msg)}})
-
 }
 
 func (p *PrivateAssistant) Chat() int64 {
