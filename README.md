@@ -56,6 +56,10 @@ ENV YD_SECRET_KEY=
 ENV VOLC_ACCESS_KEY=
 ENV VOLC_SECRET_KEY=
 
+# BingChat cookie
+# 如何获取请参考:https://github.com/NoahAmethyst/bingchat-api/blob/master/README.md
+ENV COOKIE=
+
 ```
 
 如果是无法访问openai域名的大陆ip,可以添加如下环境变量：
