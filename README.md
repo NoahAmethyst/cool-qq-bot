@@ -4,7 +4,7 @@
 
 在 **config.yml** 中设置你自己的账号
 
-在 **device.json**中 protol字段配置设备信息：
+在 **device.json**中 protol字段配置设备信息(device文件会在第一次启动自动生成)：
 
 | 值 | 类型 | 限制 |
 | --- | --- | --- |
