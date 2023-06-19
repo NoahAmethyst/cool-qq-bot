@@ -8,6 +8,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	bingchat_api "github.com/NoahAmethyst/bingchat-api"
 	"github.com/rs/zerolog/log"
+	"github.com/sashabaranov/go-openai"
 	"strconv"
 
 	"os"
@@ -206,22 +207,28 @@ func (a *assistantModel) getModel(uid int64) ai_util.ChatModel {
 
 // AiAssistantSession record ai assistant chat conversation to maintain the context of the conversation
 type AiAssistantSession struct {
-	sessionChan         map[int64]chan string
-	parentId            map[int64]string
-	stillUse            map[int64]chan struct{}
-	sessionConversation map[int64]bingchat_api.IBingChat
+	//chat assistant
+	assistantChan map[int64]chan string
+	parentId      map[int64]string
+	//bingchat
+	bingChan     map[int64]chan struct{}
+	conversation map[int64]bingchat_api.IBingChat
+	//chatgpt
+	chatgptChan map[int64]chan struct{}
+	ctx         map[int64][]openai.ChatCompletionMessage
+
 	sync.RWMutex
 }
 
 func (s *AiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
 	s.Lock()
 	defer s.Unlock()
-	if s.sessionChan[uid] == nil {
-		s.sessionChan[uid] = make(chan string)
+	if s.assistantChan[uid] == nil {
+		s.assistantChan[uid] = make(chan string)
 		go func(int64) {
 			for {
 				select {
-				case id := <-s.sessionChan[uid]:
+				case id := <-s.assistantChan[uid]:
 					s.setParentMsgId(uid, id)
 				case <-time.After(time.Minute * 10):
 					s.delParentId(uid)
@@ -229,7 +236,7 @@ func (s *AiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
 			}
 		}(uid)
 	}
-	s.sessionChan[uid] <- parentMsgId
+	s.assistantChan[uid] <- parentMsgId
 }
 
 func (s *AiAssistantSession) getParentMsgId(uid int64) (string, bool) {
@@ -251,6 +258,93 @@ func (s *AiAssistantSession) delParentId(uid int64) {
 	delete(s.parentId, uid)
 }
 
+func (s *AiAssistantSession) putConversation(uid int64, conversation bingchat_api.IBingChat) {
+	s.Lock()
+	defer s.Unlock()
+	if s.conversation[uid] == nil {
+		s.conversation[uid] = conversation
+	}
+	if s.bingChan[uid] == nil {
+		s.bingChan[uid] = make(chan struct{})
+		go func(int64) {
+			for {
+				select {
+				case <-s.bingChan[uid]:
+
+				case <-time.After(time.Minute * 5):
+					s.closeConversation(uid)
+				}
+			}
+		}(uid)
+	}
+	s.bingChan[uid] <- struct{}{}
+}
+
+func (s *AiAssistantSession) getConversation(uid int64) bingchat_api.IBingChat {
+	s.RLock()
+	defer s.RUnlock()
+	return s.conversation[uid]
+}
+
+func (s *AiAssistantSession) closeConversation(uid int64) {
+	s.Lock()
+	defer s.Unlock()
+	if _, ok := s.conversation[uid]; ok {
+		s.conversation[uid].Close()
+	}
+	close(s.bingChan[uid])
+	delete(s.bingChan, uid)
+	delete(s.conversation, uid)
+}
+
+func (s *AiAssistantSession) putCtx(uid int64, msg, resp string) {
+	s.Lock()
+	defer s.Unlock()
+	if s.ctx[uid] == nil {
+		s.ctx[uid] = make([]openai.ChatCompletionMessage, 0, 8)
+		s.ctx[uid] = append(s.ctx[uid], []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: msg,
+			},
+			{
+				Role:    openai.ChatMessageRoleAssistant,
+				Content: resp,
+			},
+		}...)
+	}
+	if s.chatgptChan[uid] == nil {
+		s.chatgptChan[uid] = make(chan struct{})
+		go func(int64) {
+			for {
+				select {
+				case <-s.chatgptChan[uid]:
+
+				case <-time.After(time.Minute * 10):
+					s.clearCtx(uid)
+				}
+			}
+		}(uid)
+	}
+	s.chatgptChan[uid] <- struct{}{}
+}
+
+func (s *AiAssistantSession) getCtx(uid int64) []openai.ChatCompletionMessage {
+	s.RLock()
+	defer s.RUnlock()
+	ctx := make([]openai.ChatCompletionMessage, 0, len(s.ctx[uid]))
+	copy(s.ctx[uid], ctx)
+	return ctx
+}
+
+func (s *AiAssistantSession) clearCtx(uid int64) {
+	s.Lock()
+	defer s.Unlock()
+	delete(s.ctx, uid)
+	close(s.chatgptChan[uid])
+	delete(s.chatgptChan, uid)
+}
+
 func (bot *CQBot) initState() {
 	once.Do(func() {
 		var owner int64
@@ -264,58 +358,20 @@ func (bot *CQBot) initState() {
 				wallstreetSentNews: initWallStreetSentNews(),
 				assistantModel:     initAssistantModel(),
 				groupDialogueSession: &AiAssistantSession{
-					sessionChan: map[int64]chan string{},
-					parentId:    map[int64]string{},
-					RWMutex:     sync.RWMutex{},
+					assistantChan: map[int64]chan string{},
+					parentId:      map[int64]string{},
+					RWMutex:       sync.RWMutex{},
 				},
 				privateDialogueSession: &AiAssistantSession{
-					sessionChan:         map[int64]chan string{},
-					parentId:            map[int64]string{},
-					stillUse:            map[int64]chan struct{}{},
-					sessionConversation: map[int64]bingchat_api.IBingChat{},
-					RWMutex:             sync.RWMutex{},
+					assistantChan: map[int64]chan string{},
+					parentId:      map[int64]string{},
+					bingChan:      map[int64]chan struct{}{},
+					conversation:  map[int64]bingchat_api.IBingChat{},
+					RWMutex:       sync.RWMutex{},
 				},
 			}
 		}
 	})
-}
-
-func (s *AiAssistantSession) putConversation(uid int64, conversation bingchat_api.IBingChat) {
-	s.Lock()
-	defer s.Unlock()
-	if s.sessionConversation[uid] == nil {
-		s.sessionConversation[uid] = conversation
-	}
-	if s.stillUse[uid] == nil {
-		s.stillUse[uid] = make(chan struct{})
-		go func(int64) {
-			for {
-				select {
-				case <-s.stillUse[uid]:
-
-				case <-time.After(time.Minute * 5):
-					s.closeConversation(uid)
-				}
-			}
-		}(uid)
-	}
-	s.stillUse[uid] <- struct{}{}
-}
-
-func (s *AiAssistantSession) getConversation(uid int64) bingchat_api.IBingChat {
-	s.RLock()
-	defer s.RUnlock()
-	return s.sessionConversation[uid]
-}
-
-func (s *AiAssistantSession) closeConversation(uid int64) {
-	s.Lock()
-	defer s.Unlock()
-	if _, ok := s.sessionConversation[uid]; ok {
-		s.sessionConversation[uid].Close()
-	}
-	delete(s.stillUse, uid)
-	delete(s.sessionConversation, uid)
 }
 
 func initReportState() *reportState {

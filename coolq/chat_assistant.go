@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
+	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
@@ -315,27 +316,23 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 
 func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	defer close(recvChan)
-	answer := askChatGpt(assistant.GetText())
-	recvChan <- struct{}{}
-	assistant.Reply(answer)
-}
+	textEle := assistant.GetText()
+	ctx := assistant.Session().getCtx(assistant.Sender())
+	msg := openai.ChatCompletionMessage{
 
-func askChatGpt(textEle *message.TextElement) string {
-	var answer string
-	resp, err := ai_util.AskChatGpt(textEle.Content)
-	//重试机制
-	if err != nil {
-		maxRetry := 6
-		for i := 0; i < maxRetry; i++ {
-			time.Sleep(500 * time.Millisecond)
-			log.Warnf("call openai failed cause:%s,retry:%d", err.Error(), i+1)
-			resp, err = ai_util.AskChatGpt(textEle.Content)
-			if err == nil {
-				break
-			}
+		Role:    openai.ChatMessageRoleUser,
+		Content: textEle.Content,
+	}
+	if len(ctx) == 0 {
+		ctx = []openai.ChatCompletionMessage{
+			msg,
 		}
+	} else {
+		ctx = append(ctx, msg)
 	}
 
+	var answer string
+	resp, err := ai_util.AskChatGpt(ctx)
 	if err != nil {
 		answer = fmt.Sprintf("调用openAi 失败：%s", err.Error())
 	} else {
@@ -344,9 +341,12 @@ func askChatGpt(textEle *message.TextElement) string {
 			answer = fmt.Sprintf("openai返回空结构")
 		} else {
 			answer = resp.Choices[0].Message.Content
+			assistant.Session().putCtx(assistant.Sender(), msg.Content, answer)
 		}
 	}
-	return answer
+
+	recvChan <- struct{}{}
+	assistant.Reply(answer)
 }
 
 func init() {

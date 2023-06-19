@@ -6,18 +6,13 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func AskChatGpt(content string) (*openai.ChatCompletionResponse, error) {
+func AskChatGpt(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionResponse, error) {
 	initCli()
 	resp, err := openaiCli.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
-			Messages: []openai.ChatCompletionMessage{
-				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: content,
-				},
-			},
+			Model:    openai.GPT3Dot5Turbo,
+			Messages: ctx,
 		},
 	)
 	log.Infof("收到openai响应:%+v", resp)

@@ -2,15 +2,38 @@ package gotest
 
 import (
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
+	"github.com/sashabaranov/go-openai"
 	"testing"
 )
 
 func Test_Chatgpt(t *testing.T) {
-	replyMsg, err := ai_util.AskChatGpt("请告诉我如何制作一份美味的牛排")
+	ctx := make([]openai.ChatCompletionMessage, 0, 4)
+	ctx = append(ctx, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: "请告诉我如何制作一份美味的牛排",
+	})
+	replyMsg, err := ai_util.AskChatGpt(ctx)
 	if err != nil {
 		panic(err)
 	}
 	t.Logf("%+v", replyMsg)
+
+	ctx = append(ctx, openai.ChatCompletionMessage{
+		Role:    replyMsg.Choices[0].Message.Role,
+		Content: replyMsg.Choices[0].Message.Content,
+	})
+
+	ctx = append(ctx, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: "还有其他的方法吗",
+	})
+
+	replyMsg, err = ai_util.AskChatGpt(ctx)
+	if err != nil {
+		panic(err)
+	}
+	t.Logf("%+v", replyMsg)
+
 }
 
 func Test_OpenAIGenerateImg(t *testing.T) {
