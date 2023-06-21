@@ -11,7 +11,7 @@ func AskChatGpt(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionRespo
 	resp, err := openaiCli.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model:    openai.GPT3Dot5Turbo,
+			Model:    openai.GPT3Dot5Turbo0613,
 			Messages: ctx,
 		},
 	)
