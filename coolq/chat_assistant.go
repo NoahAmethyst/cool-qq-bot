@@ -319,7 +319,6 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	textEle := assistant.GetText()
 	ctx := assistant.Session().getCtx(assistant.Sender())
 	msg := openai.ChatCompletionMessage{
-
 		Role:    openai.ChatMessageRoleUser,
 		Content: textEle.Content,
 	}
@@ -344,14 +343,14 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 			assistant.Session().putCtx(assistant.Sender(), msg.Content, answer)
 		}
 	}
-
 	recvChan <- struct{}{}
 	assistant.Reply(answer)
 }
 
 func init() {
 	chatModelHandlers = map[ai_util.ChatModel]func(assistant Assistant, recvChan chan struct{}){
-		ai_util.ChatGPT:  askRemoteChatGpt,
+		//ai_util.ChatGPT:  askRemoteChatGpt,
+		ai_util.ChatGPT:  askOfficialChatGpt,
 		ai_util.BingChat: askBingChat,
 	}
 }

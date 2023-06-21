@@ -302,17 +302,18 @@ func (s *AiAssistantSession) putCtx(uid int64, msg, resp string) {
 	defer s.Unlock()
 	if s.ctx[uid] == nil {
 		s.ctx[uid] = make([]openai.ChatCompletionMessage, 0, 8)
-		s.ctx[uid] = append(s.ctx[uid], []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: msg,
-			},
-			{
-				Role:    openai.ChatMessageRoleAssistant,
-				Content: resp,
-			},
-		}...)
 	}
+	s.ctx[uid] = append(s.ctx[uid], []openai.ChatCompletionMessage{
+		{
+			Role:    openai.ChatMessageRoleUser,
+			Content: msg,
+		},
+		{
+			Role:    openai.ChatMessageRoleAssistant,
+			Content: resp,
+		},
+	}...)
+
 	if s.chatgptChan[uid] == nil {
 		s.chatgptChan[uid] = make(chan struct{})
 		go func(int64) {
@@ -332,8 +333,8 @@ func (s *AiAssistantSession) putCtx(uid int64, msg, resp string) {
 func (s *AiAssistantSession) getCtx(uid int64) []openai.ChatCompletionMessage {
 	s.RLock()
 	defer s.RUnlock()
-	ctx := make([]openai.ChatCompletionMessage, 0, len(s.ctx[uid]))
-	copy(s.ctx[uid], ctx)
+	ctx := make([]openai.ChatCompletionMessage, len(s.ctx[uid]))
+	copy(ctx, s.ctx[uid])
 	return ctx
 }
 
@@ -360,6 +361,10 @@ func (bot *CQBot) initState() {
 				groupDialogueSession: &AiAssistantSession{
 					assistantChan: map[int64]chan string{},
 					parentId:      map[int64]string{},
+					bingChan:      map[int64]chan struct{}{},
+					conversation:  map[int64]bingchat_api.IBingChat{},
+					chatgptChan:   map[int64]chan struct{}{},
+					ctx:           map[int64][]openai.ChatCompletionMessage{},
 					RWMutex:       sync.RWMutex{},
 				},
 				privateDialogueSession: &AiAssistantSession{
@@ -367,6 +372,8 @@ func (bot *CQBot) initState() {
 					parentId:      map[int64]string{},
 					bingChan:      map[int64]chan struct{}{},
 					conversation:  map[int64]bingchat_api.IBingChat{},
+					chatgptChan:   map[int64]chan struct{}{},
+					ctx:           map[int64][]openai.ChatCompletionMessage{},
 					RWMutex:       sync.RWMutex{},
 				},
 			}
