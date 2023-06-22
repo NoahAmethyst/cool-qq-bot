@@ -10,7 +10,7 @@ func Test_Chatgpt(t *testing.T) {
 	ctx := make([]openai.ChatCompletionMessage, 0, 4)
 	ctx = append(ctx, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
-		Content: "请告诉我如何制作一份美味的牛排",
+		Content: "南京今天天气怎么样",
 	})
 	replyMsg, err := ai_util.AskChatGpt(ctx)
 	if err != nil {
@@ -33,7 +33,6 @@ func Test_Chatgpt(t *testing.T) {
 		panic(err)
 	}
 	t.Logf("%+v", replyMsg)
-
 }
 
 func Test_OpenAIGenerateImg(t *testing.T) {
