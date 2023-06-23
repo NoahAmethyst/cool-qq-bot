@@ -45,13 +45,20 @@ func (bot *CQBot) RegisterJob(job IJob) {
 func (bot *CQBot) WeiboHotReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			for id := range bot.state.reportState.getReportList(true) {
-				bot.ReportWeiboHot(id, true)
+			groupIds := bot.state.reportState.getReportList(true)
+			_groupIds := make([]int64, 0, len(groupIds))
+			for id := range groupIds {
+				_groupIds = append(_groupIds, id)
 			}
+			bot.ReportWeiboHot(_groupIds, true)
+
+			privateIds := bot.state.reportState.getReportList(true)
+			_privateIds := make([]int64, 0, len(privateIds))
 
 			for id := range bot.state.reportState.getReportList(false) {
-				bot.ReportWeiboHot(id, false)
+				_privateIds = append(_privateIds, id)
 			}
+			bot.ReportWeiboHot(_privateIds, false)
 		},
 		Corn:  corn,
 		Model: top_list.Weibo,
@@ -61,13 +68,20 @@ func (bot *CQBot) WeiboHotReporter(corn string) *ReportJob {
 func (bot *CQBot) D36krHotReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			for id := range bot.state.reportState.getReportList(true) {
-				bot.Report36kr(id, true)
+			groupIds := bot.state.reportState.getReportList(true)
+			_groupIds := make([]int64, 0, len(groupIds))
+			for id := range groupIds {
+				_groupIds = append(_groupIds, id)
 			}
+			bot.Report36kr(_groupIds, true)
+			privateIds := bot.state.reportState.getReportList(true)
+			_privateIds := make([]int64, 0, len(privateIds))
 
 			for id := range bot.state.reportState.getReportList(false) {
-				bot.Report36kr(id, false)
+				_privateIds = append(_privateIds, id)
 			}
+
+			bot.Report36kr(_privateIds, false)
 		},
 		Corn:  corn,
 		Model: top_list.D36kr,
@@ -77,13 +91,23 @@ func (bot *CQBot) D36krHotReporter(corn string) *ReportJob {
 func (bot *CQBot) WallStreetNewsReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
-			for id := range bot.state.reportState.getReportList(true) {
-				bot.ReportWallStreetNews(id, true)
+			groupIds := bot.state.reportState.getReportList(true)
+			_groupIds := make([]int64, 0, len(groupIds))
+			for id := range groupIds {
+				_groupIds = append(_groupIds, id)
 			}
 
+			bot.ReportWallStreetNews(_groupIds, true)
+
+			privateIds := bot.state.reportState.getReportList(true)
+			_privateIds := make([]int64, 0, len(privateIds))
+
 			for id := range bot.state.reportState.getReportList(false) {
-				bot.ReportWallStreetNews(id, false)
+				_privateIds = append(_privateIds, id)
 			}
+
+			bot.ReportWallStreetNews(_privateIds, false)
+
 		},
 		Corn:  corn,
 		Model: top_list.WallStreet,

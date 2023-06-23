@@ -68,10 +68,10 @@ func init() {
 			bot.groupWeiboHot(groupMessage)
 		},
 		CMD36kr: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.Report36kr(groupMessage.GroupCode, true)
+			bot.Report36kr([]int64{groupMessage.GroupCode}, true)
 		},
 		CMDWallStreet: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportWallStreetNews(groupMessage.GroupCode, true)
+			bot.ReportWallStreetNews([]int64{groupMessage.GroupCode}, true)
 		},
 		CMDZhihu: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.ReportZhihuHot(groupMessage.GroupCode, true)
@@ -124,10 +124,10 @@ func init() {
 			bot.privateWeiboHot(privateMessage)
 		},
 		CMD36kr: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.Report36kr(privateMessage.Sender.Uin, false)
+			bot.Report36kr([]int64{privateMessage.Sender.Uin}, false)
 		},
 		CMDWallStreet: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			if !bot.ReportWallStreetNews(privateMessage.Sender.Uin, false) {
+			if !bot.ReportWallStreetNews([]int64{privateMessage.Sender.Uin}, false) {
 				bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
 					&message.SendingMessage{Elements: []message.IMessageElement{message.NewText("没有华尔街最新资讯")}})
 			}

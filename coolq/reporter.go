@@ -8,8 +8,8 @@ import (
 	"github.com/rs/zerolog/log"
 	"regexp"
 	"strconv"
-
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -95,7 +95,7 @@ func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
 
 		bot.ReportSpecificWeibo(privateMessage.Sender.Uin, indexList, false)
 	} else {
-		bot.ReportWeiboHot(privateMessage.Sender.Uin, false)
+		bot.ReportWeiboHot([]int64{privateMessage.Sender.Uin}, false)
 	}
 
 }
@@ -109,7 +109,7 @@ func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
 
 		bot.ReportSpecificWeibo(groupMessage.GroupCode, indexList, true)
 	} else {
-		bot.ReportWeiboHot(groupMessage.GroupCode, true)
+		bot.ReportWeiboHot([]int64{groupMessage.GroupCode}, true)
 	}
 }
 
@@ -177,7 +177,7 @@ func (bot *CQBot) ReportSpecificWeibo(group int64, indexList map[int64]struct{},
 	k := lastestT.Format(layout)
 	if _data, ok := data[k]; !ok {
 		log.Warn().Msgf("can't get latest weibo daily report")
-		bot.ReportWeiboHot(group, isGroup)
+		bot.ReportWeiboHot([]int64{group}, isGroup)
 	} else {
 		for _index := range indexList {
 			content := fmt.Sprintf("微博热搜#%d\n%s\n链接:%s", _index+1, _data[_index].Title, _data[_index].Url)
@@ -192,43 +192,50 @@ func (bot *CQBot) ReportSpecificWeibo(group int64, indexList map[int64]struct{},
 
 }
 
-func (bot *CQBot) ReportWeiboHot(group int64, isGroup bool) {
+func (bot *CQBot) ReportWeiboHot(groups []int64, isGroup bool) {
 	var hotContent strings.Builder
 	hotContent.WriteString(fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04")))
 	if hotList, err := top_list.LoadWeiboHot(); err != nil {
 		log.Error().Msgf("get hot list error:%s", err.Error())
 		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-				fmt.Sprintf("爬取微博热搜失败：%s", err.Error()))}})
+			for _, _group := range groups {
+				bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
+					fmt.Sprintf("爬取微博热搜失败：%s", err.Error()))}})
+			}
 		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-				fmt.Sprintf("爬取微博热搜失败：%s", err.Error()))}})
+			for _, _group := range groups {
+				bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
+					fmt.Sprintf("爬取微博热搜失败：%s", err.Error()))}})
+			}
 		}
 
 	} else {
 		for _, hot := range hotList {
 			hotContent.WriteString(fmt.Sprintf("%d\t%s\n", hot.Rank, hot.Title))
 		}
-		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
-		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
+		for _, _group := range groups {
+			if isGroup {
+				bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
+			} else {
+				bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
+			}
 		}
-
 	}
 }
 
-func (bot *CQBot) Report36kr(group int64, isGroup bool) {
+func (bot *CQBot) Report36kr(groups []int64, isGroup bool) {
 	var hotContent strings.Builder
 	hotContent.WriteString(fmt.Sprintf("%s 36氪24H热榜\n", time.Now().Format("2006-01-02 15:04")))
 	if hotList, err := top_list.Load36krHot(); err != nil {
 		log.Error().Msgf("get hot list error:%s", err.Error())
-		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-				fmt.Sprintf("爬取36氪热榜失败：%s", err.Error()))}})
-		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-				fmt.Sprintf("爬取36氪热榜失败：%s", err.Error()))}})
+		for _, _group := range groups {
+			if isGroup {
+				bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
+					fmt.Sprintf("爬取36氪热榜失败：%s", err.Error()))}})
+			} else {
+				bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
+					fmt.Sprintf("爬取36氪热榜失败：%s", err.Error()))}})
+			}
 		}
 
 	} else {
@@ -238,46 +245,57 @@ func (bot *CQBot) Report36kr(group int64, isGroup bool) {
 			}
 			hotContent.WriteString(fmt.Sprintf("%d	%s\n%s\n\n", _hot.Rank, _hot.Title, _hot.Url))
 		}
-		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
-		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
+		for _, _group := range groups {
+			if isGroup {
+				bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
+			} else {
+				bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
+			}
 		}
-
 	}
 }
 
-func (bot *CQBot) ReportWallStreetNews(group int64, isGroup bool) bool {
+func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 	hasNews := true
 	if hotList, err := top_list.LoadWallStreetNews(); err != nil {
 		log.Error().Msgf("爬取华尔街见闻最新资讯失败：%s", err.Error())
 		//bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
 		//	fmt.Sprintf("爬取华尔街见闻最新资讯失败：%s", err.Error()))}})
 	} else {
-		readyData := make([]top_list.WallStreetNews, 0, 10)
-		for _, _data := range hotList {
-			if !bot.state.wallstreetSentNews.checkSent(group, _data.Title) {
-				readyData = append(readyData, _data)
-			}
-		}
+		var wait sync.WaitGroup
 
-		if len(readyData) == 0 {
-			log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(hotList))
-			hasNews = false
-		} else {
-			//倒序输出，因为最新资讯在第一个
-			for i := len(readyData) - 1; i >= 0; i-- {
-				bot.state.wallstreetSentNews.add(group, readyData[i].Title)
-				content := fmt.Sprintf("%s\n\n摘要：%s\n\n链接：%s", readyData[i].Title, readyData[i].Content, readyData[i].Url)
-				if isGroup {
-					bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
-				} else {
-					bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+		for _, _group := range groups {
+			wait.Add(1)
+			go func(group int64) {
+				defer wait.Done()
+				readyData := make([]top_list.WallStreetNews, 0, 10)
+				for _, _data := range hotList {
+					if !bot.state.wallstreetSentNews.checkSent(group, _data.Title) {
+						readyData = append(readyData, _data)
+					}
 				}
-				time.Sleep(1 * time.Second)
-			}
-			bot.state.wallstreetSentNews.SaveCache()
+
+				if len(readyData) == 0 {
+					log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(hotList))
+					hasNews = false
+				} else {
+					//倒序输出，因为最新资讯在第一个
+					for i := len(readyData) - 1; i >= 0; i-- {
+						bot.state.wallstreetSentNews.add(group, readyData[i].Title)
+						content := fmt.Sprintf("%s\n\n摘要：%s\n\n链接：%s", readyData[i].Title, readyData[i].Content, readyData[i].Url)
+						if isGroup {
+							bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+						} else {
+							bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+						}
+						time.Sleep(1 * time.Second)
+					}
+				}
+			}(_group)
 		}
+		wait.Wait()
+		bot.state.wallstreetSentNews.SaveCache()
+
 	}
 	return hasNews
 }
