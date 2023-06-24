@@ -232,6 +232,7 @@ func (s *AiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
 					s.setParentMsgId(uid, id)
 				case <-time.After(time.Minute * 10):
 					s.delParentId(uid)
+					return
 				}
 			}
 		}(uid)
@@ -277,6 +278,7 @@ func (s *AiAssistantSession) putConversation(uid int64, conversation bingchat_ap
 
 				case <-time.After(time.Minute * 5):
 					s.closeConversation(uid)
+					return
 				}
 			}
 		}(uid)
@@ -331,6 +333,7 @@ func (s *AiAssistantSession) putCtx(uid int64, msg, resp string) {
 
 				case <-time.After(time.Minute * 10):
 					s.clearCtx(uid)
+					return
 				}
 			}
 		}(uid)
@@ -354,7 +357,6 @@ func (s *AiAssistantSession) clearCtx(uid int64) {
 		close(s.chatgptChan[uid])
 		delete(s.chatgptChan, uid)
 	}
-
 }
 
 func (bot *CQBot) initState() {
