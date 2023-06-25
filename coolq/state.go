@@ -353,7 +353,7 @@ func (s *AiAssistantSession) clearCtx(uid int64) {
 	s.Lock()
 	defer s.Unlock()
 	delete(s.ctx, uid)
-	if _, ok := s.chatgptChan[uid]; !ok {
+	if s.chatgptChan[uid] != nil {
 		close(s.chatgptChan[uid])
 		delete(s.chatgptChan, uid)
 	}
