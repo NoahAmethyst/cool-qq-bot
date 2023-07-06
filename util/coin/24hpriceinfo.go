@@ -28,11 +28,11 @@ type CoinPrice struct {
 func Get24HPriceInfo(symbol string) (CoinPrice, error) {
 
 	data := CoinPrice{}
-	url := fmt.Sprintf("https://api1.binance.com/api/v3/ticker/24hr?symbol=%s", symbol)
+	url := fmt.Sprintf("https://data.binance.com/api/v3/ticker/24hr?symbol=%s", symbol)
 	headers := map[string]string{"Accepts": "application/json"}
 
 	if len(os.Getenv(constant.NOT_MIRROR)) == 0 {
-		headers["remote"] = "api1.binance.com"
+		headers["remote"] = "data.binance.com"
 		url = fmt.Sprintf("https://%s/api/v3/ticker/24hr?symbol=%s", os.Getenv(constant.REMOTE_PROXY), symbol)
 	}
 
