@@ -39,7 +39,7 @@ func init() {
 		CMD36kr:                 "拉取36氪热榜",
 		CMDZhihu:                "拉取知乎热榜，默认最新10条",
 		CMDWallStreet:           "拉取华尔街见闻最新资讯",
-		CMDCoin:                 "获取BTC,ETH,BNB最新币价（USD）",
+		CMDCoin:                 "获取BTC,ETH,BNB最新币价（USD），可以指定币种，如 \"#比特币 ETH\"",
 		CMDTrans:                "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文",
 		CMDImage:                "AI作图，使用DELL.2生成图片，你需要提供提示词",
 		CMDOpenReporter:         "开启微博、华尔街最新资讯、36氪定时推送",
