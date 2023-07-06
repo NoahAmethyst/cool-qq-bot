@@ -46,23 +46,52 @@ func (bot *CQBot) closeReporter(id int64, isGroup bool) {
 	}
 }
 
-func (bot *CQBot) ReportCoinPrice(group int64, isGroup bool) {
+func (bot *CQBot) ReportCoinPrice(group int64, elements []message.IMessageElement, isGroup bool) {
 	var coinContent strings.Builder
 	coinContent.WriteString(fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04")))
+	var textEle *message.TextElement
+	for _, ele := range elements {
+		switch ele.Type() {
+		case message.Text:
+			textEle = ele.(*message.TextElement)
+			break
+		}
+	}
 
-	var priceContents []string
-	for _, symbol := range coin.Symbols {
+	var symbol string
+	if textEle != nil {
+		symbol, _ = parseSourceText(textEle)
+	}
+
+	priceContents := make([]string, 0, 3)
+
+	if len(symbol) > 0 {
+		symbol = fmt.Sprintf("%sUSDT", symbol)
 		coinInfo, err := coin.Get24HPriceInfo(symbol)
 		if err != nil {
 			log.Error().Msgf("get %s error:%s", symbol, err)
-			continue
+		} else {
+			priceContents = append(priceContents, fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
+				coinInfo.Symbol,
+				strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
+				coinInfo.PriceChangePercent,
+				strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
+				strings.ReplaceAll(coinInfo.LowPrice, "000", "")))
 		}
-		priceContents = append(priceContents, fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
-			coinInfo.Symbol,
-			strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
-			coinInfo.PriceChangePercent,
-			strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
-			strings.ReplaceAll(coinInfo.LowPrice, "000", "")))
+	} else {
+		for _, symbol := range coin.Symbols {
+			coinInfo, err := coin.Get24HPriceInfo(symbol)
+			if err != nil {
+				log.Error().Msgf("get %s error:%s", symbol, err)
+				continue
+			}
+			priceContents = append(priceContents, fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
+				coinInfo.Symbol,
+				strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
+				coinInfo.PriceChangePercent,
+				strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
+				strings.ReplaceAll(coinInfo.LowPrice, "000", "")))
+		}
 	}
 
 	if len(priceContents) == 0 {

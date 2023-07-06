@@ -77,7 +77,7 @@ func init() {
 			bot.ReportZhihuHot(groupMessage.GroupCode, true)
 		},
 		CMDCoin: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportCoinPrice(groupMessage.GroupCode, true)
+			bot.ReportCoinPrice(groupMessage.GroupCode, groupMessage.Elements, true)
 		},
 		CMDTrans: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			TransText(&GroupTranslator{
@@ -136,7 +136,7 @@ func init() {
 			bot.ReportZhihuHot(privateMessage.Sender.Uin, false)
 		},
 		CMDCoin: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.ReportCoinPrice(privateMessage.Sender.Uin, false)
+			bot.ReportCoinPrice(privateMessage.Sender.Uin, privateMessage.Elements, false)
 		},
 		CMDTrans: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			TransText(&PrivateTranslator{
