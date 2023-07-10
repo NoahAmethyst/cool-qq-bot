@@ -183,7 +183,13 @@ func init() {
 		},
 
 		CMDEVN: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-
+			if bot.state.owner != privateMessage.Sender.Uin {
+				bot.SendPrivateMessage(privateMessage.Sender.Uin, 0, &message.SendingMessage{
+					Elements: []message.IMessageElement{
+						message.NewText(fmt.Sprintf("不是 %s 所有者，无法执行此命令", bot.Client.Nickname))},
+				})
+			}
+			bot.SetENV(privateMessage)
 		},
 	}
 }
