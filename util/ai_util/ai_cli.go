@@ -4,6 +4,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/sashabaranov/go-openai"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -11,7 +12,25 @@ var openaiCli *openai.Client
 
 var openaiKey string
 
+var changeSignal = make(chan struct{}, 1)
+var once sync.Once
+
 func initCli() {
+	once.Do(func() {
+		setCli()
+	})
+
+	once.Do(func() {
+		go func() {
+			select {
+			case <-changeSignal:
+				setCli()
+			}
+		}()
+	})
+}
+
+func setCli() {
 	if len(openaiKey) == 0 {
 		openaiKey = os.Getenv(constant.OPENAI_API_KEY)
 	}
@@ -30,4 +49,7 @@ func initCli() {
 
 func SetOpenaiKey(key string) {
 	openaiKey = key
+	go func() {
+		changeSignal <- struct{}{}
+	}()
 }

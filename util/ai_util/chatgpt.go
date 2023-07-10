@@ -19,3 +19,16 @@ func AskChatGpt(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionRespo
 	return &resp, err
 
 }
+
+func AskChatGptWithPlus(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionResponse, error) {
+	initCli()
+	resp, err := openaiCli.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model:    openai.GPT4,
+			Messages: ctx,
+		},
+	)
+	log.Infof("收到openai响应:%+v", resp)
+	return &resp, err
+}
