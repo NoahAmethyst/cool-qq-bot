@@ -49,7 +49,7 @@ func Test_WallStreetcn_Latest(t *testing.T) {
 }
 
 func Test_GetCoin(t *testing.T) {
-	data, err := coin.Get24HPriceInfo(coin.BTC)
+	data, err := coin.Get24HPriceInfo("DOGEUSDT")
 	if err != nil {
 		panic(err)
 	}

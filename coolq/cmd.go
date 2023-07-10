@@ -23,6 +23,7 @@ const (
 	CMDCloseReporter        = "关闭推送"
 	CMDSwitchAssistantModel = "模式"
 	CMDExist                = "关闭"
+	CMDEVN                  = "ENV"
 )
 
 var groupCmdList []string
@@ -45,6 +46,7 @@ func init() {
 		CMDOpenReporter:         "开启微博、华尔街最新资讯、36氪定时推送",
 		CMDCloseReporter:        "关闭微博、华尔街最新资讯、36氪定时推送",
 		CMDSwitchAssistantModel: "更换助手模式，0:Chatgpt(默认),1:Bing Chat",
+		CMDEVN:                  "设置新的环境变量",
 	}
 	groupCmdList = []string{
 		CMDWeibo,
@@ -178,6 +180,10 @@ func init() {
 					message.NewText(fmt.Sprintf("%s 正在关闭...", bot.Client.Nickname))},
 			})
 			os.Exit(0)
+		},
+
+		CMDEVN: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+
 		},
 	}
 }
