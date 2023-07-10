@@ -2,7 +2,6 @@ package top_list
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/rs/zerolog/log"
 
@@ -114,11 +113,7 @@ func (z *zhihuHotDailyRecord) GetData() map[string][]ZhihuHot {
 
 // time.Now().Format("2006-01-02 15:04:05")
 func UploadDailyRecord() {
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-
+	path := file_util.GetFileRoot()
 	//写微博热搜当日文件
 	{
 		weiboFilePath, err := file_util.WriteJsonFile(WeiboHotDailyRecord.GetData(), path, "weibo_hot", true)
@@ -223,11 +218,7 @@ func UploadDailyRecord() {
 }
 
 func init() {
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-
+	path := file_util.GetFileRoot()
 	//加载微博每日记录
 	{
 		data := make(map[string][]WeiboHot)

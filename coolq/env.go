@@ -5,6 +5,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
+	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"os"
 	"strings"
 )
@@ -57,6 +58,9 @@ func envSetHandler(env, value string) string {
 	case constant.OPENAI_API_KEY:
 		ai_util.SetOpenaiKey(value)
 		res = "Openai API Key 设置完成"
+	case constant.FILE_ROOT:
+		file_util.SetFileRoot(value)
+		res = "文件本地存储根目录 设置完成"
 	default:
 		_ = os.Setenv(env, value)
 		res = fmt.Sprintf("环境变量 %s 设置完成", env)

@@ -34,11 +34,7 @@ type reportState struct {
 }
 
 func (r *reportState) saveCache() {
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
-
+	path := file_util.GetFileRoot()
 	//group
 	{
 		_, err := file_util.WriteJsonFile(r.groups, path, "reportGroupState", false)
@@ -159,10 +155,7 @@ func (s *wallStreetSentNews) checkSent(group int64, title string) bool {
 func (s *wallStreetSentNews) SaveCache() {
 	s.RLock()
 	defer s.RUnlock()
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
+	path := file_util.GetFileRoot()
 	_, err := file_util.WriteJsonFile(s.SentList, path, "wallStreetCache", false)
 	if err != nil {
 		log.Error().Fields(map[string]interface{}{
@@ -184,10 +177,7 @@ func (a *assistantModel) setModel(uid int64, model ai_util.ChatModel) {
 	a.Lock()
 	defer a.Unlock()
 	a.selectedModel[uid] = model
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
+	path := file_util.GetFileRoot()
 	_, err := file_util.WriteJsonFile(a.selectedModel, path, "assistant_model", false)
 	if err != nil {
 		log.Error().Fields(map[string]interface{}{
@@ -386,10 +376,7 @@ func initReportState() *reportState {
 	}
 	groupData := make(map[int64]struct{})
 	privateData := make(map[int64]struct{})
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
+	path := file_util.GetFileRoot()
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/reportGroupState.json", path), &groupData); err != nil {
 		log.Info().Fields(map[string]interface{}{
 			"action": "retry load wallstreet json from tencent cos",
@@ -425,10 +412,7 @@ func initWallStreetSentNews() *wallStreetSentNews {
 		RWMutex:  sync.RWMutex{},
 	}
 	data := make(map[int64]map[uint32]time.Time)
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
+	path := file_util.GetFileRoot()
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallStreetCache.json", path), &data); err != nil {
 		log.Info().Fields(map[string]interface{}{
 			"action": "retry load wallstreet json from tencent cos",
@@ -450,10 +434,7 @@ func initAssistantModel() *assistantModel {
 		RWMutex:       sync.RWMutex{},
 	}
 	data := make(map[int64]ai_util.ChatModel)
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
+	path := file_util.GetFileRoot()
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/assistant_model.json", path), &data); err != nil {
 		log.Info().Fields(map[string]interface{}{
 			"action": "retry load assistant_model json from tencent cos",

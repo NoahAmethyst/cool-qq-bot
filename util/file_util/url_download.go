@@ -2,7 +2,6 @@ package file_util
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/encrypt"
 	"io"
 	"net/http"
@@ -12,10 +11,7 @@ import (
 func DownloadImgFromUrl(url string) (*os.File, string, error) {
 	// Create the file
 	var filePath string
-	path := os.Getenv(constant.FILE_ROOT)
-	if len(path) == 0 {
-		path = "/tmp"
-	}
+	path := GetFileRoot()
 	filePath = fmt.Sprintf("%s/%d.png", path, encrypt.HashStr(url))
 	file, err := os.Create(filePath)
 	if err != nil {

@@ -3,12 +3,10 @@ package top_list
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/pkg/errors"
 	"io"
 	"net/http"
-	"os"
 	"strings"
 	"time"
 )
@@ -81,10 +79,7 @@ func LoadZhihuHot() ([]ZhihuHot, error) {
 	ZhihuHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
 
 	go func() {
-		path := os.Getenv(constant.FILE_ROOT)
-		if len(path) == 0 {
-			path = "/tmp"
-		}
+		path := file_util.GetFileRoot()
 		_, _ = file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu", true)
 	}()
 
