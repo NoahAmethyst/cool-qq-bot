@@ -43,7 +43,6 @@ func setCli() {
 		config.BaseURL = "https://open.aiproxy.xyz/v1"
 		openaiCli = openai.NewClientWithConfig(config)
 	}
-
 }
 
 func SetOpenaiKey(key string) {
