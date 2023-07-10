@@ -35,16 +35,15 @@ func setCli() {
 		openaiKey = os.Getenv(constant.OPENAI_API_KEY)
 	}
 
-	if openaiCli == nil {
-		if len(os.Getenv(constant.NOT_MIRROR)) > 0 {
-			openaiCli = openai.NewClient(openaiKey)
-		} else {
-			config := openai.DefaultConfig(openaiKey)
-			config.HTTPClient.Timeout = time.Minute * 120
-			config.BaseURL = "https://open.aiproxy.xyz/v1"
-			openaiCli = openai.NewClientWithConfig(config)
-		}
+	if len(os.Getenv(constant.NOT_MIRROR)) > 0 {
+		openaiCli = openai.NewClient(openaiKey)
+	} else {
+		config := openai.DefaultConfig(openaiKey)
+		config.HTTPClient.Timeout = time.Minute * 120
+		config.BaseURL = "https://open.aiproxy.xyz/v1"
+		openaiCli = openai.NewClientWithConfig(config)
 	}
+
 }
 
 func SetOpenaiKey(key string) {
