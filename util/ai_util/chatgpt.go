@@ -20,7 +20,7 @@ func AskChatGpt(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionRespo
 
 }
 
-func AskChatGptWithPlus(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionResponse, error) {
+func AskChatGpt4(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionResponse, error) {
 	initCli()
 	resp, err := openaiCli.CreateChatCompletion(
 		context.Background(),

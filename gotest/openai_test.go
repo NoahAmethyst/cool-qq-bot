@@ -17,7 +17,20 @@ func Test_Models(t *testing.T) {
 
 }
 
-func Test_Chatgpt(t *testing.T) {
+func Test_ChatGpt(t *testing.T) {
+	ctx := make([]openai.ChatCompletionMessage, 0, 4)
+	ctx = append(ctx, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: "魔术的起源是什么",
+	})
+	replyMsg, err := ai_util.AskChatGpt(ctx)
+	if err != nil {
+		panic(err)
+	}
+	t.Logf("%+v", replyMsg)
+}
+
+func Test_ChatGptWithContext(t *testing.T) {
 	ctx := make([]openai.ChatCompletionMessage, 0, 4)
 	ctx = append(ctx, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
@@ -46,13 +59,13 @@ func Test_Chatgpt(t *testing.T) {
 	t.Logf("%+v", replyMsg)
 }
 
-func Test_Chatgpt4(t *testing.T) {
+func Test_ChatGpt4WithContext(t *testing.T) {
 	ctx := make([]openai.ChatCompletionMessage, 0, 4)
 	ctx = append(ctx, openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
 		Content: "How is the weather today in Nanjing?",
 	})
-	replyMsg, err := ai_util.AskChatGptWithPlus(ctx)
+	replyMsg, err := ai_util.AskChatGpt4(ctx)
 	if err != nil {
 		panic(err)
 	}
@@ -68,7 +81,7 @@ func Test_Chatgpt4(t *testing.T) {
 		Content: "And what day is it today?",
 	})
 
-	replyMsg, err = ai_util.AskChatGptWithPlus(ctx)
+	replyMsg, err = ai_util.AskChatGpt4(ctx)
 	if err != nil {
 		panic(err)
 	}
