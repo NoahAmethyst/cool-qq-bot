@@ -6,6 +6,17 @@ import (
 	"testing"
 )
 
+func Test_Models(t *testing.T) {
+	if models, err := ai_util.OpenAiModels(); err != nil {
+		panic(err)
+	} else {
+		for _, _model := range models.Models {
+			t.Logf("%+v, %+v", _model.ID, _model.Permission)
+		}
+	}
+
+}
+
 func Test_Chatgpt(t *testing.T) {
 	ctx := make([]openai.ChatCompletionMessage, 0, 4)
 	ctx = append(ctx, openai.ChatCompletionMessage{
@@ -29,6 +40,35 @@ func Test_Chatgpt(t *testing.T) {
 	})
 
 	replyMsg, err = ai_util.AskChatGpt(ctx)
+	if err != nil {
+		panic(err)
+	}
+	t.Logf("%+v", replyMsg)
+}
+
+func Test_Chatgpt4(t *testing.T) {
+	ctx := make([]openai.ChatCompletionMessage, 0, 4)
+	ctx = append(ctx, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: "How is the weather today in Nanjing?",
+	})
+	replyMsg, err := ai_util.AskChatGptWithPlus(ctx)
+	if err != nil {
+		panic(err)
+	}
+	t.Logf("%+v", replyMsg)
+
+	ctx = append(ctx, openai.ChatCompletionMessage{
+		Role:    replyMsg.Choices[0].Message.Role,
+		Content: replyMsg.Choices[0].Message.Content,
+	})
+
+	ctx = append(ctx, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: "And what day is it today?",
+	})
+
+	replyMsg, err = ai_util.AskChatGptWithPlus(ctx)
 	if err != nil {
 		panic(err)
 	}

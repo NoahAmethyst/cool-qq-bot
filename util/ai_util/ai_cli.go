@@ -1,6 +1,7 @@
 package ai_util
 
 import (
+	"context"
 	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/sashabaranov/go-openai"
 	"os"
@@ -14,6 +15,11 @@ var openaiKey string
 
 var changeSignal = make(chan struct{}, 1)
 var once sync.Once
+
+func OpenAiModels() (openai.ModelsList, error) {
+	initCli()
+	return openaiCli.ListModels(context.Background())
+}
 
 func initCli() {
 	once.Do(func() {
