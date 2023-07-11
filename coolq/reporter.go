@@ -47,8 +47,6 @@ func (bot *CQBot) closeReporter(id int64, isGroup bool) {
 }
 
 func (bot *CQBot) ReportCoinPrice(group int64, elements []message.IMessageElement, isGroup bool) {
-	var coinContent strings.Builder
-	coinContent.WriteString(fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04")))
 	var textEle *message.TextElement
 	for _, ele := range elements {
 		switch ele.Type() {
@@ -65,52 +63,44 @@ func (bot *CQBot) ReportCoinPrice(group int64, elements []message.IMessageElemen
 
 	priceContents := make([]string, 0, 3)
 
+	symbols := make([]string, 0, 3)
+
 	if len(symbol) > 0 {
-		symbol = fmt.Sprintf("%sUSDT", symbol)
-		coinInfo, err := coin.Get24HPriceInfo(symbol)
-		if err != nil {
-			log.Error().Msgf("get %s error:%s", symbol, err)
-		} else {
-			priceContents = append(priceContents, fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
-				coinInfo.Symbol,
-				strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
-				coinInfo.PriceChangePercent,
-				strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
-				strings.ReplaceAll(coinInfo.LowPrice, "000", "")))
-		}
+		symbols = append(symbols, fmt.Sprintf("%sUSDT", symbol))
 	} else {
-		for _, symbol := range coin.Symbols {
-			coinInfo, err := coin.Get24HPriceInfo(symbol)
-			if err != nil {
-				log.Error().Msgf("get %s error:%s", symbol, err)
-				continue
-			}
-			priceContents = append(priceContents, fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
-				coinInfo.Symbol,
-				strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
-				coinInfo.PriceChangePercent,
-				strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
-				strings.ReplaceAll(coinInfo.LowPrice, "000", "")))
-		}
+		symbols = coin.Symbols
 	}
 
-	if len(priceContents) == 0 {
-		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("获取币价实时信息失败，请查看日志")}})
-		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText("获取币价实时信息失败，请查看日志")}})
+	for _, _symbol := range symbols {
+		coinInfo, err := coin.Get24HPriceInfo(_symbol)
+		if err != nil {
+			log.Error().Msgf("get %s error:%s", _symbol, err)
+			continue
 		}
+		priceContents = append(priceContents, fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
+			coinInfo.Symbol,
+			strings.ReplaceAll(coinInfo.LastPrice, "000", ""),
+			coinInfo.PriceChangePercent,
+			strings.ReplaceAll(coinInfo.HighPrice, "000", ""),
+			strings.ReplaceAll(coinInfo.LowPrice, "000", "")))
+	}
 
+	var resp string
+	if len(priceContents) == 0 {
+		resp = "获取币价实时信息失败，请查看日志"
 	} else {
+		var coinContent strings.Builder
+		coinContent.WriteString(fmt.Sprintf("%s 币价实时信息", time.Now().Format("2006-01-02 15:04")))
 		for _, _content := range priceContents {
 			coinContent.WriteString(_content)
 		}
-		if isGroup {
-			bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent.String())}})
-		} else {
-			bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(coinContent.String())}})
-		}
+		resp = coinContent.String()
+	}
 
+	if isGroup {
+		bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(resp)}})
+	} else {
+		bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(resp)}})
 	}
 }
 
@@ -121,7 +111,6 @@ func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
 	params := parseParam(content)
 	if len(params) == 2 {
 		indexList := parseIndexList(params)
-
 		bot.ReportSpecificWeibo(privateMessage.Sender.Uin, indexList, false)
 	} else {
 		bot.ReportWeiboHot([]int64{privateMessage.Sender.Uin}, false)
@@ -135,7 +124,6 @@ func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
 	params := parseParam(content)
 	if len(params) == 2 {
 		indexList := parseIndexList(params)
-
 		bot.ReportSpecificWeibo(groupMessage.GroupCode, indexList, true)
 	} else {
 		bot.ReportWeiboHot([]int64{groupMessage.GroupCode}, true)
@@ -222,77 +210,61 @@ func (bot *CQBot) ReportSpecificWeibo(group int64, indexList map[int64]struct{},
 }
 
 func (bot *CQBot) ReportWeiboHot(groups []int64, isGroup bool) {
-	var hotContent strings.Builder
-	hotContent.WriteString(fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04")))
+	var resp string
 	if hotList, err := top_list.LoadWeiboHot(); err != nil {
 		log.Error().Msgf("get hot list error:%s", err.Error())
-		if isGroup {
-			for _, _group := range groups {
-				bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-					fmt.Sprintf("爬取微博热搜失败：%s", err.Error()))}})
-			}
-		} else {
-			for _, _group := range groups {
-				bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-					fmt.Sprintf("爬取微博热搜失败：%s", err.Error()))}})
-			}
-		}
+		resp = fmt.Sprintf("爬取微博热搜失败：%s", err.Error())
 
 	} else {
+		var hotContent strings.Builder
+		hotContent.WriteString(fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04")))
 		for _, hot := range hotList {
 			hotContent.WriteString(fmt.Sprintf("%d\t%s\n", hot.Rank, hot.Title))
 		}
-		for _, _group := range groups {
-			if isGroup {
-				bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
-			} else {
-				bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
-			}
+		resp = hotContent.String()
+	}
+	for _, _group := range groups {
+		if isGroup {
+			bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(resp)}})
+		} else {
+			bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(resp)}})
 		}
 	}
 }
 
 func (bot *CQBot) Report36kr(groups []int64, isGroup bool) {
-	var hotContent strings.Builder
-	hotContent.WriteString(fmt.Sprintf("%s 36氪24H热榜\n", time.Now().Format("2006-01-02 15:04")))
+
+	var resp string
 	if hotList, err := top_list.Load36krHot(); err != nil {
 		log.Error().Msgf("get hot list error:%s", err.Error())
-		for _, _group := range groups {
-			if isGroup {
-				bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-					fmt.Sprintf("爬取36氪热榜失败：%s", err.Error()))}})
-			} else {
-				bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-					fmt.Sprintf("爬取36氪热榜失败：%s", err.Error()))}})
-			}
-		}
-
+		resp = fmt.Sprintf("爬取36氪热榜失败：%s", err.Error())
 	} else {
+		var hotContent strings.Builder
+		hotContent.WriteString(fmt.Sprintf("%s 36氪24H热榜\n", time.Now().Format("2006-01-02 15:04")))
 		for _i, _hot := range hotList {
 			if _i > 10 {
 				break
 			}
 			hotContent.WriteString(fmt.Sprintf("%d	%s\n%s\n\n", _hot.Rank, _hot.Title, _hot.Url))
 		}
-		for _, _group := range groups {
-			if isGroup {
-				bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
-			} else {
-				bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(hotContent.String())}})
-			}
+		resp = hotContent.String()
+	}
+	for _, _group := range groups {
+		if isGroup {
+			bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(resp)}})
+		} else {
+			bot.SendPrivateMessage(_group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(resp)}})
 		}
 	}
+
 }
 
 func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 	hasNews := true
 	if hotList, err := top_list.LoadWallStreetNews(); err != nil {
 		log.Error().Msgf("爬取华尔街见闻最新资讯失败：%s", err.Error())
-		//bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(
-		//	fmt.Sprintf("爬取华尔街见闻最新资讯失败：%s", err.Error()))}})
 	} else {
 		var wait sync.WaitGroup
-
 		for _, _group := range groups {
 			wait.Add(1)
 			go func(group int64) {

@@ -11,7 +11,7 @@ func Test_Models(t *testing.T) {
 		panic(err)
 	} else {
 		for _, _model := range models.Models {
-			t.Logf("%+v, %+v", _model.ID)
+			t.Logf("%+v", _model.ID)
 		}
 	}
 
