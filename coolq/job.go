@@ -46,19 +46,9 @@ func (bot *CQBot) WeiboHotReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
 			groupIds := bot.state.reportState.getReportList(true)
-			_groupIds := make([]int64, 0, len(groupIds))
-			for id := range groupIds {
-				_groupIds = append(_groupIds, id)
-			}
-			bot.ReportWeiboHot(_groupIds, true)
-
+			bot.ReportWeiboHot(groupIds, true)
 			privateIds := bot.state.reportState.getReportList(true)
-			_privateIds := make([]int64, 0, len(privateIds))
-
-			for id := range bot.state.reportState.getReportList(false) {
-				_privateIds = append(_privateIds, id)
-			}
-			bot.ReportWeiboHot(_privateIds, false)
+			bot.ReportWeiboHot(privateIds, false)
 		},
 		Corn:  corn,
 		Model: top_list.Weibo,
@@ -69,19 +59,9 @@ func (bot *CQBot) D36krHotReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
 			groupIds := bot.state.reportState.getReportList(true)
-			_groupIds := make([]int64, 0, len(groupIds))
-			for id := range groupIds {
-				_groupIds = append(_groupIds, id)
-			}
-			bot.Report36kr(_groupIds, true)
+			bot.Report36kr(groupIds, true)
 			privateIds := bot.state.reportState.getReportList(true)
-			_privateIds := make([]int64, 0, len(privateIds))
-
-			for id := range bot.state.reportState.getReportList(false) {
-				_privateIds = append(_privateIds, id)
-			}
-
-			bot.Report36kr(_privateIds, false)
+			bot.Report36kr(privateIds, false)
 		},
 		Corn:  corn,
 		Model: top_list.D36kr,
@@ -92,22 +72,9 @@ func (bot *CQBot) WallStreetNewsReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
 			groupIds := bot.state.reportState.getReportList(true)
-			_groupIds := make([]int64, 0, len(groupIds))
-			for id := range groupIds {
-				_groupIds = append(_groupIds, id)
-			}
-
-			bot.ReportWallStreetNews(_groupIds, true)
-
+			bot.ReportWallStreetNews(groupIds, true)
 			privateIds := bot.state.reportState.getReportList(true)
-			_privateIds := make([]int64, 0, len(privateIds))
-
-			for id := range bot.state.reportState.getReportList(false) {
-				_privateIds = append(_privateIds, id)
-			}
-
-			bot.ReportWallStreetNews(_privateIds, false)
-
+			bot.ReportWallStreetNews(privateIds, false)
 		},
 		Corn:  corn,
 		Model: top_list.WallStreet,

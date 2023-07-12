@@ -97,21 +97,21 @@ func (r *reportState) exist(id int64, isGroup bool) bool {
 	return ok
 }
 
-func (r *reportState) getReportList(isGroup bool) map[int64]struct{} {
+func (r *reportState) getReportList(isGroup bool) []int64 {
 	r.RLock()
 	defer r.RUnlock()
-	data := make(map[int64]struct{})
+	groupIds := make([]int64, 0, 4)
 	if isGroup {
-		for k, v := range r.groups {
-			data[k] = v
+		for k := range r.groups {
+			groupIds = append(groupIds, k)
 		}
 	} else {
-		for k, v := range r.privates {
-			data[k] = v
+		for k := range r.privates {
+			groupIds = append(groupIds, k)
 		}
 	}
 
-	return data
+	return groupIds
 }
 
 // wallStreetSentNews 华尔街日报发送记录
