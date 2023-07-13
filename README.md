@@ -27,7 +27,7 @@
 * 通过命令切换chatgpt和bingchat模式
 * 集成DELL.2的AI作图，通过命令与描述词
 * 通过命令触发翻译 负载均衡(有道、腾讯、百度、火山、阿里)
-* 基于tencent cos的状态存储
+* 基于tencent oss的状态存储
 * 定时推送当天新闻数据到tencent oss
 * 通过命令设置环境变量（只有bot owner可以使用）
 
