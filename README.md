@@ -40,6 +40,9 @@
 # openai api key
 ENV OPENAI_API_KEY=
 
+# chimera api key，提供免费的chatgpt支持包括4.0
+ENV CHIMERA_KEY=
+
 # 临时文件存储目录
 ENV FILE_ROOT=
 
@@ -47,19 +50,19 @@ ENV FILE_ROOT=
 ENV BAIDU_API_KEY=
 ENV BAIDU_SECRET_KEY=
 
-# 阿里云api
+# 阿里云api 用于翻译
 ENV ALI_ACCESS_ID=
 ENV ALI_ACCESS_SECRET=
 
-# 腾讯云api
+# 腾讯云api 用于翻译 & 状态文件/新闻文件存储
 ENV TC_SECRET_ID=
 ENV TC_SECRET_KEY=
 
-# 有道云api
+# 有道云api 用于翻译
 ENV YD_APP_KEY=
 ENV YD_SECRET_KEY=
 
-# 火山引擎api
+# 火山引擎api 用于翻译
 ENV VOLC_ACCESS_KEY=
 ENV VOLC_SECRET_KEY=
 
