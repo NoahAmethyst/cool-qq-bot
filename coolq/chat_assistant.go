@@ -194,7 +194,7 @@ func ChangeModel(assistant Assistant) {
 	}
 
 	if model, err := strconv.ParseInt(v, 10, 64); err != nil {
-		msg := fmt.Sprintf("非法的参数\n当前模式：%s\n%s", switchModelMsg)
+		msg := fmt.Sprintf("非法的参数\n当前模式：%s\n%s", currModel, switchModelMsg)
 		assistant.Reply(msg)
 		return
 	} else {
@@ -249,7 +249,7 @@ func AskAssistant(assistant Assistant) {
 		case <-recvChan:
 			return
 		case <-time.After(time.Second * 10):
-			vendor := "OpenAI GPT3.0"
+			vendor := "OpenAI"
 			if assistant.Model() == ai_util.BingChat {
 				vendor = "BingChat"
 			}
