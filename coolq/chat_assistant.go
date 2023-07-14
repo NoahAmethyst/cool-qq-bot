@@ -172,6 +172,7 @@ func ChangeModel(assistant Assistant) {
 		return
 	}
 	v := strings.TrimSpace(strings.ReplaceAll(textEle.Content, "#模式 ", ""))
+
 	var currModel string
 	switch assistant.Model() {
 	case ai_util.BingChat:
@@ -181,19 +182,16 @@ func ChangeModel(assistant Assistant) {
 	default:
 		currModel = "ChatGpt3.0"
 	}
-	if len(v) == 0 {
-		msg := fmt.Sprintf("当前模式：%s\n如需更换模式请使用:\n"+
-			"%d - ChatGpt3.0(默认)\n"+
-			"%d - BingChat\n"+
-			"%d - ChatGpt4.0", currModel, ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4)
-		assistant.Reply(msg)
-		return
-	}
-
 	switchModelMsg := fmt.Sprintf("如需更换模式请使用:\n"+
 		"%d - ChatGpt3.0(默认)\n"+
 		"%d - BingChat\n"+
-		"%d - ChatGpt4.0", currModel, ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4)
+		"%d - ChatGpt4.0", ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4)
+
+	if len(v) == 0 {
+		msg := fmt.Sprintf("当前模式：%s\n%s", currModel, switchModelMsg)
+		assistant.Reply(msg)
+		return
+	}
 
 	if model, err := strconv.ParseInt(v, 10, 64); err != nil {
 		msg := fmt.Sprintf("非法的参数\n当前模式：%s\n%s", switchModelMsg)
@@ -203,13 +201,17 @@ func ChangeModel(assistant Assistant) {
 		var msg string
 		switch model {
 		case int64(ai_util.ChatGPT):
-			currModel = "ChatGpt"
+			currModel = "ChatGpt3.0"
 			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
 			assistant.ChangeModel(ai_util.ChatGPT)
 		case int64(ai_util.BingChat):
 			currModel = "BingChat"
 			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
 			assistant.ChangeModel(ai_util.BingChat)
+		case int64(ai_util.ChatGPT4):
+			currModel = "ChatGpt4.0"
+			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
+			assistant.ChangeModel(ai_util.ChatGPT4)
 		default:
 			msg = fmt.Sprintf("非法的参数\n当前模式%s\n%s", currModel, switchModelMsg)
 		}
@@ -343,7 +345,17 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	}
 
 	var answer string
-	resp, err := ai_util.AskChatGpt(ctx)
+	var resp *openai.ChatCompletionResponse
+	var err error
+	switch assistant.Model() {
+	case ai_util.ChatGPT:
+		resp, err = ai_util.AskChatGpt(ctx)
+	case ai_util.ChatGPT4:
+		resp, err = ai_util.AskChatGpt4(ctx)
+	default:
+		resp, err = ai_util.AskChatGpt(ctx)
+	}
+
 	if err != nil {
 		answer = fmt.Sprintf("调用openAi 失败：%s", err.Error())
 	} else {
@@ -363,6 +375,7 @@ func init() {
 	chatModelHandlers = map[ai_util.ChatModel]func(assistant Assistant, recvChan chan struct{}){
 		//ai_util.ChatGPT:  askRemoteChatGpt,
 		ai_util.ChatGPT:  askOfficialChatGpt,
+		ai_util.ChatGPT4: askOfficialChatGpt,
 		ai_util.BingChat: askBingChat,
 	}
 }
