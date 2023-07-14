@@ -47,7 +47,7 @@ func (bot *CQBot) WeiboHotReporter(corn string) *ReportJob {
 		Report: func() {
 			groupIds := bot.state.reportState.getReportList(true)
 			bot.ReportWeiboHot(groupIds, true)
-			privateIds := bot.state.reportState.getReportList(true)
+			privateIds := bot.state.reportState.getReportList(false)
 			bot.ReportWeiboHot(privateIds, false)
 		},
 		Corn:  corn,
@@ -60,7 +60,7 @@ func (bot *CQBot) D36krHotReporter(corn string) *ReportJob {
 		Report: func() {
 			groupIds := bot.state.reportState.getReportList(true)
 			bot.Report36kr(groupIds, true)
-			privateIds := bot.state.reportState.getReportList(true)
+			privateIds := bot.state.reportState.getReportList(false)
 			bot.Report36kr(privateIds, false)
 		},
 		Corn:  corn,
@@ -73,7 +73,7 @@ func (bot *CQBot) WallStreetNewsReporter(corn string) *ReportJob {
 		Report: func() {
 			groupIds := bot.state.reportState.getReportList(true)
 			bot.ReportWallStreetNews(groupIds, true)
-			privateIds := bot.state.reportState.getReportList(true)
+			privateIds := bot.state.reportState.getReportList(false)
 			bot.ReportWallStreetNews(privateIds, false)
 		},
 		Corn:  corn,
