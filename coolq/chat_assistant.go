@@ -345,7 +345,7 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	}
 
 	var answer string
-	var resp *openai.ChatCompletionResponse
+	var resp openai.ChatCompletionResponse
 	var err error
 	switch assistant.Model() {
 	case ai_util.ChatGPT:
@@ -359,9 +359,9 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	if err != nil {
 		answer = fmt.Sprintf("调用openAi 失败：%s", err.Error())
 	} else {
-		if resp == nil || len(resp.Choices) == 0 {
+		if len(resp.Choices) == 0 || len(resp.Choices[0].Message.Content) == 0 {
 			log.Warnf("openai 返回空结构：%v", resp)
-			answer = fmt.Sprintf("openai返回空结构")
+			answer = "OpenAI未响应，请重试"
 		} else {
 			answer = resp.Choices[0].Message.Content
 			assistant.Session().putCtx(assistant.Sender(), msg.Content, answer)

@@ -6,7 +6,7 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func AskChatGpt(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionResponse, error) {
+func AskChatGpt(ctx []openai.ChatCompletionMessage) (openai.ChatCompletionResponse, error) {
 	initCli()
 	resp, err := openaiCli.CreateChatCompletion(
 		context.Background(),
@@ -16,11 +16,11 @@ func AskChatGpt(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionRespo
 		},
 	)
 	log.Infof("收到openai响应:%+v", resp)
-	return &resp, err
+	return resp, err
 
 }
 
-func AskChatGpt4(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionResponse, error) {
+func AskChatGpt4(ctx []openai.ChatCompletionMessage) (openai.ChatCompletionResponse, error) {
 	initCli()
 	resp, err := chimeraCli.CreateChatCompletion(
 		context.Background(),
@@ -30,5 +30,5 @@ func AskChatGpt4(ctx []openai.ChatCompletionMessage) (*openai.ChatCompletionResp
 		},
 	)
 	log.Infof("收到openai响应:%+v", resp)
-	return &resp, err
+	return resp, err
 }
