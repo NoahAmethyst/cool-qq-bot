@@ -180,10 +180,10 @@ func ChangeModel(assistant Assistant) {
 	case ai_util.ChatGPT4:
 		currModel = "ChatGpt4.0"
 	default:
-		currModel = "ChatGpt3.0"
+		currModel = "ChatGpt3.5"
 	}
 	switchModelMsg := fmt.Sprintf("如需更换模式请使用:\n"+
-		"%d - ChatGpt3.0(默认)\n"+
+		"%d - ChatGpt3.5(默认)\n"+
 		"%d - BingChat\n"+
 		"%d - ChatGpt4.0", ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4)
 
@@ -201,7 +201,7 @@ func ChangeModel(assistant Assistant) {
 		var msg string
 		switch model {
 		case int64(ai_util.ChatGPT):
-			currModel = "ChatGpt3.0"
+			currModel = "ChatGpt3.5"
 			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
 			assistant.ChangeModel(ai_util.ChatGPT)
 		case int64(ai_util.BingChat):
