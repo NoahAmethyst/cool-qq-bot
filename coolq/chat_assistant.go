@@ -172,18 +172,31 @@ func ChangeModel(assistant Assistant) {
 		return
 	}
 	v := strings.TrimSpace(strings.ReplaceAll(textEle.Content, "#模式 ", ""))
-	currModel := "ChatGpt"
-	if ai_util.BingChat == assistant.Model() {
+	var currModel string
+	switch assistant.Model() {
+	case ai_util.BingChat:
 		currModel = "BingChat"
+	case ai_util.ChatGPT4:
+		currModel = "ChatGpt4.0"
+	default:
+		currModel = "ChatGpt3.0"
 	}
 	if len(v) == 0 {
-		msg := fmt.Sprintf("当前模式：%s\n如需更换模式请使用:\n%d - ChatGpt(默认)\n%d - BingChat", currModel, ai_util.ChatGPT, ai_util.BingChat)
+		msg := fmt.Sprintf("当前模式：%s\n如需更换模式请使用:\n"+
+			"%d - ChatGpt3.0(默认)\n"+
+			"%d - BingChat\n"+
+			"%d - ChatGpt4.0", currModel, ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4)
 		assistant.Reply(msg)
 		return
 	}
 
+	switchModelMsg := fmt.Sprintf("如需更换模式请使用:\n"+
+		"%d - ChatGpt3.0(默认)\n"+
+		"%d - BingChat\n"+
+		"%d - ChatGpt4.0", currModel, ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4)
+
 	if model, err := strconv.ParseInt(v, 10, 64); err != nil {
-		msg := fmt.Sprintf("非法的参数\n当前模式：%s\n如需更换模式请使用:\n%d - ChatGpt(默认)\n%d - BingChat", currModel, ai_util.ChatGPT, ai_util.BingChat)
+		msg := fmt.Sprintf("非法的参数\n当前模式：%s\n%s", switchModelMsg)
 		assistant.Reply(msg)
 		return
 	} else {
@@ -191,17 +204,16 @@ func ChangeModel(assistant Assistant) {
 		switch model {
 		case int64(ai_util.ChatGPT):
 			currModel = "ChatGpt"
-			msg = fmt.Sprintf("更换模式为：%s\n如需更换模式请使用:\n%d - ChatGpt(默认)\n%d - BingChat", currModel, ai_util.ChatGPT, ai_util.BingChat)
+			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
 			assistant.ChangeModel(ai_util.ChatGPT)
 		case int64(ai_util.BingChat):
 			currModel = "BingChat"
-			msg = fmt.Sprintf("更换模式为：%s\n如需更换模式请使用:\n%d - ChatGpt(默认)\n%d - BingChat", currModel, ai_util.ChatGPT, ai_util.BingChat)
+			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
 			assistant.ChangeModel(ai_util.BingChat)
 		default:
-			msg = fmt.Sprintf("非法的参数\n当前模式%s\n如需更换模式请使用:\n%d - ChatGpt(默认)\n%d - BingChat", currModel, ai_util.ChatGPT, ai_util.BingChat)
+			msg = fmt.Sprintf("非法的参数\n当前模式%s\n%s", currModel, switchModelMsg)
 		}
 		assistant.Reply(msg)
-
 	}
 }
 
@@ -235,7 +247,7 @@ func AskAssistant(assistant Assistant) {
 		case <-recvChan:
 			return
 		case <-time.After(time.Second * 10):
-			vendor := "OPENAI"
+			vendor := "OpenAI GPT3.0"
 			if assistant.Model() == ai_util.BingChat {
 				vendor = "BingChat"
 			}
