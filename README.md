@@ -24,8 +24,8 @@
 * 通过命令触发知乎热榜资讯推送
 * 定时推送 & 推送管理：可在群与私聊中 通过命令 开启/关闭
 * 通过命令获得BTC/ETH/BNB最近币价(数据来自币安)，可以获取指定币种价格
-* 集成ChatGPT & BingChat的对话(支持十分钟滚动窗口的上下文，chatGpt3.0和4.0共享上下文)
-* 通过命令切换 chatGpt3.0 chatGpt4.0和 bingChat模式
+* 集成ChatGPT & BingChat的对话(支持十分钟滚动窗口的上下文，chatGpt3.5和4.0共享上下文)
+* 通过命令切换 chatGpt3.5 chatGpt4.0和 bingChat模式
 * 支持ChatGpt4，感谢 [ChimeraGPT API](https://chimeragpt.adventblocks.cc/) 提供的支持
 * 集成DELL.2的AI作图，通过命令与描述词
 * 通过命令触发翻译 负载均衡(有道、腾讯、百度、火山、阿里)
