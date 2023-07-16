@@ -79,6 +79,8 @@ ENV COOKIE=
 ENV REMOTE_PROXY=
 ```
 
+也可以使用[ChimeraGPT API](https://chimeragpt.adventblocks.cc/)提供的apikey替换openai的域名，目前大陆可访问
+
 关于请求中转项目可以查看[该项目
 ](https://github.com/NoahAmethyst/openai-proxy)
 
