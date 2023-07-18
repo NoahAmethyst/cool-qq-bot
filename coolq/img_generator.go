@@ -48,6 +48,7 @@ func (p *PrivateImgGenerator) SendImg(stream io.ReadSeeker, filepath, url string
 				File: filepath,
 				URL:  url,
 			},
+			message.NewText(fmt.Sprintf("图片链接：%s", url)),
 		},
 	})
 	if result < 0 {
