@@ -5,6 +5,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
+	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"time"
@@ -38,28 +39,33 @@ func (p *PrivateImgGenerator) SendMessage(content string) {
 			content)}})
 }
 
-func (p *PrivateImgGenerator) SendImg(stream io.ReadSeeker, filePath, url string) error {
+func (p *PrivateImgGenerator) SendImg(stream io.ReadSeeker, _, _ string) error {
 
-	img, err := p.bot.uploadLocalImage(message.Source{
-		SourceType: message.SourcePrivate,
-		PrimaryID:  p.Target(),
-	}, &LocalImageElement{
-		Stream: stream,
-		File:   filePath,
-		URL:    url,
-	})
-	if err != nil {
-		log.Error("上传图片失败：%s", err.Error())
-		err = fmt.Errorf("上传图片失败(%s)，图片地址：%s", err.Error(), url)
-	} else {
-		p.bot.SendPrivateMessage(p.Target(), 0, &message.SendingMessage{
-			Elements: []message.IMessageElement{
-				img,
-			},
-		})
-	}
-
+	_, err := p.bot.Client.UploadImage(
+		message.Source{
+			SourceType: message.SourcePrivate,
+			PrimaryID:  p.Target(),
+		}, stream)
 	return err
+
+	//img, err := p.bot.uploadLocalImage(message.Source{
+	//	SourceType: message.SourcePrivate,
+	//	PrimaryID:  p.Target(),
+	//}, &LocalImageElement{
+	//	Stream: stream,
+	//	File:   filePath,
+	//	URL:    url,
+	//})
+	//if err != nil {
+	//	log.Error("上传图片失败：%s", err.Error())
+	//	err = fmt.Errorf("上传图片失败(%s)，图片地址：%s", err.Error(), url)
+	//} else {
+	//	p.bot.SendPrivateMessage(p.Target(), 0, &message.SendingMessage{
+	//		Elements: []message.IMessageElement{
+	//			img,
+	//		},
+	//	})
+	//}
 }
 
 func (p *PrivateImgGenerator) GetText() *message.TextElement {
@@ -156,7 +162,7 @@ func GenerateImage(generator ImgGenerator) {
 		}
 	}(generator.Target())
 
-	r, err := ai_util.GenerateImage(text)
+	r, err := ai_util.GenerateImage(text, openai.CreateImageSize512x512)
 
 	recvChan <- struct{}{}
 
@@ -178,7 +184,7 @@ func GenerateImage(generator ImgGenerator) {
 	}
 
 	if err := generator.SendImg(f, path, r.Data[0].URL); err != nil {
-		log.Error("上传图片失败：%s", err.Error())
-		generator.SendMessage(err.Error())
+		log.Errorf("上传图片失败：%s", err.Error())
+		generator.SendMessage(fmt.Sprintf("%s，图片连接：%s", r.Data[0].URL))
 	}
 }

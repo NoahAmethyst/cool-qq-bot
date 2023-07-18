@@ -6,13 +6,13 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-func GenerateImage(prompt string) (*openai.ImageResponse, error) {
+func GenerateImage(prompt, size string) (*openai.ImageResponse, error) {
 	initCli()
 	resp, err := openaiCli.CreateImage(
 		context.Background(),
 		openai.ImageRequest{
 			Prompt:         prompt,
-			Size:           openai.CreateImageSize512x512,
+			Size:           size,
 			ResponseFormat: openai.CreateImageResponseFormatURL,
 			N:              1,
 		},

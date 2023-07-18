@@ -91,7 +91,7 @@ func Test_ChatGpt4WithContext(t *testing.T) {
 func Test_OpenAIGenerateImg(t *testing.T) {
 
 	prompt := `Create an high quality image of a vast, awe-inspiring scene that blends elements of science fiction, cyberpunk, and the infinite expanse of the universe. The image should feature an enormous planet dominating the background, with intricate details on the surface visible from afar, such as glowing cities, sprawling forests, and deep canyons. The sky around the planet should be filled with swirling clouds, electric storms, and perhaps even space debris or satellites adding to the intrigue.`
-	imgResp, err := ai_util.GenerateImage(prompt)
+	imgResp, err := ai_util.GenerateImage(prompt, openai.CreateImageSize1024x1024)
 	if err != nil {
 		panic(err)
 	}
@@ -100,7 +100,8 @@ func Test_OpenAIGenerateImg(t *testing.T) {
 }
 
 func Test_OpenAIEditImg(t *testing.T) {
-	imgResp, err := ai_util.GenerateImage("Color photo of a beautiful Chinese girl sitting on a traditional wooden bench in a serene garden. She wears a flowing red dress with intricate gold embroidery and a delicate flower in her hair. Her porcelain skin glows in the soft sunlight, and her almond-shaped eyes gaze off into the distance with a look of contemplation. The garden around her is filled with vibrant greenery, blooming flowers, and a peaceful koi pond.\n\nNikon D850, Fujifilm Pro 400H film, 85mm lens, natural light.\n\nDirectors: Ang Lee, Wong Kar-wai\nCinematographers: Christopher Doyle, Mark Lee Ping-bin\nPhotographers: Zhang Jingna, Chen Man\nFashion designers: Guo Pei, Vera Wang, Jason Wu\n—c 10 —ar 2:3")
+	imgResp, err := ai_util.GenerateImage("Color photo of a beautiful Chinese girl sitting on a traditional wooden bench in a serene garden. She wears a flowing red dress with intricate gold embroidery and a delicate flower in her hair. Her porcelain skin glows in the soft sunlight, and her almond-shaped eyes gaze off into the distance with a look of contemplation. The garden around her is filled with vibrant greenery, blooming flowers, and a peaceful koi pond.\n\nNikon D850, Fujifilm Pro 400H film, 85mm lens, natural light.\n\nDirectors: Ang Lee, Wong Kar-wai\nCinematographers: Christopher Doyle, Mark Lee Ping-bin\nPhotographers: Zhang Jingna, Chen Man\nFashion designers: Guo Pei, Vera Wang, Jason Wu\n—c 10 —ar 2:3",
+		openai.CreateImageSize1024x1024)
 	if err != nil {
 		panic(err)
 	}
