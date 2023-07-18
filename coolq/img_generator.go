@@ -185,6 +185,6 @@ func GenerateImage(generator ImgGenerator) {
 
 	if err := generator.SendImg(f, path, r.Data[0].URL); err != nil {
 		log.Errorf("上传图片失败：%s", err.Error())
-		generator.SendMessage(fmt.Sprintf("%s，图片连接：%s", r.Data[0].URL))
+		generator.SendMessage(fmt.Sprintf("%s，图片连接：%s", err.Error(), r.Data[0].URL))
 	}
 }
