@@ -5,6 +5,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
+	"github.com/pkg/errors"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 	"io"
@@ -39,33 +40,21 @@ func (p *PrivateImgGenerator) SendMessage(content string) {
 			content)}})
 }
 
-func (p *PrivateImgGenerator) SendImg(stream io.ReadSeeker, _, _ string) error {
+func (p *PrivateImgGenerator) SendImg(stream io.ReadSeeker, filepath, url string) error {
 
-	_, err := p.bot.Client.UploadImage(
-		message.Source{
-			SourceType: message.SourcePrivate,
-			PrimaryID:  p.Target(),
-		}, stream)
-	return err
+	result := p.bot.SendPrivateMessage(p.Target(), 0, &message.SendingMessage{
+		Elements: []message.IMessageElement{
+			&LocalImageElement{
+				File: filepath,
+				URL:  url,
+			},
+		},
+	})
+	if result < 0 {
+		return errors.New("发送图片失败")
+	}
+	return nil
 
-	//img, err := p.bot.uploadLocalImage(message.Source{
-	//	SourceType: message.SourcePrivate,
-	//	PrimaryID:  p.Target(),
-	//}, &LocalImageElement{
-	//	Stream: stream,
-	//	File:   filePath,
-	//	URL:    url,
-	//})
-	//if err != nil {
-	//	log.Error("上传图片失败：%s", err.Error())
-	//	err = fmt.Errorf("上传图片失败(%s)，图片地址：%s", err.Error(), url)
-	//} else {
-	//	p.bot.SendPrivateMessage(p.Target(), 0, &message.SendingMessage{
-	//		Elements: []message.IMessageElement{
-	//			img,
-	//		},
-	//	})
-	//}
 }
 
 func (p *PrivateImgGenerator) GetText() *message.TextElement {
@@ -96,27 +85,21 @@ func (p *GroupImgGenerator) SendMessage(content string) {
 			content)}})
 }
 
-func (p *GroupImgGenerator) SendImg(stream io.ReadSeeker, filePath, url string) error {
+func (p *GroupImgGenerator) SendImg(stream io.ReadSeeker, filepath, url string) error {
 
-	img, err := p.bot.uploadLocalImage(message.Source{
-		SourceType: message.SourceGroup,
-		PrimaryID:  p.Target(),
-	}, &LocalImageElement{
-		Stream: stream,
-		File:   filePath,
-		URL:    url,
-	})
-	if err != nil {
-		log.Error("上传图片失败：%s", err.Error())
-		err = fmt.Errorf("上传图片失败(%s)，图片地址：%s", err.Error(), url)
-	} else {
-		p.bot.SendGroupMessage(p.Target(), &message.SendingMessage{
-			Elements: []message.IMessageElement{
-				img,
+	result := p.bot.SendGroupMessage(p.Target(), &message.SendingMessage{
+		Elements: []message.IMessageElement{
+			&LocalImageElement{
+				File: filepath,
+				URL:  url,
 			},
-		})
+		},
+	})
+	if result < 0 {
+		return errors.New("发送图片失败")
 	}
-	return err
+
+	return nil
 }
 
 func (p *GroupImgGenerator) GetText() *message.TextElement {
