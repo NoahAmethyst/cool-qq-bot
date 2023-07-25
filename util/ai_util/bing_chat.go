@@ -10,7 +10,7 @@ import (
 
 const (
 	remoteConversationUrl = "https://bing.vcanbb.top/turing/conversation/create"
-	remoteConversationWs  = "wss://sydney.vcanbb.chat/sydney/ChatHub"
+	remoteConversationWs  = "wss://bing.vcanbb.top/sydney/ChatHub"
 )
 
 type BingChatResp struct {

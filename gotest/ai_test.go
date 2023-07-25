@@ -1,8 +1,10 @@
 package gotest
 
 import (
+	"fmt"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/sashabaranov/go-openai"
+	"strings"
 	"testing"
 )
 
@@ -121,4 +123,37 @@ func Test_AIAssistant(t *testing.T) {
 		panic(err)
 	}
 	t.Logf("%s", assistant.Text)
+}
+
+func Test_BingChat(t *testing.T) {
+
+	bingChatCli, err := ai_util.NewBingChat()
+	if err != nil {
+		panic(err)
+	}
+
+	answer, err := ai_util.AskBingChat(bingChatCli, "南京今天天气怎么样")
+	if err != nil {
+		panic(err)
+	}
+
+	var strBuilder strings.Builder
+	strBuilder.WriteString(answer.Answer)
+
+	if len(answer.Reference) > 0 {
+		strBuilder.WriteString("\n\n参考资料:")
+	}
+	for title, link := range answer.Reference {
+		strBuilder.WriteString(fmt.Sprintf("\n%s %s", title, link))
+	}
+
+	if len(answer.Suggestions) > 0 {
+		strBuilder.WriteString("\n\n您也可以这样提问")
+	}
+	for i, suggest := range answer.Suggestions {
+		strBuilder.WriteString(fmt.Sprintf("\n%d: %s", i+1, suggest))
+	}
+
+	t.Logf("%s", strBuilder.String())
+
 }
