@@ -63,7 +63,7 @@ func setCli() {
 	{
 		config := openai.DefaultConfig(chimeraKey)
 		config.HTTPClient.Timeout = time.Minute * 120
-		config.BaseURL = "https://chimeragpt.adventblocks.cc/v1"
+		config.BaseURL = "https://chimeragpt.adventblocks.cc/api/v1"
 		chimeraCli = openai.NewClientWithConfig(config)
 	}
 
