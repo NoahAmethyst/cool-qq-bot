@@ -1036,7 +1036,9 @@ func (bot *CQBot) ToElement(t string, d map[string]string, sourceType message.So
 		}
 		v.thumb = bytes.NewReader(data)
 		video, _ := os.Open(v.File)
-		defer video.Close()
+		defer func(video *os.File) {
+			_ = video.Close()
+		}(video)
 		_, _ = video.Seek(4, io.SeekStart)
 		header := make([]byte, 4)
 		_, _ = video.Read(header)

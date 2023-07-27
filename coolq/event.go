@@ -56,13 +56,13 @@ func (ev *event) MarshalJSON() ([]byte, error) {
 	default:
 		panic("unknown post type: " + ev.PostType)
 	}
-	fmt.Fprintf(buf, `{"post_type":"%s","%s":"%s","time":%d,"self_id":%d`, ev.PostType, detail, ev.DetailType, ev.Time, ev.SelfID)
+	_, _ = fmt.Fprintf(buf, `{"post_type":"%s","%s":"%s","time":%d,"self_id":%d`, ev.PostType, detail, ev.DetailType, ev.Time, ev.SelfID)
 	if ev.SubType != "" {
-		fmt.Fprintf(buf, `,"sub_type":"%s"`, ev.SubType)
+		_, _ = fmt.Fprintf(buf, `,"sub_type":"%s"`, ev.SubType)
 	}
 	for k, v := range ev.Others {
 		v, _ := json.Marshal(v)
-		fmt.Fprintf(buf, `,"%s":%s`, k, v)
+		_, _ = fmt.Fprintf(buf, `,"%s":%s`, k, v)
 	}
 	buf.WriteByte('}')
 	return append([]byte(nil), buf.Bytes()...), nil
@@ -152,7 +152,7 @@ func (bot *CQBot) groupMessageEvent(c *client.QQClient, m *message.GroupMessage)
 	bot.dispatch(gm)
 }
 
-func (bot *CQBot) tempMessageEvent(c *client.QQClient, e *client.TempMessageEvent) {
+func (bot *CQBot) tempMessageEvent(_ *client.QQClient, e *client.TempMessageEvent) {
 	m := e.Message
 	bot.checkMedia(m.Elements, m.Sender.Uin)
 	source := message.Source{
@@ -505,7 +505,7 @@ func (bot *CQBot) leaveGroupEvent(c *client.QQClient, e *client.GroupLeaveEvent)
 	bot.dispatch(bot.groupDecrease(e.Group.Code, c.Uin, e.Operator))
 }
 
-func (bot *CQBot) memberPermissionChangedEvent(c *client.QQClient, e *client.MemberPermissionChangedEvent) {
+func (bot *CQBot) memberPermissionChangedEvent(_ *client.QQClient, e *client.MemberPermissionChangedEvent) {
 	st := "unset"
 	if e.NewPermission == client.Administrator {
 		st = "set"
@@ -516,7 +516,7 @@ func (bot *CQBot) memberPermissionChangedEvent(c *client.QQClient, e *client.Mem
 	})
 }
 
-func (bot *CQBot) memberCardUpdatedEvent(c *client.QQClient, e *client.MemberCardUpdatedEvent) {
+func (bot *CQBot) memberCardUpdatedEvent(_ *client.QQClient, e *client.MemberCardUpdatedEvent) {
 	log.Infof("群 %v 的 %v 更新了名片 %v -> %v", formatGroupName(e.Group), formatMemberName(e.Member), e.OldCard, e.Member.CardName)
 	bot.dispatchEvent("notice/group_card", global.MSG{
 		"group_id": e.Group.Code,
@@ -540,7 +540,7 @@ func (bot *CQBot) memberLeaveEvent(_ *client.QQClient, e *client.MemberLeaveGrou
 	bot.dispatch(bot.groupDecrease(e.Group.Code, e.Member.Uin, e.Operator))
 }
 
-func (bot *CQBot) friendRequestEvent(c *client.QQClient, e *client.NewFriendRequest) {
+func (bot *CQBot) friendRequestEvent(_ *client.QQClient, e *client.NewFriendRequest) {
 	log.Infof("收到来自 %v(%v) 的好友请求: %v", e.RequesterNick, e.RequesterUin, e.Message)
 	//flag := strconv.FormatInt(e.RequestId, 10)
 	//bot.friendReqCache.Store(flag, e)
@@ -552,7 +552,7 @@ func (bot *CQBot) friendRequestEvent(c *client.QQClient, e *client.NewFriendRequ
 	e.Accept()
 }
 
-func (bot *CQBot) friendAddedEvent(c *client.QQClient, e *client.NewFriendEvent) {
+func (bot *CQBot) friendAddedEvent(_ *client.QQClient, e *client.NewFriendEvent) {
 	log.Infof("添加了新好友: %v(%v)", e.Friend.Nickname, e.Friend.Uin)
 	//bot.tempSessionCache.Delete(e.Friend.Uin)
 	//bot.dispatchEvent("notice/friend_add", global.MSG{
@@ -563,7 +563,7 @@ func (bot *CQBot) friendAddedEvent(c *client.QQClient, e *client.NewFriendEvent)
 		message.NewText(fmt.Sprintf("您已添加 %s 作为您的助手\n如需助手问答，请在您的消息中带上问号\n\n您可使用 # 查询在好友聊天中可使用的命令", bot.Client.Nickname))}})
 }
 
-func (bot *CQBot) groupInvitedEvent(c *client.QQClient, e *client.GroupInvitedRequest) {
+func (bot *CQBot) groupInvitedEvent(_ *client.QQClient, e *client.GroupInvitedRequest) {
 	log.Infof("收到来自群 %v(%v) 内用户 %v(%v) 的加群邀请.", e.GroupName, e.GroupCode, e.InvitorNick, e.InvitorUin)
 	flag := strconv.FormatInt(e.RequestId, 10)
 	bot.dispatchEvent("request/group/invite", global.MSG{
@@ -574,7 +574,7 @@ func (bot *CQBot) groupInvitedEvent(c *client.QQClient, e *client.GroupInvitedRe
 	})
 }
 
-func (bot *CQBot) groupJoinReqEvent(c *client.QQClient, e *client.UserJoinGroupRequest) {
+func (bot *CQBot) groupJoinReqEvent(_ *client.QQClient, e *client.UserJoinGroupRequest) {
 	log.Infof("群 %v(%v) 收到来自用户 %v(%v) 的加群请求.", e.GroupName, e.GroupCode, e.RequesterNick, e.RequesterUin)
 	flag := strconv.FormatInt(e.RequestId, 10)
 	bot.dispatchEvent("request/group/add", global.MSG{
@@ -585,7 +585,7 @@ func (bot *CQBot) groupJoinReqEvent(c *client.QQClient, e *client.UserJoinGroupR
 	})
 }
 
-func (bot *CQBot) otherClientStatusChangedEvent(c *client.QQClient, e *client.OtherClientStatusChangedEvent) {
+func (bot *CQBot) otherClientStatusChangedEvent(_ *client.QQClient, e *client.OtherClientStatusChangedEvent) {
 	if e.Online {
 		log.Infof("Bot 账号在客户端 %v (%v) 登录.", e.Client.DeviceName, e.Client.DeviceKind)
 	} else {
