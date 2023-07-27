@@ -208,7 +208,7 @@ func UploadDailyRecord() {
 					"error":  err,
 				}).Send()
 			} else {
-				Data36krDailyRecord.data = nil
+				ZhihuHotDailyRecord.data = nil
 				if err := file_util.ClearFile(zhihuFilePath); err != nil {
 					_ = os.Remove(zhihuFilePath)
 				}
