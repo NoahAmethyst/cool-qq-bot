@@ -40,7 +40,7 @@ func (p *PrivateImgGenerator) SendMessage(content string) {
 			content)}})
 }
 
-func (p *PrivateImgGenerator) SendImg(stream io.ReadSeeker, filepath, url string) error {
+func (p *PrivateImgGenerator) SendImg(_ io.ReadSeeker, filepath, url string) error {
 
 	result := p.bot.SendPrivateMessage(p.Target(), 0, &message.SendingMessage{
 		Elements: []message.IMessageElement{
@@ -86,7 +86,7 @@ func (p *GroupImgGenerator) SendMessage(content string) {
 			content)}})
 }
 
-func (p *GroupImgGenerator) SendImg(stream io.ReadSeeker, filepath, url string) error {
+func (p *GroupImgGenerator) SendImg(_ io.ReadSeeker, filepath, url string) error {
 
 	result := p.bot.SendGroupMessage(p.Target(), &message.SendingMessage{
 		Elements: []message.IMessageElement{
