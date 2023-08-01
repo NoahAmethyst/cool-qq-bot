@@ -12,7 +12,7 @@ import (
 
 type Translator interface {
 	Reply(content string)
-	GetText() *message.TextElement
+	GetText() []string
 	Check() bool
 	Target() int64
 }
@@ -31,24 +31,15 @@ func (p *PrivateTranslator) Reply(msg string) {
 }
 
 func (p *PrivateTranslator) Target() int64 {
-	return p.m.Sender.Uin
+	return p.m.Chat()
 }
 
 func (p *PrivateTranslator) Check() bool {
 	return p.bot != nil && p.m != nil
 }
 
-func (p *PrivateTranslator) GetText() *message.TextElement {
-	var textEle *message.TextElement
-	for _, _ele := range p.m.Elements {
-		switch _ele.Type() {
-		case message.Text:
-			textEle = _ele.(*message.TextElement)
-		default:
-
-		}
-	}
-	return textEle
+func (p *PrivateTranslator) GetText() []string {
+	return p.m.Texts()
 }
 
 type GroupTranslator struct {
@@ -66,24 +57,15 @@ func (p *GroupTranslator) Reply(msg string) {
 }
 
 func (p *GroupTranslator) Target() int64 {
-	return p.m.GroupCode
+	return p.m.Chat()
 }
 
 func (p *GroupTranslator) Check() bool {
 	return p.bot != nil && p.m != nil
 }
 
-func (p *GroupTranslator) GetText() *message.TextElement {
-	var textEle *message.TextElement
-	for _, _ele := range p.m.Elements {
-		switch _ele.Type() {
-		case message.Text:
-			textEle = _ele.(*message.TextElement)
-		default:
-
-		}
-	}
-	return textEle
+func (p *GroupTranslator) GetText() []string {
+	return p.m.Texts()
 }
 
 func TransText(t Translator) {
@@ -92,12 +74,12 @@ func TransText(t Translator) {
 		log.Warn("invalid translator")
 		return
 	}
-	textEle := t.GetText()
+	texts := t.GetText()
 
-	if textEle == nil {
+	if len(texts) == 0 {
 		return
 	}
-	text, done := parseSourceText(textEle)
+	text, done := parseSourceText(texts[0])
 	if done {
 		t.Reply("缺少待翻译文本")
 		return
@@ -119,11 +101,11 @@ func TransText(t Translator) {
 
 }
 
-func parseSourceText(textEle *message.TextElement) (string, bool) {
-	var text string
+func parseSourceText(text string) (string, bool) {
+
 	re := regexp.MustCompile(`#(\S+)\s+(?s)(.*)`)
 
-	match := re.FindStringSubmatch(textEle.Content)
+	match := re.FindStringSubmatch(text)
 
 	if len(match) != 3 {
 		return text, true

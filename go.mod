@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/Microsoft/go-winio v0.5.1
-	github.com/Mrs4s/MiraiGo v0.0.0-20230103130153-8e70b22d1c83
+	github.com/Mrs4s/MiraiGo v0.0.0-20230801013355-65a3c5634046
 	github.com/NoahAmethyst/bingchat-api v1.0.3
 	github.com/NoahAmethyst/translator-engine v1.0.4
 	github.com/PuerkitoBio/goquery v1.8.1
@@ -33,7 +33,7 @@ require (
 )
 
 require (
-	github.com/RomiChan/protobuf v0.1.1-0.20220602121309-9e3b8cbefd7a // indirect
+	github.com/RomiChan/protobuf v0.1.1-0.20230204044148-2ed269a2e54d // indirect
 	github.com/alibabacloud-go/alibabacloud-gateway-spi v0.0.4 // indirect
 	github.com/alibabacloud-go/alimt-20181012/v2 v2.1.0 // indirect
 	github.com/alibabacloud-go/darabonba-openapi/v2 v2.0.4 // indirect

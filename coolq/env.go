@@ -11,26 +11,18 @@ import (
 )
 
 func (bot *CQBot) SetENV(privateMsg *message.PrivateMessage) {
-	var textEle *message.TextElement
-	for _, _ele := range privateMsg.Elements {
-		switch _ele.Type() {
-		case message.Text:
-			textEle = _ele.(*message.TextElement)
-			break
-		}
-	}
-
-	if textEle == nil {
-		bot.SendPrivateMessage(privateMsg.Sender.Uin, 0, &message.SendingMessage{
+	texts := privateMsg.Texts()
+	if len(texts) == 0 {
+		bot.SendPrivateMessage(privateMsg.Chat(), 0, &message.SendingMessage{
 			Elements: []message.IMessageElement{
 				message.NewText("请使用#ENV {NAME}={VALUE}的形式设置环境变量")},
 		})
 		return
 	}
 
-	source, ok := parseSourceText(textEle)
+	source, ok := parseSourceText(texts[0])
 	if !ok {
-		bot.SendPrivateMessage(privateMsg.Sender.Uin, 0, &message.SendingMessage{
+		bot.SendPrivateMessage(privateMsg.Chat(), 0, &message.SendingMessage{
 			Elements: []message.IMessageElement{
 				message.NewText("请使用#ENV {NAME}={VALUE}的形式设置环境变量")},
 		})
@@ -39,14 +31,14 @@ func (bot *CQBot) SetENV(privateMsg *message.PrivateMessage) {
 
 	v := strings.Split(source, "=")
 	if len(v) != 2 {
-		bot.SendPrivateMessage(privateMsg.Sender.Uin, 0, &message.SendingMessage{
+		bot.SendPrivateMessage(privateMsg.Chat(), 0, &message.SendingMessage{
 			Elements: []message.IMessageElement{
 				message.NewText("请使用#ENV {NAME}={VALUE}的形式设置环境变量")},
 		})
 		return
 	}
 
-	bot.SendPrivateMessage(privateMsg.Sender.Uin, 0, &message.SendingMessage{
+	bot.SendPrivateMessage(privateMsg.Chat(), 0, &message.SendingMessage{
 		Elements: []message.IMessageElement{
 			message.NewText(envSetHandler(v[0], v[1])),
 		}})
