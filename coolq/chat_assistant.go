@@ -15,7 +15,7 @@ var chatModelHandlers map[ai_util.ChatModel]func(assistant Assistant, recvChan c
 
 type Assistant interface {
 	Reply(content string)
-	GetText() []string
+	GetText() *message.TextElement
 	Mention() *message.AtElement
 	Check() bool
 	Chat() int64
@@ -38,20 +38,28 @@ func (p *PrivateAssistant) Reply(msg string) {
 }
 
 func (p *PrivateAssistant) Chat() int64 {
-	return p.m.Chat()
+	return p.m.Sender.Uin
 }
 
 func (p *PrivateAssistant) Sender() int64 {
-	return p.m.Chat()
+	return p.m.Sender.Uin
 }
 
 func (p *PrivateAssistant) Check() bool {
 	return p.bot != nil && p.m != nil
 }
 
-func (p *PrivateAssistant) GetText() []string {
+func (p *PrivateAssistant) GetText() *message.TextElement {
+	var textEle *message.TextElement
+	for _, _ele := range p.m.Elements {
+		switch _ele.Type() {
+		case message.Text:
+			textEle = _ele.(*message.TextElement)
+		default:
 
-	return p.m.Texts()
+		}
+	}
+	return textEle
 }
 
 func (p *PrivateAssistant) Mention() *message.AtElement {
@@ -72,7 +80,7 @@ func (p *PrivateAssistant) Me() int64 {
 }
 
 func (p *PrivateAssistant) Model() ai_util.ChatModel {
-	return p.bot.state.assistantModel.getModel(p.m.Chat())
+	return p.bot.state.assistantModel.getModel(p.m.Sender.Uin)
 }
 
 func (p *PrivateAssistant) ChangeModel(model ai_util.ChatModel) {
@@ -90,6 +98,7 @@ type GroupAssistant struct {
 }
 
 func (p *GroupAssistant) Reply(msg string) {
+
 	p.bot.SendGroupMessage(p.Chat(), &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewReply(p.m),
 		message.NewText(
@@ -98,19 +107,28 @@ func (p *GroupAssistant) Reply(msg string) {
 }
 
 func (p *GroupAssistant) Chat() int64 {
-	return p.m.Chat()
+	return p.m.GroupCode
 }
 
 func (p *GroupAssistant) Sender() int64 {
-	return p.m.Chat()
+	return p.m.Sender.Uin
 }
 
 func (p *GroupAssistant) Check() bool {
 	return p.bot != nil && p.m != nil
 }
 
-func (p *GroupAssistant) GetText() []string {
-	return p.m.Texts()
+func (p *GroupAssistant) GetText() *message.TextElement {
+	var textEle *message.TextElement
+	for _, _ele := range p.m.Elements {
+		switch _ele.Type() {
+		case message.Text:
+			textEle = _ele.(*message.TextElement)
+		default:
+
+		}
+	}
+	return textEle
 }
 
 func (p *GroupAssistant) Mention() *message.AtElement {
@@ -131,7 +149,7 @@ func (p *GroupAssistant) Me() int64 {
 }
 
 func (p *GroupAssistant) Model() ai_util.ChatModel {
-	return p.bot.state.assistantModel.getModel(p.m.Chat())
+	return p.bot.state.assistantModel.getModel(p.m.Sender.Uin)
 }
 
 func (p *GroupAssistant) ChangeModel(model ai_util.ChatModel) {
@@ -149,11 +167,11 @@ func ChangeModel(assistant Assistant) {
 		return
 	}
 
-	texts := assistant.GetText()
-	if len(texts) == 0 {
+	textEle := assistant.GetText()
+	if textEle == nil {
 		return
 	}
-	v := strings.TrimSpace(strings.ReplaceAll(texts[0], "#模式 ", ""))
+	v := strings.TrimSpace(strings.ReplaceAll(textEle.Content, "#模式 ", ""))
 
 	var currModel string
 	switch assistant.Model() {
@@ -207,13 +225,13 @@ func AskAssistant(assistant Assistant) {
 		return
 	}
 
-	texts := assistant.GetText()
-	if len(texts) == 0 {
+	textEle := assistant.GetText()
+	if textEle == nil {
 		return
 	}
 
-	if !strings.Contains(texts[0], "?") &&
-		!strings.Contains(texts[0], "？") &&
+	if !strings.Contains(textEle.Content, "?") &&
+		!strings.Contains(textEle.Content, "？") &&
 		assistant.Me() != assistant.Mention().Target {
 		return
 	}
@@ -249,9 +267,9 @@ func askRemoteChatGpt(assistant Assistant, recvChan chan struct{}) {
 	var err error
 	defer close(recvChan)
 	if !ok {
-		answer, err = ai_util.AskAIAssistant(assistant.GetText()[0])
+		answer, err = ai_util.AskAIAssistant(assistant.GetText().Content)
 	} else {
-		answer, err = ai_util.AskAIAssistant(assistant.GetText()[0], v)
+		answer, err = ai_util.AskAIAssistant(assistant.GetText().Content, v)
 	}
 
 	recvChan <- struct{}{}
@@ -276,7 +294,7 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 		assistant.Reply(fmt.Sprintf("创建bingchat会话失败:%s", err.Error()))
 		return
 	}
-	answer, err := ai_util.AskBingChat(bingChatCli, assistant.GetText()[0])
+	answer, err := ai_util.AskBingChat(bingChatCli, assistant.GetText().Content)
 	recvChan <- struct{}{}
 	if err != nil {
 		assistant.Reply(fmt.Sprintf("询问bingchat失败:%s", err.Error()))
@@ -312,12 +330,11 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 
 func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	defer close(recvChan)
-	texts := assistant.GetText()
-
+	textEle := assistant.GetText()
 	ctx := assistant.Session().getCtx(assistant.Sender())
 	msg := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
-		Content: texts[0],
+		Content: textEle.Content,
 	}
 	if len(ctx) == 0 {
 		ctx = []openai.ChatCompletionMessage{

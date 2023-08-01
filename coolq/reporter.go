@@ -111,9 +111,9 @@ func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
 	params := parseParam(content)
 	if len(params) == 2 {
 		indexList := parseIndexList(params)
-		bot.ReportSpecificWeibo(privateMessage.Chat(), indexList, false)
+		bot.ReportSpecificWeibo(privateMessage.Sender.Uin, indexList, false)
 	} else {
-		bot.ReportWeiboHot([]int64{privateMessage.Chat()}, false)
+		bot.ReportWeiboHot([]int64{privateMessage.Sender.Uin}, false)
 	}
 
 }
@@ -124,9 +124,9 @@ func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
 	params := parseParam(content)
 	if len(params) == 2 {
 		indexList := parseIndexList(params)
-		bot.ReportSpecificWeibo(groupMessage.Chat(), indexList, true)
+		bot.ReportSpecificWeibo(groupMessage.GroupCode, indexList, true)
 	} else {
-		bot.ReportWeiboHot([]int64{groupMessage.Chat()}, true)
+		bot.ReportWeiboHot([]int64{groupMessage.GroupCode}, true)
 	}
 }
 

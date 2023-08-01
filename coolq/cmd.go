@@ -63,23 +63,23 @@ func init() {
 
 	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
 		CMDHeart: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.SendGroupMessage(groupMessage.Chat(), &message.SendingMessage{Elements: []message.IMessageElement{
+			bot.SendGroupMessage(groupMessage.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewText("存活")}})
 		},
 		CMDWeibo: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.groupWeiboHot(groupMessage)
 		},
 		CMD36kr: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.Report36kr([]int64{groupMessage.Chat()}, true)
+			bot.Report36kr([]int64{groupMessage.GroupCode}, true)
 		},
 		CMDWallStreet: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportWallStreetNews([]int64{groupMessage.Chat()}, true)
+			bot.ReportWallStreetNews([]int64{groupMessage.GroupCode}, true)
 		},
 		CMDZhihu: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportZhihuHot(groupMessage.Chat(), true)
+			bot.ReportZhihuHot(groupMessage.GroupCode, true)
 		},
 		CMDCoin: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.ReportCoinPrice(groupMessage.Chat(), groupMessage.GetElements(), true)
+			bot.ReportCoinPrice(groupMessage.GroupCode, groupMessage.Elements, true)
 		},
 		CMDTrans: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			TransText(&GroupTranslator{
@@ -101,10 +101,10 @@ func init() {
 			})
 		},
 		CMDOpenReporter: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.openReporter(groupMessage.Chat(), true)
+			bot.openReporter(groupMessage.GroupCode, true)
 		},
 		CMDCloseReporter: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.closeReporter(groupMessage.Chat(), true)
+			bot.closeReporter(groupMessage.GroupCode, true)
 		},
 	}
 
@@ -126,19 +126,19 @@ func init() {
 			bot.privateWeiboHot(privateMessage)
 		},
 		CMD36kr: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.Report36kr([]int64{privateMessage.Chat()}, false)
+			bot.Report36kr([]int64{privateMessage.Sender.Uin}, false)
 		},
 		CMDWallStreet: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			if !bot.ReportWallStreetNews([]int64{privateMessage.Chat()}, false) {
-				bot.SendPrivateMessage(privateMessage.Chat(), 0,
+			if !bot.ReportWallStreetNews([]int64{privateMessage.Sender.Uin}, false) {
+				bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
 					&message.SendingMessage{Elements: []message.IMessageElement{message.NewText("没有华尔街最新资讯")}})
 			}
 		},
 		CMDZhihu: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.ReportZhihuHot(privateMessage.Chat(), false)
+			bot.ReportZhihuHot(privateMessage.Sender.Uin, false)
 		},
 		CMDCoin: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.ReportCoinPrice(privateMessage.Chat(), privateMessage.GetElements(), false)
+			bot.ReportCoinPrice(privateMessage.Sender.Uin, privateMessage.Elements, false)
 		},
 		CMDTrans: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			TransText(&PrivateTranslator{
@@ -161,21 +161,21 @@ func init() {
 		},
 
 		CMDOpenReporter: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.openReporter(privateMessage.Chat(), false)
+			bot.openReporter(privateMessage.Sender.Uin, false)
 		},
 
 		CMDCloseReporter: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			bot.closeReporter(privateMessage.Chat(), false)
+			bot.closeReporter(privateMessage.Sender.Uin, false)
 		},
 		CMDExist: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			if bot.state.owner != privateMessage.Chat() {
-				bot.SendPrivateMessage(privateMessage.Chat(), 0, &message.SendingMessage{
+			if bot.state.owner != privateMessage.Sender.Uin {
+				bot.SendPrivateMessage(privateMessage.Sender.Uin, 0, &message.SendingMessage{
 					Elements: []message.IMessageElement{
 						message.NewText(fmt.Sprintf("不是 %s 所有者，无法执行此命令", bot.Client.Nickname))},
 				})
 			}
-			log.Warnf("收到关闭命令，来源[%s][%d]", privateMessage.Sender.Nickname, privateMessage.Chat())
-			bot.SendPrivateMessage(privateMessage.Chat(), 0, &message.SendingMessage{
+			log.Warnf("收到关闭命令，来源[%s][%d]", privateMessage.Sender.Nickname, privateMessage.Sender.Uin)
+			bot.SendPrivateMessage(privateMessage.Sender.Uin, 0, &message.SendingMessage{
 				Elements: []message.IMessageElement{
 					message.NewText(fmt.Sprintf("%s 正在关闭...", bot.Client.Nickname))},
 			})
@@ -183,8 +183,8 @@ func init() {
 		},
 
 		CMDEVN: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			if bot.state.owner != privateMessage.Chat() {
-				bot.SendPrivateMessage(privateMessage.Chat(), 0, &message.SendingMessage{
+			if bot.state.owner != privateMessage.Sender.Uin {
+				bot.SendPrivateMessage(privateMessage.Sender.Uin, 0, &message.SendingMessage{
 					Elements: []message.IMessageElement{
 						message.NewText(fmt.Sprintf("不是 %s 所有者，无法执行此命令", bot.Client.Nickname))},
 				})
@@ -196,13 +196,21 @@ func init() {
 
 // 群命令 - 描述
 func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
-	texts := m.Texts()
+	var textEle *message.TextElement
+	for _, _ele := range m.Elements {
+		switch _ele.Type() {
+		case message.Text:
+			textEle = _ele.(*message.TextElement)
+		default:
 
-	if len(texts) == 0 || !strings.Contains(texts[0], "#") {
+		}
+	}
+
+	if textEle == nil || !strings.Contains(textEle.Content, "#") {
 		return
 	}
 
-	if texts[0] == "#" {
+	if textEle.Content == "#" {
 		content := ""
 		for _, _cmd := range groupCmdList {
 			content += fmt.Sprintf("#%s\t%s\n\n", _cmd, cmdInfo[_cmd])
@@ -216,7 +224,7 @@ func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 	re := regexp.MustCompile(`^#(\S+)`)
 
 	// 匹配字符串
-	match := re.FindStringSubmatch(texts[0])
+	match := re.FindStringSubmatch(textEle.Content)
 
 	// 输出匹配结果
 	if len(match) < 2 {
@@ -230,26 +238,34 @@ func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 	if ok {
 		handler(bot, m)
 	} else {
-		bot.SendGroupMessage(m.Chat(), &message.SendingMessage{Elements: []message.IMessageElement{
+		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
 			message.NewText("该命令无效")}})
 	}
 }
 
 // 私聊命令 - 描述
 func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage) {
-	texts := m.Texts()
+	var textEle *message.TextElement
+	for _, _ele := range m.Elements {
+		switch _ele.Type() {
+		case message.Text:
+			textEle = _ele.(*message.TextElement)
+		default:
 
-	if len(texts) == 0 || !strings.Contains(texts[0], "#") {
+		}
+	}
+
+	if textEle == nil || !strings.Contains(textEle.Content, "#") {
 		return
 	}
 
-	if texts[0] == "#" {
+	if textEle.Content == "#" {
 		content := ""
 		for _, _cmd := range privateCmdList {
 			content += fmt.Sprintf("#%s\t%s\n\n", _cmd, cmdInfo[_cmd])
 		}
 
-		bot.SendPrivateMessage(m.Chat(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
+		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
 			message.NewText(fmt.Sprintf("你可以使用以下命令：\n\n%s", content))}})
 		return
 	}
@@ -257,7 +273,7 @@ func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage)
 	re := regexp.MustCompile(`^#(\S+)`)
 
 	// 匹配字符串
-	match := re.FindStringSubmatch(texts[0])
+	match := re.FindStringSubmatch(textEle.Content)
 
 	// 输出匹配结果
 	if len(match) < 2 {
@@ -271,7 +287,7 @@ func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage)
 	if ok {
 		handler(bot, m)
 	} else {
-		bot.SendPrivateMessage(m.Chat(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
+		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
 			message.NewText("该命令无效")}})
 	}
 }

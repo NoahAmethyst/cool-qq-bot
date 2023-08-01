@@ -15,7 +15,7 @@ import (
 type ImgGenerator interface {
 	SendMessage(content string)
 	SendImg(stream io.ReadSeeker, filePath, url string) error
-	GetText() []string
+	GetText() *message.TextElement
 	Check() bool
 	Target() int64
 }
@@ -30,7 +30,7 @@ func (p *PrivateImgGenerator) Check() bool {
 }
 
 func (p *PrivateImgGenerator) Target() int64 {
-	return p.m.Chat()
+	return p.m.Sender.Uin
 }
 
 func (p *PrivateImgGenerator) SendMessage(content string) {
@@ -58,8 +58,16 @@ func (p *PrivateImgGenerator) SendImg(_ io.ReadSeeker, filepath, url string) err
 
 }
 
-func (p *PrivateImgGenerator) GetText() []string {
-	return p.m.Texts()
+func (p *PrivateImgGenerator) GetText() *message.TextElement {
+	var textEle *message.TextElement
+	for _, _ele := range p.m.Elements {
+		switch _ele.Type() {
+		case message.Text:
+			textEle = _ele.(*message.TextElement)
+		default:
+		}
+	}
+	return textEle
 }
 
 type GroupImgGenerator struct {
@@ -95,12 +103,20 @@ func (p *GroupImgGenerator) SendImg(_ io.ReadSeeker, filepath, url string) error
 	return nil
 }
 
-func (p *GroupImgGenerator) GetText() []string {
-	return p.m.Texts()
+func (p *GroupImgGenerator) GetText() *message.TextElement {
+	var textEle *message.TextElement
+	for _, _ele := range p.m.Elements {
+		switch _ele.Type() {
+		case message.Text:
+			textEle = _ele.(*message.TextElement)
+		default:
+		}
+	}
+	return textEle
 }
 
 func (p *GroupImgGenerator) Target() int64 {
-	return p.m.Chat()
+	return p.m.GroupCode
 }
 
 func GenerateImage(generator ImgGenerator) {
@@ -109,11 +125,11 @@ func GenerateImage(generator ImgGenerator) {
 		return
 	}
 
-	texts := generator.GetText()
-	if len(texts) == 0 {
+	textEle := generator.GetText()
+	if textEle == nil {
 		return
 	}
-	text, done := parseSourceText(texts[0])
+	text, done := parseSourceText(textEle)
 	if done {
 		generator.SendMessage("缺少生成图片的描述内容")
 		return
