@@ -3,9 +3,11 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -24,6 +26,7 @@ type Assistant interface {
 	ChangeModel(model ai_util.ChatModel)
 	Session() *AiAssistantSession
 	Me() int64
+	Bot() *CQBot
 }
 
 type PrivateAssistant struct {
@@ -35,6 +38,10 @@ func (p *PrivateAssistant) Reply(msg string) {
 	p.bot.SendPrivateMessage(p.Chat(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewText(
 			msg)}})
+}
+
+func (p *PrivateAssistant) Bot() *CQBot {
+	return p.bot
 }
 
 func (p *PrivateAssistant) Chat() int64 {
@@ -103,7 +110,10 @@ func (p *GroupAssistant) Reply(msg string) {
 		message.NewReply(p.m),
 		message.NewText(
 			msg)}})
+}
 
+func (p *GroupAssistant) Bot() *CQBot {
+	return p.bot
 }
 
 func (p *GroupAssistant) Chat() int64 {
@@ -358,6 +368,16 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 
 	if err != nil {
 		answer = fmt.Sprintf("调用openAi 失败：%s", err.Error())
+		if strings.Contains(err.Error(), "401") && strconv.Itoa(int(assistant.Sender())) != os.Getenv(constant.OWNER) {
+			_owner := os.Getenv(constant.OWNER)
+			if owner, err := strconv.Atoi(_owner); err != nil {
+				log.Errorf("convert owner env[%s] faield:%s", _owner, err.Error())
+			} else {
+				assistant.Bot().SendPrivateMessage(int64(owner), 0, &message.SendingMessage{Elements: []message.IMessageElement{
+					message.NewText(
+						err.Error())}})
+			}
+		}
 	} else {
 		if len(resp.Choices) == 0 || len(resp.Choices[0].Message.Content) == 0 {
 			log.Warnf("openai 返回空结构：%v", resp)
