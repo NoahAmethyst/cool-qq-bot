@@ -76,6 +76,7 @@ func (d *d36KrDailyRecord) Upload() {
 
 // 加载36氪每日记录
 func (d *d36KrDailyRecord) Load() {
+	d.RWMutex = sync.RWMutex{}
 	d.Lock()
 	defer d.Unlock()
 	path := file_util.GetFileRoot()
@@ -83,7 +84,7 @@ func (d *d36KrDailyRecord) Load() {
 	data := make(map[string][]Data36krHot)
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/36kr.json", path), &data); err == nil {
 		d.data = data
-		d.RWMutex = sync.RWMutex{}
+
 	}
 
 }
@@ -142,15 +143,14 @@ func (d *wallStreetNewsDailyRecord) Upload() {
 
 // 加载华尔街每日记录
 func (d *wallStreetNewsDailyRecord) Load() {
+	d.RWMutex = sync.RWMutex{}
 	d.Lock()
 	defer d.Unlock()
 	path := file_util.GetFileRoot()
 	data := make(map[string][]WallStreetNews)
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallstreet_news.json", path), &data); err == nil {
 		d.data = data
-		d.RWMutex = sync.RWMutex{}
 	}
-
 }
 
 type weiboHotDailyRecord struct {
@@ -207,11 +207,14 @@ func (d *weiboHotDailyRecord) Upload() {
 
 // 加载微博每日记录
 func (d *weiboHotDailyRecord) Load() {
+	d.RWMutex = sync.RWMutex{}
+	d.Lock()
+	defer d.Unlock()
 	path := file_util.GetFileRoot()
 	data := make(map[string][]WeiboHot)
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/weibo_hot.json", path), &data); err == nil {
 		d.data = data
-		d.RWMutex = sync.RWMutex{}
+
 	}
 
 }
@@ -274,13 +277,13 @@ func (z *zhihuHotDailyRecord) Upload() {
 
 // 加载知乎热榜每日记录
 func (z *zhihuHotDailyRecord) Load() {
+	z.RWMutex = sync.RWMutex{}
 	z.Lock()
 	defer z.Unlock()
 	path := file_util.GetFileRoot()
 	data := make(map[string][]ZhihuHot)
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/zhihu.json", path), &data); err == nil {
 		z.data = data
-		z.RWMutex = sync.RWMutex{}
 	}
 
 }
@@ -302,7 +305,6 @@ func UploadDailyRecord() {
 }
 
 func init() {
-
 	//加载微博热搜每日记录
 	WeiboHotDailyRecord.Load()
 
