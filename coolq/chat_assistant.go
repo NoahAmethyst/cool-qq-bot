@@ -375,7 +375,7 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 			} else {
 				assistant.Bot().SendPrivateMessage(int64(owner), 0, &message.SendingMessage{Elements: []message.IMessageElement{
 					message.NewText(
-						err.Error())}})
+						fmt.Sprintf("用户[%d]调用openai失败：%s", assistant.Sender(), err.Error()))}})
 			}
 		}
 	} else {
