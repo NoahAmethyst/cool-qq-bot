@@ -7,6 +7,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/top_list"
 	"github.com/rs/zerolog/log"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -134,7 +135,7 @@ func parseIndexList(params []string) map[int64]struct{} {
 	_indexList := strings.TrimSpace(params[1])
 	s1 := strings.Split(_indexList, ",")
 	s2 := strings.Split(_indexList, "，")
-	indexList := make(map[int64]struct{})
+	indexSet := make(map[int64]struct{})
 	for _, _index := range s1 {
 		if strings.Contains(_index, "，") {
 			continue
@@ -146,7 +147,7 @@ func parseIndexList(params []string) map[int64]struct{} {
 		if index-1 < 0 {
 			index = 0
 		}
-		indexList[index-1] = struct{}{}
+		indexSet[index-1] = struct{}{}
 	}
 
 	for _, _index := range s2 {
@@ -160,10 +161,19 @@ func parseIndexList(params []string) map[int64]struct{} {
 		if index-1 < 0 {
 			index = 0
 		}
-		indexList[index-1] = struct{}{}
+		indexSet[index-1] = struct{}{}
 	}
 
-	return indexList
+	indexList := make([]int64, 0, len(indexSet))
+	for _index := range indexSet {
+		indexList = append(indexList, _index)
+	}
+
+	sort.SliceIsSorted(indexList, func(i, j int) bool {
+		return indexList[i] < indexList[j]
+	})
+
+	return indexSet
 }
 
 func parseParam(content string) []string {
