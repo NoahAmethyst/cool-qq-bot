@@ -28,7 +28,7 @@
 * *WARN BingChat内置代理url已不再支持大陆访问，如有需要请自行设置自己的代理url*
 * 通过命令切换 chatGpt3.5 chatGpt4.0和 bingChat模式
 * 支持ChatGpt4，感谢 [ChimeraGPT API](https://chimeragpt.adventblocks.cc/) 提供的支持
-* *WARN[ChimeraGPT API](https://chimeragpt.adventblocks.cc/) 提供的GPT4支持已reverse*
+* *WARN [ChimeraGPT API](https://chimeragpt.adventblocks.cc/) 提供的GPT4支持已reverse*
 * 集成DELL.2的AI作图，通过命令与描述词
 * 通过命令触发翻译 负载均衡(有道、腾讯、百度、火山、阿里)
 * 基于tencent oss的状态存储
@@ -80,11 +80,13 @@ ENV COOKIE=
 # 请求中转服务的host
 ENV REMOTE_PROXY=
 ```
-
-也可以使用[ChimeraGPT API](https://chimeragpt.adventblocks.cc/)提供的apikey替换openai的域名，目前大陆可访问
-
-关于请求中转项目可以查看[该项目
+需要自行部署请求转发，关于请求中转项目可以查看[该项目
 ](https://github.com/NoahAmethyst/openai-proxy)
+
+也可以使用[ChimeraGPT API](https://chimeragpt.adventblocks.cc/)提供的apikey
+将openai api域名替换为chimeragpt域名，目前大陆可访问
+
+
 
 
 
