@@ -216,7 +216,6 @@ func (d *weiboHotDailyRecord) Load() {
 		d.data = data
 
 	}
-
 }
 
 type zhihuHotDailyRecord struct {
@@ -245,13 +244,10 @@ func (z *zhihuHotDailyRecord) GetData() map[string][]ZhihuHot {
 
 // 写知乎热榜当日文件
 func (z *zhihuHotDailyRecord) Upload() {
-	z.Lock()
-	defer z.Unlock()
 	path := file_util.GetFileRoot()
-
 	// cause zhihu hot not register as corn job so load data by this time incase it has no data
 	_, _ = LoadZhihuHot()
-	zhihuFilePath, err := file_util.WriteJsonFile(z.data, path, "zhihu", true)
+	zhihuFilePath, err := file_util.WriteJsonFile(z.GetData(), path, "zhihu", true)
 	if err != nil {
 		log.Error().Fields(map[string]interface{}{
 			"action": "write zhihu hot daily record",
