@@ -131,7 +131,7 @@ func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
 	}
 }
 
-func parseIndexList(params []string) map[int64]struct{} {
+func parseIndexList(params []string) []int64 {
 	_indexList := strings.TrimSpace(params[1])
 	s1 := strings.Split(_indexList, ",")
 	s2 := strings.Split(_indexList, "，")
@@ -173,7 +173,7 @@ func parseIndexList(params []string) map[int64]struct{} {
 		return indexList[i] < indexList[j]
 	})
 
-	return indexSet
+	return indexList
 }
 
 func parseParam(content string) []string {
@@ -190,7 +190,7 @@ func parseParam(content string) []string {
 	return params
 }
 
-func (bot *CQBot) ReportSpecificWeibo(group int64, indexList map[int64]struct{}, isGroup bool) {
+func (bot *CQBot) ReportSpecificWeibo(group int64, indexList []int64, isGroup bool) {
 	layout := "2006-01-02 15:04"
 	data := top_list.WeiboHotDailyRecord.GetData()
 	var lastestT time.Time
