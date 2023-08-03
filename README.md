@@ -28,6 +28,7 @@
 * *WARN BingChat内置代理url已不再支持大陆访问，如有需要请自行设置自己的代理url*
 * 通过命令切换 chatGpt3.5 chatGpt4.0和 bingChat模式
 * 支持ChatGpt4，感谢 [ChimeraGPT API](https://chimeragpt.adventblocks.cc/) 提供的支持
+* *WARN[ChimeraGPT API](https://chimeragpt.adventblocks.cc/) 提供的GPT4支持已reverse*
 * 集成DELL.2的AI作图，通过命令与描述词
 * 通过命令触发翻译 负载均衡(有道、腾讯、百度、火山、阿里)
 * 基于tencent oss的状态存储
