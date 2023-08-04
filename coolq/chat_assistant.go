@@ -3,11 +3,9 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -368,15 +366,10 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 
 	if err != nil {
 		answer = fmt.Sprintf("调用openAi 失败：%s", err.Error())
-		if strings.Contains(err.Error(), "401") && strconv.Itoa(int(assistant.Sender())) != os.Getenv(constant.OWNER) {
-			_owner := os.Getenv(constant.OWNER)
-			if owner, err := strconv.Atoi(_owner); err != nil {
-				log.Errorf("convert owner env[%s] faield:%s", _owner, err.Error())
-			} else {
-				assistant.Bot().SendPrivateMessage(int64(owner), 0, &message.SendingMessage{Elements: []message.IMessageElement{
-					message.NewText(
-						fmt.Sprintf("用户[%d]调用openai失败：%s", assistant.Sender(), err.Error()))}})
-			}
+		if strings.Contains(err.Error(), "401") && assistant.Sender() != assistant.Bot().state.owner {
+			assistant.Bot().SendPrivateMessage(assistant.Bot().state.owner, 0, &message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText(
+					fmt.Sprintf("用户[%d]调用openai失败：%s", assistant.Sender(), err.Error()))}})
 		}
 	} else {
 		if len(resp.Choices) == 0 || len(resp.Choices[0].Message.Content) == 0 {
