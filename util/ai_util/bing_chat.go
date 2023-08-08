@@ -24,7 +24,6 @@ func NewBingChat() (bingchat_api.IBingChat, error) {
 	if err != nil {
 		return chat, err
 	}
-	chat.SetRemote(remoteConversationUrl, remoteConversationWs)
 	return chat, err
 }
 

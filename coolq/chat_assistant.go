@@ -333,7 +333,6 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 	} else {
 		assistant.Reply("BingChat 响应超时")
 	}
-
 }
 
 func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
