@@ -142,12 +142,15 @@ func parseIndexList(params []string) []int64 {
 		}
 		index, err := strconv.ParseInt(_index, 10, 64)
 		if err != nil {
+			log.Err(err)
 			index = 0
 		}
 		if index-1 < 0 {
 			index = 0
+		} else {
+			index--
 		}
-		indexSet[index-1] = struct{}{}
+		indexSet[index] = struct{}{}
 	}
 
 	for _, _index := range s2 {
@@ -156,12 +159,15 @@ func parseIndexList(params []string) []int64 {
 		}
 		index, err := strconv.ParseInt(_index, 10, 64)
 		if err != nil {
+			log.Err(err)
 			index = 0
 		}
 		if index-1 < 0 {
 			index = 0
+		} else {
+			index--
 		}
-		indexSet[index-1] = struct{}{}
+		indexSet[index] = struct{}{}
 	}
 
 	indexList := make([]int64, 0, len(indexSet))
@@ -169,9 +175,11 @@ func parseIndexList(params []string) []int64 {
 		indexList = append(indexList, _index)
 	}
 
-	sort.SliceIsSorted(indexList, func(i, j int) bool {
-		return indexList[i] < indexList[j]
-	})
+	if len(indexList) > 1 {
+		sort.SliceIsSorted(indexList, func(i, j int) bool {
+			return indexList[i] < indexList[j]
+		})
+	}
 
 	return indexList
 }
@@ -206,13 +214,14 @@ func (bot *CQBot) ReportSpecificWeibo(group int64, indexList []int64, isGroup bo
 		log.Warn().Msgf("can't get latest weibo daily report")
 		bot.ReportWeiboHot([]int64{group}, isGroup)
 	} else {
-		for _index := range indexList {
+		for _, _index := range indexList {
 			content := fmt.Sprintf("微博热搜#%d\n%s\n链接:%s", _index+1, _data[_index].Title, _data[_index].Url)
 			if isGroup {
 				bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 			} else {
 				bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 			}
+			time.Sleep(500 * time.Millisecond)
 		}
 
 	}
