@@ -223,9 +223,7 @@ func (bot *CQBot) ReportSpecificWeibo(group int64, indexList []int64, isGroup bo
 			}
 			time.Sleep(500 * time.Millisecond)
 		}
-
 	}
-
 }
 
 func (bot *CQBot) ReportWeiboHot(groups []int64, isGroup bool) {
@@ -296,7 +294,7 @@ func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 				}
 
 				if len(readyData) == 0 {
-					log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(hotList))
+					//log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(hotList))
 					hasNews = false
 				} else {
 					//倒序输出，因为最新资讯在第一个
