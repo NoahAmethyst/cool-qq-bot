@@ -18,9 +18,10 @@ FROM alpine:3.17 AS app
 
 WORKDIR /opt
 
-COPY --from=builder /opt/go-cqhttp ./
 #COPY --from=builder /opt/config.yml ./
 #COPY --from=builder /opt/device.json ./
+COPY --from=builder /opt/go-cqhttp ./
+
 
 EXPOSE 8888
 
