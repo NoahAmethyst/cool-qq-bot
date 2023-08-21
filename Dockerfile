@@ -25,4 +25,4 @@ COPY --from=builder /opt/go-cqhttp ./
 
 EXPOSE 8888
 
-ENTRYPOINT ["/opt/go-cqhttp"]
+ENTRYPOINT ["./go-cqhttp"]
