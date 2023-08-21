@@ -4,7 +4,7 @@ FROM base AS builder
 
 RUN go env -w GO111MODULE=on \
   && go env -w CGO_ENABLED=0 \
-  && go env -w GOPROXY=https://goproxy.cn,direct
+#  && go env -w GOPROXY=https://goproxy.cn,direct
 
 WORKDIR /opt
 
