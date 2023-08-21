@@ -32,7 +32,7 @@ func (c *GroupCalculator) Calculate(expression string) {
 	if result, err := math_engine.Calculate(expression); err != nil {
 		c.Reply(fmt.Sprintf("计算表达式出错：%s", err.Error()))
 	} else {
-		c.Reply(fmt.Sprintf("结果:%+v", result))
+		c.Reply(fmt.Sprintf("结果：%+v", result))
 	}
 
 }
@@ -87,7 +87,7 @@ func (c *PrivateCalculator) Calculate(expression string) {
 	if result, err := math_engine.Calculate(expression); err != nil {
 		c.Reply(fmt.Sprintf("计算表达式出错：%s", err.Error()))
 	} else {
-		c.Reply(fmt.Sprintf("结果:%+v", result))
+		c.Reply(fmt.Sprintf("结果：%+v", result))
 	}
 }
 
