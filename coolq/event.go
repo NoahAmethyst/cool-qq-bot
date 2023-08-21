@@ -73,6 +73,11 @@ func (bot *CQBot) groupMessageAdvancedEvent(c *client.QQClient, m *message.Group
 		bot: bot,
 		m:   m,
 	}
+	calculator := &GroupCalculator{
+		bot: bot,
+		m:   m,
+	}
+	Calculate(calculator)
 	AskAssistant(assistant)
 	bot.reactGroupCmd(c, m)
 }
@@ -82,6 +87,11 @@ func (bot *CQBot) privateMessageAdvancedEvent(c *client.QQClient, m *message.Pri
 		bot: bot,
 		m:   m,
 	}
+	calculator := &PrivateCalculator{
+		bot: bot,
+		m:   m,
+	}
+	Calculate(calculator)
 	AskAssistant(assistant)
 	bot.reactPrivateCmd(c, m)
 }
