@@ -2,7 +2,6 @@ package top_list
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/Mrs4s/go-cqhttp/util/http_util"
 	"github.com/PuerkitoBio/goquery"
@@ -19,6 +18,11 @@ type WeiboHot struct {
 	Rank  int
 	Url   string
 }
+
+const (
+	cookie = "SUB=_2AkMVWDYUf8NxqwJRmP0Sz2_hZYt2zw_EieKjBMfPJRMxHRl-yj9jqkBStRB6PtgY-38i0AF7nDAv8HdY1ZwT3Rv8B5e5; SUBP=0033WrSXqPxfM72-Ws9jqgMF55529P9D9WFencmWZyNhNlrzI6f0SiqP"
+	agent  = `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36`
+)
 
 // https://m.weibo.cn/api/container/getIndex?containerid=106003type%3D25%26t%3D3%26disable_hot%3D1%26filter_type%3Drealtimehot
 // weiboHot analyze:https://m.s.weibo.com/topic/detail?q=%s
@@ -62,8 +66,8 @@ func parseWeiboHot() ([]WeiboHot, error) {
 	if err != nil {
 		return hotList, err
 	}
-	request.Header.Add("User-Agent", `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36`)
-	request.Header.Add("Cookie", constant.COOKIE)
+	request.Header.Add("User-Agent", agent)
+	request.Header.Add("Cookie", cookie)
 	//request.Header.add("Host", `wallstreetcn.com`)
 	//request.Header.add("Referer", `https://wallstreetcn.com/`)
 	res, err := client.Do(request)

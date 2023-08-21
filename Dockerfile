@@ -1,24 +1,27 @@
-FROM golang:1.18-alpine AS builder
+FROM golang:1.19.7-alpine3.17 AS base
+
+FROM base AS builder
 
 RUN go env -w GO111MODULE=on \
   && go env -w CGO_ENABLED=0 \
-  && go env -w GOPROXY=https://goproxy.cn,direct 
+  && go env -w GOPROXY=https://goproxy.cn,direct
 
-WORKDIR /build
+WORKDIR /opt
 
 COPY ./ .
 
-RUN set -ex \
-    && cd /build \
-    && go build -ldflags "-s -w -extldflags '-static'" -o cqhttp
+RUN go mod download
 
-FROM alpine:latest
+RUN go build
 
-RUN apk add --no-cache ffmpeg
+FROM alpine:3.17 AS app
 
-COPY --from=builder /build/cqhttp /usr/bin/cqhttp
-RUN chmod +x /usr/bin/cqhttp
+WORKDIR /opt
 
-WORKDIR /data
+COPY --from=builder /opt/go-cqhttp ./
+#COPY --from=builder /opt/config.yml ./
+#COPY --from=builder /opt/device.json ./
 
-ENTRYPOINT [ "/usr/bin/cqhttp" ]
+EXPOSE 8888
+
+ENTRYPOINT ["./go-cqhttp"]

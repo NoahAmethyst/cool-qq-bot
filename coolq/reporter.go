@@ -131,16 +131,16 @@ func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
 	}
 }
 
-func parseIndexList(params []string) []int64 {
+func parseIndexList(params []string) []int {
 	_indexList := strings.TrimSpace(params[1])
 	s1 := strings.Split(_indexList, ",")
 	s2 := strings.Split(_indexList, "，")
-	indexSet := make(map[int64]struct{})
+	indexSet := make(map[int]struct{})
 	for _, _index := range s1 {
 		if strings.Contains(_index, "，") {
 			continue
 		}
-		index, err := strconv.ParseInt(_index, 10, 64)
+		index, err := strconv.Atoi(_index)
 		if err != nil {
 			log.Err(err)
 			index = 0
@@ -157,7 +157,7 @@ func parseIndexList(params []string) []int64 {
 		if strings.Contains(_index, ",") {
 			continue
 		}
-		index, err := strconv.ParseInt(_index, 10, 64)
+		index, err := strconv.Atoi(_index)
 		if err != nil {
 			log.Err(err)
 			index = 0
@@ -170,15 +170,13 @@ func parseIndexList(params []string) []int64 {
 		indexSet[index] = struct{}{}
 	}
 
-	indexList := make([]int64, 0, len(indexSet))
+	indexList := make([]int, 0, len(indexSet))
 	for _index := range indexSet {
 		indexList = append(indexList, _index)
 	}
 
 	if len(indexList) > 1 {
-		sort.SliceIsSorted(indexList, func(i, j int) bool {
-			return indexList[i] < indexList[j]
-		})
+		sort.Ints(indexList)
 	}
 
 	return indexList
@@ -198,7 +196,7 @@ func parseParam(content string) []string {
 	return params
 }
 
-func (bot *CQBot) ReportSpecificWeibo(group int64, indexList []int64, isGroup bool) {
+func (bot *CQBot) ReportSpecificWeibo(group int64, indexList []int, isGroup bool) {
 	layout := "2006-01-02 15:04"
 	data := top_list.WeiboHotDailyRecord.GetData()
 	var lastestT time.Time

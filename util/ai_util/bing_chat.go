@@ -1,6 +1,7 @@
 package ai_util
 
 import (
+	"github.com/Mrs4s/go-cqhttp/constant"
 	bingchat_api "github.com/NoahAmethyst/bingchat-api"
 	"os"
 	"regexp"
@@ -20,7 +21,7 @@ type BingChatResp struct {
 }
 
 func NewBingChat() (bingchat_api.IBingChat, error) {
-	chat, err := bingchat_api.NewBingChat(os.Getenv("COOKIE"), bingchat_api.ConversationBalanceStyle, 2*time.Minute)
+	chat, err := bingchat_api.NewBingChat(os.Getenv(constant.BING_COOKIE), bingchat_api.ConversationBalanceStyle, 2*time.Minute)
 	if err != nil {
 		return chat, err
 	}
