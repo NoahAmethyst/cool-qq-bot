@@ -131,7 +131,8 @@ func Calculate(calculator Calculator) {
 		return
 	}
 	expression := calculator.GetExpression()
-	if !math_engine.IsMathExpression(expression) {
+	var ok bool
+	if expression, ok = math_engine.IsMathExpression(expression); !ok {
 		return
 	}
 

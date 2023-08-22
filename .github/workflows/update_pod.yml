@@ -1,0 +1,21 @@
+name: Update App
+# Only trigger, when the build docker  workflow succeeded
+on:
+  workflow_run:
+    workflows: ["Docker Image CI"]
+    types:
+      - completed
+
+jobs:
+  notify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: update kubernetes pod
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          password: ${{ secrets.SERVER_PASSWORD }}
+          script: |
+            qq_bot=$(kubectl get pods -l app=qq-bot -o jsonpath='{.items[0].metadata.name}')
+            kubectl delete pod qq_bot
