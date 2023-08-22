@@ -18,4 +18,4 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
             qq_bot=$(kubectl get pods -l app=qq-bot -o jsonpath='{.items[0].metadata.name}')
-            kubectl delete pod qq_bot
+            kubectl delete pod $qq_bot
