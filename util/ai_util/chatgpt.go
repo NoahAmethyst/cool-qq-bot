@@ -2,12 +2,16 @@ package ai_util
 
 import (
 	"context"
+	"github.com/pkg/errors"
 	openai "github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 )
 
 func AskChatGpt(ctx []openai.ChatCompletionMessage) (openai.ChatCompletionResponse, error) {
 	initCli()
+	if openaiCli == nil {
+		return openai.ChatCompletionResponse{}, errors.New("OpenAI Client not init")
+	}
 	resp, err := openaiCli.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{

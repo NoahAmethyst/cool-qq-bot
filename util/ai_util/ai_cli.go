@@ -5,6 +5,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/constant"
 	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"sync"
 	"time"
@@ -59,25 +60,36 @@ func setCli() {
 
 	//OpenAI client
 	{
-		if len(os.Getenv(constant.NOT_MIRROR)) > 0 {
-			openaiCli = openai.NewClient(openaiKey)
-		} else {
-			config := openai.DefaultConfig(openaiKey)
-			config.HTTPClient.Timeout = time.Minute * 120
-			config.BaseURL = "https://open.aiproxy.xyz/v1"
-			openaiCli = openai.NewClientWithConfig(config)
+		if len(openaiKey) > 0 {
+			log.Info("init OpenAI client")
+			if len(os.Getenv(constant.NOT_MIRROR)) > 0 {
+				openaiCli = openai.NewClient(openaiKey)
+			} else {
+				config := openai.DefaultConfig(openaiKey)
+				config.HTTPClient.Timeout = time.Minute * 120
+				config.BaseURL = "https://open.aiproxy.xyz/v1"
+				openaiCli = openai.NewClientWithConfig(config)
+			}
 		}
+
 	}
 	//chimeraCli
 	{
-		config := openai.DefaultConfig(chimeraKey)
-		config.HTTPClient.Timeout = time.Minute * 120
-		config.BaseURL = "https://chimeragpt.adventblocks.cc/api/v1"
-		chimeraCli = openai.NewClientWithConfig(config)
+		if len(chimeraKey) > 0 {
+			log.Info("init ChiemraGpt client")
+			config := openai.DefaultConfig(chimeraKey)
+			config.HTTPClient.Timeout = time.Minute * 120
+			config.BaseURL = "https://chimeragpt.adventblocks.cc/api/v1"
+			chimeraCli = openai.NewClientWithConfig(config)
+		}
+
 	}
 	//ErnieCli
 	{
-		ernieCli = go_ernie.NewDefaultClient(ernieKey, ernieSecret)
+		if len(ernieKey) > 0 && len(ernieSecret) > 0 {
+			log.Info("init Ernie client")
+			ernieCli = go_ernie.NewDefaultClient(ernieKey, ernieSecret)
+		}
 	}
 
 }
