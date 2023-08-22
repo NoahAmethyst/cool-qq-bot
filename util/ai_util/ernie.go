@@ -6,12 +6,12 @@ import (
 	"github.com/pkg/errors"
 )
 
-func AskErnie(ctx []go_ernie.ChatCompletionMessage) (go_ernie.ErnieBotResponse, error) {
+func AskErnie(ctx []go_ernie.ChatCompletionMessage) (go_ernie.ErnieBotTurboResponse, error) {
 	initCli()
 	if ernieCli == nil {
-		return go_ernie.ErnieBotResponse{}, errors.New("Ernie Client not init")
+		return go_ernie.ErnieBotTurboResponse{}, errors.New("Ernie Client not init")
 	}
-	completion, err := ernieCli.CreateErnieBotChatCompletion(context.Background(), go_ernie.ErnieBotRequest{
+	completion, err := ernieCli.CreateErnieBotTurboChatCompletion(context.Background(), go_ernie.ErnieBotTurboRequest{
 		Messages: ctx,
 	})
 	return completion, err
