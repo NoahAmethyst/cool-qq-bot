@@ -1,9 +1,12 @@
 package gotest
 
 import (
+	"context"
 	"fmt"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
+	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
+	"os"
 	"strings"
 	"testing"
 )
@@ -156,4 +159,21 @@ func Test_BingChat(t *testing.T) {
 
 	t.Logf("%s", strBuilder.String())
 
+}
+
+func Test_Ernie(t *testing.T) {
+	client := go_ernie.NewDefaultClient(os.Getenv("ERNIE_API_KEY"), os.Getenv("ERNIE_API_SECRET"))
+	completion, err := client.CreateErnieBotChatCompletion(context.Background(), go_ernie.ErnieBotRequest{
+		Messages: []go_ernie.ChatCompletionMessage{
+			{
+				Role:    go_ernie.MessageRoleUser,
+				Content: "怎么制作一个可乐鸡翅",
+			},
+		},
+	})
+	if err != nil {
+		panic(err)
+	}
+
+	t.Logf("%+v", completion)
 }

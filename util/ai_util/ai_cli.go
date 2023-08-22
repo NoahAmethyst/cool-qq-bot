@@ -3,6 +3,7 @@ package ai_util
 import (
 	"context"
 	"github.com/Mrs4s/go-cqhttp/constant"
+	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	"os"
 	"sync"
@@ -11,9 +12,12 @@ import (
 
 var openaiCli *openai.Client
 var chimeraCli *openai.Client
+var ernieCli *go_ernie.Client
 
 var openaiKey string
 var chimeraKey string
+var ernieKey string
+var ernieSecret string
 
 var changeSignal = make(chan struct{}, 1)
 var once sync.Once
@@ -48,6 +52,11 @@ func setCli() {
 		chimeraKey = os.Getenv(constant.CHIMERA_KEY)
 	}
 
+	if len(ernieKey) == 0 || len(ernieSecret) == 0 {
+		ernieKey = os.Getenv(constant.ERNIE_APP_KEY)
+		ernieSecret = os.Getenv(constant.ERNIE_APP_SECRET)
+	}
+
 	//OpenAI client
 	{
 		if len(os.Getenv(constant.NOT_MIRROR)) > 0 {
@@ -65,6 +74,10 @@ func setCli() {
 		config.HTTPClient.Timeout = time.Minute * 120
 		config.BaseURL = "https://chimeragpt.adventblocks.cc/api/v1"
 		chimeraCli = openai.NewClientWithConfig(config)
+	}
+	//ErnieCli
+	{
+		ernieCli = go_ernie.NewDefaultClient(ernieKey, ernieSecret)
 	}
 
 }

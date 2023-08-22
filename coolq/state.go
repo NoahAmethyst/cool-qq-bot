@@ -7,6 +7,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/encrypt"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	bingchat_api "github.com/NoahAmethyst/bingchat-api"
+	go_ernie "github.com/anhao/go-ernie"
 	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
 	"strconv"
@@ -205,7 +206,9 @@ type AiAssistantSession struct {
 	conversation map[int64]bingchat_api.IBingChat
 	//chatgpt
 	chatgptChan map[int64]chan struct{}
-	ctx         map[int64][]openai.ChatCompletionMessage
+	openaiCtx   map[int64][]openai.ChatCompletionMessage
+	ernieChan   map[int64]chan struct{}
+	ernieCtx    map[int64][]go_ernie.ChatCompletionMessage
 
 	sync.RWMutex
 }
@@ -286,13 +289,13 @@ func (s *AiAssistantSession) closeConversation(uid int64) {
 	delete(s.conversation, uid)
 }
 
-func (s *AiAssistantSession) putCtx(uid int64, msg, resp string) {
+func (s *AiAssistantSession) putOpenaiCtx(uid int64, msg, resp string) {
 	s.Lock()
 	defer s.Unlock()
-	if s.ctx[uid] == nil {
-		s.ctx[uid] = make([]openai.ChatCompletionMessage, 0, 8)
+	if s.openaiCtx[uid] == nil {
+		s.openaiCtx[uid] = make([]openai.ChatCompletionMessage, 0, 8)
 	}
-	s.ctx[uid] = append(s.ctx[uid], []openai.ChatCompletionMessage{
+	s.openaiCtx[uid] = append(s.openaiCtx[uid], []openai.ChatCompletionMessage{
 		{
 			Role:    openai.ChatMessageRoleUser,
 			Content: msg,
@@ -311,7 +314,7 @@ func (s *AiAssistantSession) putCtx(uid int64, msg, resp string) {
 				case <-s.chatgptChan[uid]:
 
 				case <-time.After(time.Minute * 10):
-					s.clearCtx(uid)
+					s.clearOpenaiCtx(uid)
 				}
 			}
 		}(uid)
@@ -319,18 +322,65 @@ func (s *AiAssistantSession) putCtx(uid int64, msg, resp string) {
 	s.chatgptChan[uid] <- struct{}{}
 }
 
-func (s *AiAssistantSession) getCtx(uid int64) []openai.ChatCompletionMessage {
+func (s *AiAssistantSession) getOpenaiCtx(uid int64) []openai.ChatCompletionMessage {
 	s.RLock()
 	defer s.RUnlock()
-	ctx := make([]openai.ChatCompletionMessage, len(s.ctx[uid]))
-	copy(ctx, s.ctx[uid])
+	ctx := make([]openai.ChatCompletionMessage, len(s.openaiCtx[uid]))
+	copy(ctx, s.openaiCtx[uid])
 	return ctx
 }
 
-func (s *AiAssistantSession) clearCtx(uid int64) {
+func (s *AiAssistantSession) clearOpenaiCtx(uid int64) {
 	s.Lock()
 	defer s.Unlock()
-	delete(s.ctx, uid)
+	delete(s.openaiCtx, uid)
+}
+
+func (s *AiAssistantSession) putErnieCtx(uid int64, msg, resp string) {
+	s.Lock()
+	defer s.Unlock()
+	if s.ernieCtx[uid] == nil {
+		s.ernieCtx[uid] = make([]go_ernie.ChatCompletionMessage, 0, 8)
+	}
+	s.ernieCtx[uid] = append(s.ernieCtx[uid], []go_ernie.ChatCompletionMessage{
+		{
+			Role:    go_ernie.MessageRoleUser,
+			Content: msg,
+		},
+		{
+			Role:    go_ernie.MessageRoleAssistant,
+			Content: resp,
+		},
+	}...)
+
+	if s.ernieChan[uid] == nil {
+		s.ernieChan[uid] = make(chan struct{})
+		go func(int64) {
+			for {
+				select {
+				case <-s.ernieChan[uid]:
+
+				case <-time.After(time.Minute * 10):
+					s.clearOpenaiCtx(uid)
+				}
+			}
+		}(uid)
+	}
+	s.ernieChan[uid] <- struct{}{}
+}
+
+func (s *AiAssistantSession) getErnieCtx(uid int64) []go_ernie.ChatCompletionMessage {
+	s.RLock()
+	defer s.RUnlock()
+	ctx := make([]go_ernie.ChatCompletionMessage, len(s.ernieCtx[uid]))
+	copy(ctx, s.ernieCtx[uid])
+	return ctx
+}
+
+func (s *AiAssistantSession) clearErnieCtx(uid int64) {
+	s.Lock()
+	defer s.Unlock()
+	delete(s.ernieCtx, uid)
 }
 
 func (bot *CQBot) initState() {
@@ -351,7 +401,9 @@ func (bot *CQBot) initState() {
 					bingChan:      map[int64]chan struct{}{},
 					conversation:  map[int64]bingchat_api.IBingChat{},
 					chatgptChan:   map[int64]chan struct{}{},
-					ctx:           map[int64][]openai.ChatCompletionMessage{},
+					openaiCtx:     map[int64][]openai.ChatCompletionMessage{},
+					ernieChan:     map[int64]chan struct{}{},
+					ernieCtx:      map[int64][]go_ernie.ChatCompletionMessage{},
 					RWMutex:       sync.RWMutex{},
 				},
 				privateDialogueSession: &AiAssistantSession{
@@ -360,7 +412,9 @@ func (bot *CQBot) initState() {
 					bingChan:      map[int64]chan struct{}{},
 					conversation:  map[int64]bingchat_api.IBingChat{},
 					chatgptChan:   map[int64]chan struct{}{},
-					ctx:           map[int64][]openai.ChatCompletionMessage{},
+					openaiCtx:     map[int64][]openai.ChatCompletionMessage{},
+					ernieChan:     map[int64]chan struct{}{},
+					ernieCtx:      map[int64][]go_ernie.ChatCompletionMessage{},
 					RWMutex:       sync.RWMutex{},
 				},
 			}

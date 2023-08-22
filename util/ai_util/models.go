@@ -6,4 +6,5 @@ const (
 	ChatGPT ChatModel = iota
 	BingChat
 	ChatGPT4
+	Ernie
 )

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
+	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 	"strconv"
@@ -187,13 +188,16 @@ func ChangeModel(assistant Assistant) {
 		currModel = "BingChat"
 	case ai_util.ChatGPT4:
 		currModel = "ChatGpt4.0"
+	case ai_util.Ernie:
+		currModel = "文心千帆"
 	default:
 		currModel = "ChatGpt3.5"
 	}
 	switchModelMsg := fmt.Sprintf("如需更换模式请使用:\n"+
 		"%d - ChatGpt3.5(默认)\n"+
 		"%d - BingChat\n"+
-		"%d - ChatGpt4.0", ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4)
+		"%d - ChatGpt4.0\n"+
+		"%d - 文心千帆", ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4, ai_util.Ernie)
 
 	if len(v) == 0 {
 		msg := fmt.Sprintf("当前模式：%s\n%s", currModel, switchModelMsg)
@@ -220,6 +224,11 @@ func ChangeModel(assistant Assistant) {
 			currModel = "ChatGpt4.0"
 			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
 			assistant.ChangeModel(ai_util.ChatGPT4)
+		case int64(ai_util.Ernie):
+			currModel = "文心千帆"
+			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
+			assistant.ChangeModel(ai_util.Ernie)
+
 		default:
 			msg = fmt.Sprintf("非法的参数\n当前模式%s\n%s", currModel, switchModelMsg)
 		}
@@ -338,7 +347,7 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	defer close(recvChan)
 	textEle := assistant.GetText()
-	ctx := assistant.Session().getCtx(assistant.Sender())
+	ctx := assistant.Session().getOpenaiCtx(assistant.Sender())
 	msg := openai.ChatCompletionMessage{
 		Role:    openai.ChatMessageRoleUser,
 		Content: textEle.Content,
@@ -376,7 +385,41 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 			answer = "OpenAI未响应，请重试"
 		} else {
 			answer = resp.Choices[0].Message.Content
-			assistant.Session().putCtx(assistant.Sender(), msg.Content, answer)
+			assistant.Session().putOpenaiCtx(assistant.Sender(), msg.Content, answer)
+		}
+	}
+	recvChan <- struct{}{}
+	assistant.Reply(answer)
+}
+
+func askErnie(assistant Assistant, recvChan chan struct{}) {
+	defer close(recvChan)
+	textEle := assistant.GetText()
+	ctx := assistant.Session().getErnieCtx(assistant.Sender())
+	msg := go_ernie.ChatCompletionMessage{
+		Role:    go_ernie.MessageRoleUser,
+		Content: textEle.Content,
+	}
+	if len(ctx) == 0 {
+		ctx = []go_ernie.ChatCompletionMessage{
+			msg,
+		}
+	} else {
+		ctx = append(ctx, msg)
+	}
+
+	var answer string
+	resp, err := ai_util.AskErnie(ctx)
+
+	if err != nil {
+		answer = fmt.Sprintf("调用文心千帆 失败：%s", err.Error())
+	} else {
+		if len(resp.Result) == 0 {
+			log.Warnf("文心千帆 返回空结构：%+v", resp)
+			answer = "文心千帆未响应，请重试"
+		} else {
+			answer = resp.Result
+			assistant.Session().putErnieCtx(assistant.Sender(), msg.Content, answer)
 		}
 	}
 	recvChan <- struct{}{}
@@ -389,5 +432,6 @@ func init() {
 		ai_util.ChatGPT:  askOfficialChatGpt,
 		ai_util.ChatGPT4: askOfficialChatGpt,
 		ai_util.BingChat: askBingChat,
+		ai_util.Ernie:    askErnie,
 	}
 }
