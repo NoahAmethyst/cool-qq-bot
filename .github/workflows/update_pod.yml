@@ -17,5 +17,5 @@ jobs:
           username: ${{ secrets.SERVER_USERNAME }}
           password: ${{ secrets.SERVER_PASSWORD }}
           script: |
-            domain=$(kubectl get pods -l app=domain -o jsonpath='{.items[0].metadata.name}')
-            kubectl delete pod domain
+            qq_bot=$(kubectl get pods -l app=node-domain -o jsonpath='{.items[0].metadata.name}')
+            kubectl delete pod $qq_bot
