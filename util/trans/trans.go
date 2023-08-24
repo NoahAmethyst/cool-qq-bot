@@ -3,7 +3,9 @@ package trans
 import (
 	translator_engine "github.com/NoahAmethyst/translator-engine"
 	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 	"os"
+	"reflect"
 )
 
 var YoudaoEng *translator_engine.YoudaoTransEngine
@@ -35,9 +37,12 @@ func BalanceTranText(src, from, to string) (*translator_engine.TransResult, erro
 	if len(EngBalance.EngList) == 0 {
 		return nil, errors.New("No translate engine initialized")
 	}
-
-	return TransText(EngBalance.GetEng(), src, from, to)
-
+	eng := EngBalance.GetEng()
+	result, err := TransText(eng, src, from, to)
+	if err != nil {
+		log.Errorf("engine: %s translate failed:%s  ", reflect.TypeOf(eng).Name(), err.Error())
+	}
+	return result, err
 }
 
 func getBaiduCfg() (string, string) {
