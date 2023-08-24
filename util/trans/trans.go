@@ -40,7 +40,7 @@ func BalanceTranText(src, from, to string) (*translator_engine.TransResult, erro
 	eng := EngBalance.GetEng()
 	result, err := TransText(eng, src, from, to)
 	if err != nil {
-		log.Errorf("engine: %s translate failed:%s  ", reflect.TypeOf(eng).Name(), err.Error())
+		log.Errorf("engine: %s translate failed:%s  ", reflect.TypeOf(eng).String(), err.Error())
 	}
 	return result, err
 }
