@@ -132,7 +132,7 @@ func Calculate(calculator Calculator) {
 	}
 	expression := calculator.GetExpression()
 	var ok bool
-	if expression, ok = math_engine.IsMathExpression(expression); !ok {
+	if expression, ok = math_engine.CheckMathExpression(expression); !ok {
 		return
 	}
 

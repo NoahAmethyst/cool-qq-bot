@@ -6,7 +6,10 @@ import (
 	"strings"
 )
 
-func IsMathExpression(expression string) (string, bool) {
+func CheckMathExpression(expression string) (string, bool) {
+	if len(expression) == 0 {
+		return "", false
+	}
 	match := true
 	if strings.Contains(expression, "（") || strings.Contains(expression, "）") {
 		expression = strings.ReplaceAll(expression, "（", "(")

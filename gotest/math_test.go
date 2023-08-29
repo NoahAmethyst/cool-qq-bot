@@ -20,7 +20,7 @@ func Test_Math(t *testing.T) {
 
 func Test_CheckExpression(t *testing.T) {
 	s1 := "20*22+20*8+3.5*4+14*22+100+34*8+40*4"
-	s1, _ = math_engine.IsMathExpression(s1)
+	s1, _ = math_engine.CheckMathExpression(s1)
 	t.Logf("%+v", s1)
 
 	if tokens, err := engine.Parse(s1); err != nil {
@@ -30,7 +30,7 @@ func Test_CheckExpression(t *testing.T) {
 	}
 
 	s2 := "1 + 2 * 6 / 4 + (456 - 8 * 9.2) - (2 + 4 ^ 5)"
-	s2, _ = math_engine.IsMathExpression(s2)
+	s2, _ = math_engine.CheckMathExpression(s2)
 	t.Logf("%+v", s2)
 
 	if tokens, err := engine.Parse(s2); err != nil {

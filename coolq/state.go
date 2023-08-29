@@ -207,8 +207,9 @@ type AiAssistantSession struct {
 	//chatgpt
 	chatgptChan map[int64]chan struct{}
 	openaiCtx   map[int64][]openai.ChatCompletionMessage
-	ernieChan   map[int64]chan struct{}
-	ernieCtx    map[int64][]go_ernie.ChatCompletionMessage
+	// ernie
+	ernieChan map[int64]chan struct{}
+	ernieCtx  map[int64][]go_ernie.ChatCompletionMessage
 
 	sync.RWMutex
 }
