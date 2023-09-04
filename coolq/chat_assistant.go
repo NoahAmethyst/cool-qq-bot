@@ -278,28 +278,6 @@ func AskAssistant(assistant Assistant) {
 
 }
 
-func askRemoteChatGpt(assistant Assistant, recvChan chan struct{}) {
-	v, ok := assistant.Session().getParentMsgId(assistant.Sender())
-	var answer *ai_util.AIAssistantResp
-	var err error
-	defer close(recvChan)
-	if !ok {
-		answer, err = ai_util.AskAIAssistant(assistant.GetText().Content)
-	} else {
-		answer, err = ai_util.AskAIAssistant(assistant.GetText().Content, v)
-	}
-
-	recvChan <- struct{}{}
-	if err != nil {
-		log.Errorf("ask ai assistent error:%s", err.Error())
-		assistant.Reply(err.Error())
-
-	} else {
-		assistant.Session().putParentMsgId(assistant.Sender(), answer.ID)
-		assistant.Reply(answer.Text)
-	}
-}
-
 func askBingChat(assistant Assistant, recvChan chan struct{}) {
 	defer close(recvChan)
 	var err error
