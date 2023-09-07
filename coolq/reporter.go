@@ -5,7 +5,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/Mrs4s/go-cqhttp/util/coin"
 	"github.com/Mrs4s/go-cqhttp/util/top_list"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 	"regexp"
 	"sort"
 	"strconv"
@@ -68,7 +68,7 @@ func (bot *CQBot) ReportCoinPrice(group int64, elements []message.IMessageElemen
 	for _, _symbol := range symbols {
 		coinInfo, err := coin.Get24HPriceInfo(_symbol)
 		if err != nil {
-			log.Error().Msgf("get %s error:%s", _symbol, err)
+			log.Errorf("get %s error:%s", _symbol, err)
 			continue
 		}
 		priceContents = append(priceContents, fmt.Sprintf("\n%s \n价格：%s\n24小时涨跌幅：%s%% \n最高价：%s \n最低价：%s\n",
@@ -135,7 +135,7 @@ func parseIndexList(params []string) []int {
 		}
 		index, err := strconv.Atoi(_index)
 		if err != nil {
-			log.Warn().Msgf("parse index %s failed:%s", _index, err.Error())
+			log.Warnf("parse index %s failed:%s", _index, err.Error())
 			continue
 		}
 		if index-1 < 0 {
@@ -152,7 +152,7 @@ func parseIndexList(params []string) []int {
 		}
 		index, err := strconv.Atoi(_index)
 		if err != nil {
-			log.Warn().Msgf("parse index %s failed:%s", _index, err.Error())
+			log.Warnf("parse index %s failed:%s", _index, err.Error())
 			continue
 		}
 		if index-1 < 0 {
@@ -202,7 +202,7 @@ func (bot *CQBot) ReportSpecificWeibo(group int64, indexList []int, isGroup bool
 
 	k := lastestT.Format(layout)
 	if _data, ok := data[k]; !ok {
-		log.Warn().Msgf("can't get latest weibo daily report")
+		log.Warnf("can't get latest weibo daily report")
 		bot.ReportWeiboHot([]int64{group}, isGroup)
 	} else {
 		for _, _index := range indexList {
@@ -220,7 +220,7 @@ func (bot *CQBot) ReportSpecificWeibo(group int64, indexList []int, isGroup bool
 func (bot *CQBot) ReportWeiboHot(groups []int64, isGroup bool) {
 	var resp string
 	if hotList, err := top_list.LoadWeiboHot(); err != nil {
-		log.Error().Msgf("get hot list error:%s", err.Error())
+		log.Errorf("get hot list error:%s", err.Error())
 		resp = fmt.Sprintf("爬取微博热搜失败：%s", err.Error())
 
 	} else {
@@ -244,7 +244,7 @@ func (bot *CQBot) Report36kr(groups []int64, isGroup bool) {
 
 	var resp string
 	if hotList, err := top_list.Load36krHot(); err != nil {
-		log.Error().Msgf("get hot list error:%s", err.Error())
+		log.Errorf("get hot list error:%s", err.Error())
 		resp = fmt.Sprintf("爬取36氪热榜失败：%s", err.Error())
 	} else {
 		var hotContent strings.Builder
@@ -270,7 +270,7 @@ func (bot *CQBot) Report36kr(groups []int64, isGroup bool) {
 func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 	hasNews := true
 	if hotList, err := top_list.LoadWallStreetNews(); err != nil {
-		log.Error().Msgf("爬取华尔街见闻最新资讯失败：%s", err.Error())
+		log.Errorf("爬取华尔街见闻最新资讯失败：%s", err.Error())
 	} else {
 		var wait sync.WaitGroup
 		for _, _group := range groups {
@@ -311,7 +311,7 @@ func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 
 func (bot *CQBot) ReportZhihuHot(group int64, isGroup bool) {
 	if hotList, err := top_list.LoadZhihuHot(); err != nil {
-		log.Error().Msgf("拉取知乎热榜失败：%s", err.Error())
+		log.Errorf("拉取知乎热榜失败：%s", err.Error())
 	} else {
 		for i := 0; i < len(hotList); i++ {
 			content := fmt.Sprintf("知乎热榜#%d %s\n\n摘要：%s\n\n链接：%s", hotList[i].Rank, hotList[i].Title, hotList[i].Excerpt, hotList[i].Url)
