@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,6 +13,6 @@ func gracefulShutdown() {
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGINT, syscall.SIGTERM, syscall.SIGHUP, syscall.SIGSTOP, syscall.SIGKILL, syscall.SIGHUP)
 	go func() {
 		sig := <-signalChannel
-		log.Info().Msgf("shut down,sign:%v", sig)
+		log.Infof("shut down,sign:%+v", sig)
 	}()
 }
