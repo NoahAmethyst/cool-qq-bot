@@ -48,14 +48,7 @@ func (bot *CQBot) closeReporter(id int64, isGroup bool) {
 }
 
 func (bot *CQBot) ReportCoinPrice(group int64, elements []message.IMessageElement, isGroup bool) {
-	var textEle *message.TextElement
-	for _, ele := range elements {
-		switch ele.Type() {
-		case message.Text:
-			textEle = ele.(*message.TextElement)
-			break
-		}
-	}
+	textEle := getTextEle(elements)
 
 	var symbol string
 	if textEle != nil {
@@ -107,9 +100,9 @@ func (bot *CQBot) ReportCoinPrice(group int64, elements []message.IMessageElemen
 
 func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
 
-	content := privateMessage.ToString()
+	textEle := getTextEle(privateMessage.Elements)
 
-	params := parseParam(content)
+	params := parseParam(textEle.Content)
 	if len(params) == 2 {
 		indexList := parseIndexList(params)
 		bot.ReportSpecificWeibo(privateMessage.Sender.Uin, indexList, false)
@@ -120,9 +113,9 @@ func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
 }
 
 func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
-	content := groupMessage.ToString()
+	textEle := getTextEle(groupMessage.Elements)
 
-	params := parseParam(content)
+	params := parseParam(textEle.Content)
 	if len(params) == 2 {
 		indexList := parseIndexList(params)
 		bot.ReportSpecificWeibo(groupMessage.GroupCode, indexList, true)
@@ -330,4 +323,14 @@ func (bot *CQBot) ReportZhihuHot(group int64, isGroup bool) {
 			time.Sleep(1 * time.Second)
 		}
 	}
+}
+
+func getTextEle(eleList []message.IMessageElement) *message.TextElement {
+	var textEle *message.TextElement
+	for _, _ele := range eleList {
+		if v, ok := _ele.(*message.TextElement); ok {
+			textEle = v
+		}
+	}
+	return textEle
 }
