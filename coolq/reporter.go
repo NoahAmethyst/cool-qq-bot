@@ -135,8 +135,8 @@ func parseIndexList(params []string) []int {
 		}
 		index, err := strconv.Atoi(_index)
 		if err != nil {
-			log.Err(err)
-			index = 0
+			log.Warn().Msgf("parse index %s failed:%s", _index, err.Error())
+			continue
 		}
 		if index-1 < 0 {
 			index = 0
@@ -152,8 +152,8 @@ func parseIndexList(params []string) []int {
 		}
 		index, err := strconv.Atoi(_index)
 		if err != nil {
-			log.Err(err)
-			index = 0
+			log.Warn().Msgf("parse index %s failed:%s", _index, err.Error())
+			continue
 		}
 		if index-1 < 0 {
 			index = 0
