@@ -284,7 +284,7 @@ func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 			wait.Add(1)
 			go func(group int64) {
 				defer wait.Done()
-				readyData := make([]top_list.WallStreetNews, 0, 10)
+				readyData := make([]top_list.WallStreetNews, 0, 15)
 				for _, _data := range hotList {
 					if !bot.state.wallstreetSentNews.checkSent(group, _data.Title) {
 						readyData = append(readyData, _data)
