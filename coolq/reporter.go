@@ -103,9 +103,13 @@ func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
 	textEle := getTextEle(privateMessage.Elements)
 
 	params := parseParam(textEle.Content)
-	indexList := parseIndexList(params)
-	if len(indexList) > 0 {
-		bot.ReportSpecificWeibo(privateMessage.Sender.Uin, indexList, false)
+	if len(params) >= 2 {
+		if indexList := parseIndexList(params); len(indexList) > 0 {
+			bot.ReportSpecificWeibo(privateMessage.Sender.Uin, indexList, false)
+		} else {
+			bot.ReportWeiboHot([]int64{privateMessage.Sender.Uin}, false)
+		}
+
 	} else {
 		bot.ReportWeiboHot([]int64{privateMessage.Sender.Uin}, false)
 	}
@@ -116,10 +120,12 @@ func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
 	textEle := getTextEle(groupMessage.Elements)
 
 	params := parseParam(textEle.Content)
-
-	indexList := parseIndexList(params)
-	if len(indexList) > 0 {
-		bot.ReportSpecificWeibo(groupMessage.GroupCode, indexList, true)
+	if len(params) >= 2 {
+		if indexList := parseIndexList(params); len(indexList) > 0 {
+			bot.ReportSpecificWeibo(groupMessage.GroupCode, indexList, true)
+		} else {
+			bot.ReportWeiboHot([]int64{groupMessage.GroupCode}, true)
+		}
 	} else {
 		bot.ReportWeiboHot([]int64{groupMessage.GroupCode}, true)
 	}
