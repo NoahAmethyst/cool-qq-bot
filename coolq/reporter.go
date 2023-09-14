@@ -239,7 +239,6 @@ func (bot *CQBot) ReportWeiboHot(groups []int64, isGroup bool) {
 		resp = hotContent.String()
 	}
 	for _, _group := range groups {
-		log.Infof("send weibo hot to group[%d],is private:%+v", _group, isGroup)
 		if isGroup {
 			bot.SendGroupMessage(_group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(resp)}})
 		} else {
