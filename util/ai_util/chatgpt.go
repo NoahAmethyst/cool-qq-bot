@@ -26,7 +26,7 @@ func AskChatGpt(ctx []openai.ChatCompletionMessage) (openai.ChatCompletionRespon
 
 func AskChatGpt4(ctx []openai.ChatCompletionMessage) (openai.ChatCompletionResponse, error) {
 	initCli()
-	resp, err := chimeraCli.CreateChatCompletion(
+	resp, err := openaiCli.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
 			Model:    openai.GPT4,
