@@ -7,8 +7,12 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"fmt"
+	"github.com/Mrs4s/go-cqhttp/bot_service"
+	"github.com/Mrs4s/go-cqhttp/cluster"
+	"github.com/Mrs4s/go-cqhttp/constant"
 	"os"
 	"path"
+	"strconv"
 	"sync"
 	"time"
 
@@ -323,12 +327,13 @@ func Main() {
 	bot := coolq.NewQQBot(cli)
 	servers.Run(bot)
 
+	bot_service.QQBot = bot
 	log.Info("资源初始化完成, 开始处理信息.")
-	log.Info("アトリは、高性能ですから!")
 
 	go func() {
 		selfupdate.CheckUpdate()
 		selfdiagnosis.NetworkDiagnosis(cli)
+		cluster.StartServer(strconv.Itoa(constant.DefaultGRPCPort))
 	}()
 
 	<-global.SetupMainSignalHandler()

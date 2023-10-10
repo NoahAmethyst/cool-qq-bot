@@ -11,3 +11,7 @@ const (
 	OWNER            = "OWNER"
 	BING_COOKIE      = "BING_COOKIE"
 )
+
+const (
+	DefaultGRPCPort = 9090
+)
