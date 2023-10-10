@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 	"github.com/tencentyun/cos-go-sdk-v5"
 
 	"net/http"
@@ -50,10 +50,7 @@ func TCCosUpload(cosPath, cosName, filePath string) error {
 		context.Background(), key, filePath, nil,
 	)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "upload file to tencent cos",
-			"error":  err,
-		}).Send()
+		log.Errorf("Upload file [%s] to tencent cos failed %s", filePath, err.Error())
 	}
 	return err
 }
@@ -75,10 +72,7 @@ func TCCosDownload(cosPath, cosName, filePath string) error {
 		context.Background(), key, filePath, opt,
 	)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "download file from tencent cos",
-			"error":  err,
-		}).Send()
+		log.Errorf("Download file [%s] from tencent cos failed %s", key, err.Error())
 	}
 	return err
 }

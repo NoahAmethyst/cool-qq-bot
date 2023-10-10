@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/util/http_util"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 	"os"
 )
 
@@ -38,7 +38,7 @@ func Get24HPriceInfo(symbol string) (CoinPrice, error) {
 
 	err := http_util.GetJSON(url, headers, &data)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{"action": "request coin pricee", "error": err.Error()}).Send()
+		log.Errorf("request coin price failed:%s", err.Error())
 	}
 
 	return data, err

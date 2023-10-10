@@ -3,7 +3,7 @@ package file_util
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 	"os"
 	"strings"
 )
@@ -13,7 +13,7 @@ func WriteJsonFile(data interface{}, targetPath, fileName string, format bool) (
 	filePath := fmt.Sprintf("%s/%s.%s", targetPath, fileName, "json")
 	file, err := os.Create(filePath)
 	if err != nil {
-		log.Error().Msgf("Error creating file:%s", err)
+		log.Errorf("Creating file [%s] failed %s", fileName, err.Error())
 		return filePath, err
 	}
 	defer func(file *os.File) {
@@ -25,7 +25,7 @@ func WriteJsonFile(data interface{}, targetPath, fileName string, format bool) (
 		encoder.SetIndent("", "    ")
 	}
 	if err := encoder.Encode(data); err != nil {
-		log.Error().Msgf("Error encoding data:%s", err)
+		log.Errorf("Encoding data failed %s", err.Error())
 		return filePath, err
 	}
 	return filePath, nil
@@ -34,19 +34,13 @@ func WriteJsonFile(data interface{}, targetPath, fileName string, format bool) (
 func LoadJsonFile(file string, data interface{}) error {
 	bytes, err := os.ReadFile(file)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "read json file",
-			"error":  err,
-		}).Send()
+		log.Errorf("Read json file [%s] failed %s", file, err.Error())
 		return err
 	}
 
 	err = json.Unmarshal(bytes, data)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": fmt.Sprintf("unmarshal json from json file %s", file),
-			"error":  err,
-		}).Send()
+		log.Errorf("Unmarshal json from json file [%s] failed %s", file, err.Error())
 	}
 	return err
 }

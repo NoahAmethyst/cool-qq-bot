@@ -5,7 +5,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/Mrs4s/go-cqhttp/util/http_util"
 	"github.com/PuerkitoBio/goquery"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
 	"strings"
@@ -31,10 +31,7 @@ func ParseWeiboHotByApi() (map[string]interface{}, error) {
 	var data map[string]interface{}
 	err := http_util.GetJSON(url, nil, &data)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "request weibo api",
-			"error":  err,
-		}).Send()
+		log.Errorf("request weibo api failed:%s", err.Error())
 	}
 	return data, err
 }

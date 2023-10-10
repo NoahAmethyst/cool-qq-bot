@@ -3,7 +3,7 @@ package top_list
 import (
 	"fmt"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 
 	"os"
 	"sync"
@@ -52,18 +52,12 @@ func (d *d36KrDailyRecord) Upload() {
 
 	d36krFilePath, err := file_util.WriteJsonFile(d.data, path, "36kr", true)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "write weibo hot daily record",
-			"error":  err,
-		}).Send()
+		log.Errorf("Write weibo hot daily record failed %s", err.Error())
 	} else {
 		cosPath := fmt.Sprintf("%s/%s", "36kr", time.Now().Format("2006"))
 		cosFileName := fmt.Sprintf("%s_%s.json", "36kr", time.Now().Format("0102"))
 		if err = file_util.TCCosUpload(cosPath, cosFileName, d36krFilePath); err != nil {
-			log.Error().Fields(map[string]interface{}{
-				"action": "upload wall street news daily record to tencent cos",
-				"error":  err,
-			}).Send()
+			log.Errorf("Upload wall street news daily record to tencent cos failed %s", err.Error())
 		} else {
 			d.data = nil
 			if err := file_util.ClearFile(d36krFilePath); err != nil {
@@ -120,18 +114,12 @@ func (d *wallStreetNewsDailyRecord) Upload() {
 	path := file_util.GetFileRoot()
 	wallStreetFilePath, err := file_util.WriteJsonFile(d.data, path, "wallstreet_news", true)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "write weibo hot daily record",
-			"error":  err,
-		}).Send()
+		log.Errorf("Write wallstreet news daily record failed %s", err.Error())
 	} else {
 		cosPath := fmt.Sprintf("%s/%s", "wallstreet", time.Now().Format("2006"))
 		cosFileName := fmt.Sprintf("%s_%s.json", "wallstreet", time.Now().Format("0102"))
 		if err = file_util.TCCosUpload(cosPath, cosFileName, wallStreetFilePath); err != nil {
-			log.Error().Fields(map[string]interface{}{
-				"action": "upload wall street news daily record to tencent cos",
-				"error":  err,
-			}).Send()
+			log.Errorf("Upload wall street news daily record to tencent cos failed %s", err.Error())
 		} else {
 			d.data = nil
 			if err := file_util.ClearFile(wallStreetFilePath); err != nil {
@@ -184,18 +172,12 @@ func (d *weiboHotDailyRecord) Upload() {
 	path := file_util.GetFileRoot()
 	weiboFilePath, err := file_util.WriteJsonFile(d.data, path, "weibo_hot", true)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "write weibo hot daily record",
-			"error":  err,
-		}).Send()
+		log.Errorf("Write weibo hot daily record failed %s", err.Error())
 	} else {
 		cosPath := fmt.Sprintf("%s/%s", "weibo", time.Now().Format("2006"))
 		cosFileName := fmt.Sprintf("%s_%s.json", "weibo_hot", time.Now().Format("0102"))
 		if err = file_util.TCCosUpload(cosPath, cosFileName, weiboFilePath); err != nil {
-			log.Error().Fields(map[string]interface{}{
-				"action": "upload weibo hot daily record to tencent cos",
-				"error":  err,
-			}).Send()
+			log.Errorf("Upload weibo hot daily record to tencent cos failed %s", err.Error())
 		} else {
 			d.data = nil
 			if err := file_util.ClearFile(weiboFilePath); err != nil {
@@ -249,18 +231,12 @@ func (z *zhihuHotDailyRecord) Upload() {
 	_, _ = LoadZhihuHot()
 	zhihuFilePath, err := file_util.WriteJsonFile(z.GetData(), path, "zhihu", true)
 	if err != nil {
-		log.Error().Fields(map[string]interface{}{
-			"action": "write zhihu hot daily record",
-			"error":  err,
-		}).Send()
+		log.Errorf("Write zhihu hot daily record failed %s", err.Error())
 	} else {
 		cosPath := fmt.Sprintf("%s/%s", "zhihu", time.Now().Format("2006"))
 		cosFileName := fmt.Sprintf("%s_%s.json", "zhihu", time.Now().Format("0102"))
 		if err = file_util.TCCosUpload(cosPath, cosFileName, zhihuFilePath); err != nil {
-			log.Error().Fields(map[string]interface{}{
-				"action": "upload wall street news daily record to tencent cos",
-				"error":  err,
-			}).Send()
+			log.Errorf("Upload zhihu hot daily record to tencent cos failed %s", err.Error())
 		} else {
 			z.data = nil
 			if err := file_util.ClearFile(zhihuFilePath); err != nil {

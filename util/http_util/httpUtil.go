@@ -95,16 +95,6 @@ func Post(url string, params interface{}, headers map[string]string) ([]byte, er
 		return nil, err
 	}
 
-	log.Debug().Str("type", "API").
-		Int("status", res.StatusCode).
-		Str("url", url).
-		Fields(map[string]interface{}{
-			"post":    params,
-			"headers": headers,
-			"result":  content,
-		}).
-		Send()
-
 	return content, nil
 }
 
@@ -117,7 +107,7 @@ func PostJSON(url string, params interface{}, headers map[string]string, ret int
 	b, err := Post(url, params, headers)
 
 	if err != nil {
-		log.Error().Err(err).Send()
+		log.Err(err)
 		return err
 	}
 
