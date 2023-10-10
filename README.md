@@ -36,8 +36,9 @@
 * 定时推送当天新闻数据到tencent oss
 * 通过命令设置环境变量（只有bot owner可以使用）
 * 停止运行bot(只有bot owner可以使用)
+* Grpc server
 
-如果要运行本机器需要设置以下环境变量
+#### 如果要运行本机器需要设置以下环境变量
 
 ```shell
 # openai api key
