@@ -19,7 +19,6 @@ import (
 	"github.com/Mrs4s/MiraiGo/binary"
 	"github.com/Mrs4s/MiraiGo/client"
 	para "github.com/fumiama/go-hide-param"
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/pbkdf2"
 	"golang.org/x/term"
@@ -65,23 +64,6 @@ func Main() {
 		base.ResetWorkingDir()
 	}
 	base.Init()
-
-	rotateOptions := []rotatelogs.Option{
-		rotatelogs.WithRotationTime(time.Hour * 24),
-	}
-	rotateOptions = append(rotateOptions, rotatelogs.WithMaxAge(base.LogAging))
-	if base.LogForceNew {
-		rotateOptions = append(rotateOptions, rotatelogs.ForceNewFile())
-	}
-	w, err := rotatelogs.New(path.Join("logs", "%Y-%m-%d.log"), rotateOptions...)
-	if err != nil {
-		log.Errorf("rotatelogs init err: %v", err)
-		panic(err)
-	}
-
-	consoleFormatter := global.LogFormat{EnableColor: base.LogColorful}
-	fileFormatter := global.LogFormat{EnableColor: false}
-	log.AddHook(global.NewLocalHook(w, consoleFormatter, fileFormatter, global.GetLogLevel(base.LogLevel)...))
 
 	mkCacheDir := func(path string, _type string) {
 		if !global.PathExists(path) {
