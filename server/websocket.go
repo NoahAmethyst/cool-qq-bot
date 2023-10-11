@@ -128,7 +128,7 @@ func init() {
 		Brief:   "反向 Websocket 通信",
 		Default: wsReverseDefault,
 	})
-	log.Info("socket address:%s", wsDefault)
+	//log.Info("socket address:%s", wsDefault)
 }
 
 // runWSServer 运行一个正向WS server
