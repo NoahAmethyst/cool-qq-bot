@@ -52,7 +52,9 @@ func (hook *LocalHook) pathWrite(entry *logrus.Entry) error {
 	if err != nil {
 		return err
 	}
-	defer fd.Close()
+	defer func(fd *os.File) {
+		_ = fd.Close()
+	}(fd)
 
 	log, err := hook.formatter.Format(entry)
 	if err != nil {
