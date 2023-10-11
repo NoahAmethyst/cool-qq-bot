@@ -2,19 +2,14 @@ package global
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/internal/base"
-	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
+	"github.com/mattn/go-colorable"
+	"github.com/sirupsen/logrus"
 	"io"
 	"os"
-	"path"
 	"path/filepath"
 	"reflect"
 	"strings"
 	"sync"
-	"time"
-
-	"github.com/mattn/go-colorable"
-	"github.com/sirupsen/logrus"
 )
 
 // LocalHook logrus本地钩子
@@ -236,23 +231,4 @@ func GetLogLevelColorCode(level logrus.Level) string {
 	default:
 		return colorCodeInfo
 	}
-}
-
-func init() {
-	rotateOptions := []rotatelogs.Option{
-		rotatelogs.WithRotationTime(time.Hour * 24),
-	}
-	rotateOptions = append(rotateOptions, rotatelogs.WithMaxAge(base.LogAging))
-	if base.LogForceNew {
-		rotateOptions = append(rotateOptions, rotatelogs.ForceNewFile())
-	}
-	w, err := rotatelogs.New(path.Join("logs", "%Y-%m-%d.log"), rotateOptions...)
-	if err != nil {
-		logrus.Errorf("rotatelogs init err: %v", err)
-		panic(err)
-	}
-
-	consoleFormatter := LogFormat{EnableColor: base.LogColorful}
-	fileFormatter := LogFormat{EnableColor: false}
-	logrus.AddHook(NewLocalHook(w, consoleFormatter, fileFormatter, GetLogLevel(base.LogLevel)...))
 }

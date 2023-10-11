@@ -10,6 +10,7 @@ import (
 	"github.com/Mrs4s/go-cqhttp/bot_service"
 	"github.com/Mrs4s/go-cqhttp/cluster"
 	"github.com/Mrs4s/go-cqhttp/constant"
+	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"os"
 	"path"
 	"strconv"
@@ -64,6 +65,23 @@ func Main() {
 		base.ResetWorkingDir()
 	}
 	base.Init()
+
+	rotateOptions := []rotatelogs.Option{
+		rotatelogs.WithRotationTime(time.Hour * 24),
+	}
+	rotateOptions = append(rotateOptions, rotatelogs.WithMaxAge(base.LogAging))
+	if base.LogForceNew {
+		rotateOptions = append(rotateOptions, rotatelogs.ForceNewFile())
+	}
+	w, err := rotatelogs.New(path.Join("logs", "%Y-%m-%d.log"), rotateOptions...)
+	if err != nil {
+		log.Errorf("rotatelogs init err: %v", err)
+		panic(err)
+	}
+
+	consoleFormatter := global.LogFormat{EnableColor: base.LogColorful}
+	fileFormatter := global.LogFormat{EnableColor: false}
+	log.AddHook(global.NewLocalHook(w, consoleFormatter, fileFormatter, global.GetLogLevel(base.LogLevel)...))
 
 	mkCacheDir := func(path string, _type string) {
 		if !global.PathExists(path) {
