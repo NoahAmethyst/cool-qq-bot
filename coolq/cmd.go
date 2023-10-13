@@ -232,7 +232,7 @@ func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 	}
 	cmd := match[1]
 
-	log.Infof("接收到命令:%s", cmd)
+	log.Infof("接收到命令 [%s]", cmd)
 
 	handler, ok := groupCmdHandlers[cmd]
 	if ok {
@@ -281,7 +281,7 @@ func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage)
 	}
 	cmd := match[1]
 
-	log.Infof("接收到命令:%s", cmd)
+	log.Infof("接收到命令 [%s]", cmd)
 
 	handler, ok := privateCmdHandlers[cmd]
 	if ok {
