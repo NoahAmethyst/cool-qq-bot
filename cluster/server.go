@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/Mrs4s/go-cqhttp/bot_service"
+	"github.com/Mrs4s/go-cqhttp/cluster/middleware"
 	"github.com/Mrs4s/go-cqhttp/constant"
 	"github.com/Mrs4s/go-cqhttp/protocol/pb/qqbot_pb"
 	log "github.com/sirupsen/logrus"
@@ -51,6 +52,7 @@ func StartServer(grpcPort string) {
 	// (e.g. logging) can operate on the recovered state instead of being directly affected by any panic
 
 	grpcServer := grpc.NewServer(
+		grpc.UnaryInterceptor(middleware.LoggerInterceptor),
 		grpc.ChainUnaryInterceptor(
 			grpc_recovery.UnaryServerInterceptor(opts...),
 			//otgrpc.OpenTracingServerInterceptor(thisTracer),
@@ -61,7 +63,7 @@ func StartServer(grpcPort string) {
 		),
 	)
 
-	//register bot grpc servver
+	//register bot grpc server
 	qqbot_pb.RegisterQQBotServiceServer(grpcServer, bot_service.BotService{})
 	KubeOptServer = grpcServer
 
