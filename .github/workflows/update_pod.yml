@@ -15,4 +15,4 @@ jobs:
         with:
           server: ${{ secrets.GRPC_SERVER }}
           action: delete-pod
-          app: ${{ secrets.APP }}
+          app: qq-bot

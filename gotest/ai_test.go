@@ -112,20 +112,6 @@ func Test_OpenAIEditImg(t *testing.T) {
 	t.Logf("%+v", imgResp)
 }
 
-func Test_AIAssistant(t *testing.T) {
-	assistant, err := ai_util.AskAIAssistant("1+1=?")
-	if err != nil {
-		panic(err)
-	}
-	t.Logf("%s", assistant.Text)
-
-	assistant, err = ai_util.AskAIAssistant("这个结果的二次方等于多少", assistant.ID)
-	if err != nil {
-		panic(err)
-	}
-	t.Logf("%s", assistant.Text)
-}
-
 func Test_BingChat(t *testing.T) {
 
 	bingChatCli, err := ai_util.NewBingChat()
