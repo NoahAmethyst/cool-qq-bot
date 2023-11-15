@@ -10,6 +10,7 @@ const (
 	FILE_ROOT        = "FILE_ROOT"
 	OWNER            = "OWNER"
 	BING_COOKIE      = "BING_COOKIE"
+	OPENAI_PROXY     = "OPENAI_PROXY"
 )
 
 const (

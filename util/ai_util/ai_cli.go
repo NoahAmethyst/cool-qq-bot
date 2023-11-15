@@ -2,6 +2,7 @@ package ai_util
 
 import (
 	"context"
+	"fmt"
 	"github.com/Mrs4s/go-cqhttp/constant"
 	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
@@ -65,9 +66,10 @@ func setCli() {
 			if len(os.Getenv(constant.NOT_MIRROR)) > 0 {
 				openaiCli = openai.NewClient(openaiKey)
 			} else {
+				openaiProxy := os.Getenv(constant.OPENAI_PROXY)
 				config := openai.DefaultConfig(openaiKey)
 				config.HTTPClient.Timeout = time.Minute * 120
-				config.BaseURL = "https://open.aiproxy.xyz/v1"
+				config.BaseURL = fmt.Sprintf("https://%s/v1", openaiProxy)
 				openaiCli = openai.NewClientWithConfig(config)
 			}
 		}
