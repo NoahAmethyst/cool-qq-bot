@@ -12,9 +12,13 @@ func GenerateImage(prompt, size string) (*openai.ImageResponse, error) {
 		context.Background(),
 		openai.ImageRequest{
 			Prompt:         prompt,
-			Size:           size,
-			ResponseFormat: openai.CreateImageResponseFormatURL,
+			Model:          openai.CreateImageModelDallE3,
 			N:              1,
+			Quality:        openai.CreateImageQualityHD,
+			Size:           size,
+			Style:          openai.CreateImageStyleVivid,
+			ResponseFormat: openai.CreateImageResponseFormatURL,
+			User:           "",
 		},
 	)
 	log.Info().Msgf("收到openai响应：%+v", resp)
