@@ -146,17 +146,17 @@ func GenerateImage(generator ImgGenerator) {
 		}
 	}(generator.Target())
 
-	r, err := ai_util.GenerateImage(text, openai.CreateImageSize512x512)
+	r, err := ai_util.GenerateImage(text, openai.CreateImageSize1024x1024)
 
 	recvChan <- struct{}{}
 
 	if err != nil {
-		generator.SendMessage(fmt.Sprintf("DELL.2生成图片失败：%s", err.Error()))
+		generator.SendMessage(fmt.Sprintf("DALL.E.3生成图片失败：%s", err.Error()))
 		return
 	}
 
 	if len(r.Data) == 0 {
-		generator.SendMessage("DELL.2生成图片为空")
+		generator.SendMessage("DALL.E.3生成图片为空")
 		return
 	}
 	generator.SendMessage("正在上传图片，请稍后...")
