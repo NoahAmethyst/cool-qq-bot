@@ -1,0 +1,90 @@
+// Copyright 2015 gRPC authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+syntax = "proto3";
+option go_package = "spider_pb/;spider_pb";
+package proto;
+
+// The greeting service definition.
+service SpiderService {
+  // Sends a greeting
+  rpc GetCNBingWallPaper (SpiderReq) returns (SpiderResp) {}
+
+  rpc GetUSBingWallPaper (SpiderReq) returns (SpiderResp) {}
+
+  rpc WeiboHot(SpiderReq) returns (SpiderResp){}
+
+  rpc D36KrHot(SpiderReq) returns (SpiderResp){}
+
+  rpc WallStreetNews(SpiderReq) returns (SpiderResp){}
+
+  rpc ZhihuHot(SpiderReq) returns (SpiderResp){}
+
+  rpc AskCopilot(SpiderReq) returns(SpiderResp){}
+
+}
+
+// The request message containing the user's name.
+message SpiderReq {
+  bool is_mobile = 1;
+  int64 size = 2;
+  string prompt = 3;
+}
+
+// The response message containing the greetings
+message SpiderResp {
+  string url = 1;
+  string error = 10;
+  repeated WeiboHot weiboHotList = 2;
+  repeated D36KrHot d36KrHotList = 3;
+  repeated WallStreetNew wallStreetNews = 4;
+  repeated ZhihuHot zhihuHotList = 5;
+  CopilotResp copilotResp = 6;
+}
+
+message WeiboHot{
+  string title = 1;
+  string url = 2;
+  int64 hot = 3;
+  int64 rank = 4;
+
+}
+
+message D36KrHot{
+  string title = 1;
+  string url = 2;
+  int64 rank = 3;
+}
+
+
+message WallStreetNew{
+  string title = 1;
+  string url = 2;
+  string content = 3;
+}
+
+
+message ZhihuHot{
+  string title = 1;
+  string url = 2;
+  string excerpt = 3;
+  int64 rank = 4;
+  int64 created = 5;
+}
+
+message CopilotResp{
+  string content = 1;
+  repeated string suggestions = 2;
+}
+

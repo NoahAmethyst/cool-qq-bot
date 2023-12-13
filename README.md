@@ -25,8 +25,8 @@
 * 定时推送 & 推送管理：可在群与私聊中 通过命令 开启/关闭
 * 通过命令获得BTC/ETH/BNB最近币价(数据来自币安)，可以获取指定币种价格
 * 计算数学公式
-* 集成ChatGPT & BingChat & 文心千帆的对话(支持十分钟滚动窗口的上下文，chatGpt3.5和4.0共享上下文)
-* *WARN BingChat内置代理url已不再支持大陆访问，如有需要请自行设置自己的代理url*
+* 集成ChatGPT & BingCopilot & 文心千帆的对话(支持十分钟滚动窗口的上下文，chatGpt3.5和4.0共享上下文)
+* *~~WARN BingChat内置代理url已不再支持大陆访问，如有需要请自行设置自己的代理url~~*
 * 通过命令切换 chatGpt3.5 chatGpt4.0 bingChat 和 文心千帆
 * 支持ChatGpt4，感谢 [ChimeraGPT API](https://chimeragpt.adventblocks.cc/) 提供的支持
 * *WARN [ChimeraGPT API](https://chimeragpt.adventblocks.cc/) 提供的GPT4支持已reverse*

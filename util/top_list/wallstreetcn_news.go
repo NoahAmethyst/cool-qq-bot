@@ -63,8 +63,6 @@ func parseWallStreetNews() ([]WallStreetNews, error) {
 	}
 	request.Header.Add("User-Agent", `Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/74.0.3729.169 Safari/537.36`)
 	request.Header.Add("Upgrade-Insecure-Requests", `1`)
-	//request.Header.add("Host", `wallstreetcn.com`)
-	//request.Header.add("Referer", `https://wallstreetcn.com/`)
 	res, err := client.Do(request)
 
 	if err != nil {

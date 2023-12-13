@@ -4,7 +4,7 @@ type ChatModel int
 
 const (
 	ChatGPT ChatModel = iota
-	BingChat
+	BingCopilot
 	ChatGPT4
 	Ernie
 )

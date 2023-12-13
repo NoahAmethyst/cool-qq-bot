@@ -65,8 +65,6 @@ func parseWeiboHot() ([]WeiboHot, error) {
 	}
 	request.Header.Add("User-Agent", agent)
 	request.Header.Add("Cookie", cookie)
-	//request.Header.add("Host", `wallstreetcn.com`)
-	//request.Header.add("Referer", `https://wallstreetcn.com/`)
 	res, err := client.Do(request)
 
 	if err != nil {

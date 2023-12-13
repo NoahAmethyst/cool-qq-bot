@@ -3,6 +3,7 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/Mrs4s/go-cqhttp/cluster/spider_svc"
 	"github.com/Mrs4s/go-cqhttp/util/ai_util"
 	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
@@ -184,8 +185,8 @@ func ChangeModel(assistant Assistant) {
 
 	var currModel string
 	switch assistant.Model() {
-	case ai_util.BingChat:
-		currModel = "BingChat"
+	case ai_util.BingCopilot:
+		currModel = "Bing Copilot"
 	case ai_util.ChatGPT4:
 		currModel = "ChatGpt4.0"
 	case ai_util.Ernie:
@@ -195,9 +196,9 @@ func ChangeModel(assistant Assistant) {
 	}
 	switchModelMsg := fmt.Sprintf("如需更换模式请使用:\n"+
 		"%d - ChatGpt3.5(默认)\n"+
-		"%d - BingChat\n"+
+		"%d - Bing Copilot\n"+
 		"%d - ChatGpt4.0\n"+
-		"%d - 文心千帆", ai_util.ChatGPT, ai_util.BingChat, ai_util.ChatGPT4, ai_util.Ernie)
+		"%d - 文心千帆", ai_util.ChatGPT, ai_util.BingCopilot, ai_util.ChatGPT4, ai_util.Ernie)
 
 	if len(v) == 0 {
 		msg := fmt.Sprintf("当前模式：%s\n%s", currModel, switchModelMsg)
@@ -216,10 +217,10 @@ func ChangeModel(assistant Assistant) {
 			currModel = "ChatGpt3.5"
 			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
 			assistant.ChangeModel(ai_util.ChatGPT)
-		case int64(ai_util.BingChat):
-			currModel = "BingChat"
+		case int64(ai_util.BingCopilot):
+			currModel = "Bing Copilot"
 			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
-			assistant.ChangeModel(ai_util.BingChat)
+			assistant.ChangeModel(ai_util.BingCopilot)
 		case int64(ai_util.ChatGPT4):
 			currModel = "ChatGpt4.0"
 			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
@@ -267,14 +268,38 @@ func AskAssistant(assistant Assistant) {
 			return
 		case <-time.After(time.Second * 10):
 			vendor := "OpenAI"
-			if assistant.Model() == ai_util.BingChat {
-				vendor = "BingChat"
+			if assistant.Model() == ai_util.BingCopilot {
+				vendor = "BingCopilot"
 			}
 			assistant.Reply(fmt.Sprintf("%s 正在响应，请稍后...", vendor))
 		}
 	}(assistant)
 
 	askHandler(assistant, recvChan)
+
+}
+
+func askBingCopilot(assistant Assistant, _ chan struct{}) {
+	answer, err := spider_svc.AskBingCopilot(assistant.GetText().Content)
+	if err != nil {
+		assistant.Reply(fmt.Sprintf("创建 bing copilot 会话失败:%s", err.Error()))
+		return
+	}
+	if len(answer.Error) > 0 {
+		assistant.Reply(fmt.Sprintf("创建 bing copilot 会话失败:%s", answer.Error))
+		return
+	}
+
+	var strBuilder strings.Builder
+	content := strings.ReplaceAll(answer.CopilotResp.Content, "*", "")
+	strBuilder.WriteString(content)
+	if len(answer.CopilotResp.Suggestions) > 0 {
+		strBuilder.WriteString("\n你也可以这样提问：")
+		for i, _suggestion := range answer.CopilotResp.Suggestions {
+			strBuilder.WriteString(fmt.Sprintf("\n%d. %s", i, _suggestion))
+		}
+	}
+	assistant.Reply(strBuilder.String())
 
 }
 
@@ -318,7 +343,7 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 	if len(strBuilder.String()) > 0 {
 		assistant.Reply(strBuilder.String())
 	} else {
-		assistant.Reply("BingChat 响应超时")
+		assistant.Reply("BingCopilot 响应超时")
 	}
 }
 
@@ -407,9 +432,9 @@ func askErnie(assistant Assistant, recvChan chan struct{}) {
 func init() {
 	chatModelHandlers = map[ai_util.ChatModel]func(assistant Assistant, recvChan chan struct{}){
 		//ai_util.ChatGPT:  askRemoteChatGpt,
-		ai_util.ChatGPT:  askOfficialChatGpt,
-		ai_util.ChatGPT4: askOfficialChatGpt,
-		ai_util.BingChat: askBingChat,
-		ai_util.Ernie:    askErnie,
+		ai_util.ChatGPT:     askOfficialChatGpt,
+		ai_util.ChatGPT4:    askOfficialChatGpt,
+		ai_util.BingCopilot: askBingCopilot,
+		ai_util.Ernie:       askErnie,
 	}
 }
