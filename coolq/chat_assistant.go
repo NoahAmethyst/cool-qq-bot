@@ -290,11 +290,13 @@ func askBingCopilot(assistant Assistant, _ chan struct{}) {
 		return
 	}
 
+	log.Info("Got Bing Copilot answer:%+v", answer.CopilotResp)
+
 	var strBuilder strings.Builder
 	content := strings.ReplaceAll(answer.CopilotResp.Content, "*", "")
 	strBuilder.WriteString(content)
 	if len(answer.CopilotResp.Suggestions) > 0 {
-		strBuilder.WriteString("\n你也可以这样提问：")
+		strBuilder.WriteString("\n\n你也可以这样提问：")
 		for i, _suggestion := range answer.CopilotResp.Suggestions {
 			strBuilder.WriteString(fmt.Sprintf("\n%d. %s", i, _suggestion))
 		}

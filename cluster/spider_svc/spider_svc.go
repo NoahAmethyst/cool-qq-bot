@@ -4,7 +4,7 @@ import (
 	"context"
 	"github.com/Mrs4s/go-cqhttp/cluster/rpc"
 	"github.com/Mrs4s/go-cqhttp/protocol/pb/spider_pb"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 )
 
 func SvcCli() spider_pb.SpiderServiceClient {
@@ -18,7 +18,7 @@ func AskBingCopilot(prompt string) (*spider_pb.SpiderResp, error) {
 		Prompt: prompt,
 	})
 	if err != nil {
-		log.Err(err)
+		log.Error(err)
 	}
 	return answer, err
 
