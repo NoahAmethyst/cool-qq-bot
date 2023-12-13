@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/Mrs4s/go-cqhttp/cluster/rpc"
 	"github.com/Mrs4s/go-cqhttp/protocol/pb/spider_pb"
+	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -18,7 +19,11 @@ func AskBingCopilot(prompt string) (*spider_pb.SpiderResp, error) {
 		Prompt: prompt,
 	})
 	if err != nil {
-		log.Error(err)
+		log.Errorf("Call bing copilot failed:%s")
+	}
+	if len(answer.Error) > 0 {
+		log.Error("Call Bing Copilot failed:%s", answer.Error)
+		err = errors.New(answer.Error)
 	}
 	return answer, err
 

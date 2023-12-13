@@ -285,10 +285,6 @@ func askBingCopilot(assistant Assistant, _ chan struct{}) {
 		assistant.Reply(fmt.Sprintf("创建 bing copilot 会话失败:%s", err.Error()))
 		return
 	}
-	if len(answer.Error) > 0 {
-		assistant.Reply(fmt.Sprintf("创建 bing copilot 会话失败:%s", answer.Error))
-		return
-	}
 
 	log.Info("Got Bing Copilot answer:%+v", answer.CopilotResp)
 
