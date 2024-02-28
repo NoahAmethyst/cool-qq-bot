@@ -32,9 +32,39 @@ func AskBingCopilot(prompt string) (*spider_pb.SpiderResp, error) {
 func WeiboHot() ([]*spider_pb.WeiboHot, error) {
 	c := context.Background()
 	cli := SvcCli()
-	answer, err := cli.WeiboHot(c, &spider_pb.SpiderReq{})
+	resp, err := cli.WeiboHot(c, &spider_pb.SpiderReq{})
 	if err != nil {
 		log.Errorf("Call weibo hot failed:%s", err)
 	}
-	return answer.WeiboHotList, err
+	return resp.WeiboHotList, err
+}
+
+func ZhihuHot() ([]*spider_pb.ZhihuHot, error) {
+	c := context.Background()
+	cli := SvcCli()
+	resp, err := cli.ZhihuHot(c, &spider_pb.SpiderReq{})
+	if err != nil {
+		log.Errorf("Call ZhihuHot faield:%s", err.Error())
+	}
+	return resp.ZhihuHotList, err
+}
+
+func WallStreetNews() ([]*spider_pb.WallStreetNew, error) {
+	c := context.Background()
+	cli := SvcCli()
+	resp, err := cli.WallStreetNews(c, &spider_pb.SpiderReq{})
+	if err != nil {
+		log.Errorf("Call wall street news failed:%s", err.Error())
+	}
+	return resp.WallStreetNews, err
+}
+
+func D36Kr() ([]*spider_pb.D36KrHot, error) {
+	c := context.Background()
+	cli := SvcCli()
+	resp, err := cli.D36KrHot(c, &spider_pb.SpiderReq{})
+	if err != nil {
+		log.Errorf("Call 36KR failed:%s", err.Error())
+	}
+	return resp.D36KrHotList, err
 }
