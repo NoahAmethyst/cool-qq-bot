@@ -28,3 +28,13 @@ func AskBingCopilot(prompt string) (*spider_pb.SpiderResp, error) {
 	return answer, err
 
 }
+
+func WeiboHot() ([]*spider_pb.WeiboHot, error) {
+	c := context.Background()
+	cli := SvcCli()
+	answer, err := cli.WeiboHot(c, &spider_pb.SpiderReq{})
+	if err != nil {
+		log.Errorf("Call weibo hot failed:%s", err)
+	}
+	return answer.WeiboHotList, err
+}

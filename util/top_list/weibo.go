@@ -2,12 +2,14 @@ package top_list
 
 import (
 	"fmt"
+	"github.com/Mrs4s/go-cqhttp/cluster/spider_svc"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	"github.com/Mrs4s/go-cqhttp/util/http_util"
 	"github.com/PuerkitoBio/goquery"
 	log "github.com/sirupsen/logrus"
 	"io"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -37,7 +39,18 @@ func ParseWeiboHotByApi() (map[string]interface{}, error) {
 }
 
 func LoadWeiboHot() ([]WeiboHot, error) {
-	hotList, err := parseWeiboHot()
+	//hotList, err := parseWeiboHot()
+
+	_hotList, err := spider_svc.WeiboHot()
+	hotList := make([]WeiboHot, 0, 50)
+	for _, _hot := range _hotList {
+		hotList = append(hotList, WeiboHot{
+			Title: _hot.Title,
+			Url:   _hot.Url,
+			Hot:   strconv.Itoa(int(_hot.Hot)),
+			Rank:  int(_hot.Rank),
+		})
+	}
 
 	WeiboHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
 
