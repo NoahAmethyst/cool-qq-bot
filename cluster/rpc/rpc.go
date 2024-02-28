@@ -42,7 +42,7 @@ func InitGrpcCli(clientName GRPCClientName) {
 	if grpcConn, err := startConnection(addr); err != nil {
 		log.Error("Init grpc client [%s] err %s", err.Error())
 	} else {
-		log.Info("Init grpc client [%s] success at %s", clientName, addr)
+		log.Infof("Init grpc client [%s] success at %s", clientName, addr)
 		setConn(clientName, grpcConn)
 	}
 }

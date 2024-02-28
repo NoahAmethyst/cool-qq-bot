@@ -39,8 +39,8 @@ func ParseWeiboHotByApi() (map[string]interface{}, error) {
 }
 
 func LoadWeiboHot() ([]WeiboHot, error) {
+	log.Info("Load weibo hot.")
 	//hotList, err := parseWeiboHot()
-
 	_hotList, err := spider_svc.WeiboHot()
 	hotList := make([]WeiboHot, 0, 50)
 	for _, _hot := range _hotList {
