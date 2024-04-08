@@ -15,6 +15,7 @@ const (
 	CMDWeibo                = "微博"
 	CMD36kr                 = "36"
 	CMDWallStreet           = "华尔街"
+	CMDCaixin               = "财新"
 	CMDZhihu                = "知乎"
 	CMDCoin                 = "比特币"
 	CMDTrans                = "翻译"
@@ -40,6 +41,7 @@ func init() {
 		CMD36kr:                 "拉取36氪热榜",
 		CMDZhihu:                "拉取知乎热榜，默认最新10条",
 		CMDWallStreet:           "拉取华尔街见闻最新资讯",
+		CMDCaixin:               "拉取财新网最新新闻",
 		CMDCoin:                 "获取BTC,ETH,BNB最新币价（USD），可以指定币种，如 \"#比特币 ETH\"",
 		CMDTrans:                "使用\"#翻译 内容\"来翻译文本，注意：中文默认翻译为英文，非中文默认翻译为中文",
 		CMDImage:                "AI作图，使用DELL.2生成图片，你需要提供提示词",
@@ -53,6 +55,7 @@ func init() {
 		CMD36kr,
 		CMDZhihu,
 		CMDWallStreet,
+		CMDCaixin,
 		CMDCoin,
 		CMDTrans,
 		CMDImage,
@@ -74,6 +77,9 @@ func init() {
 		},
 		CMDWallStreet: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.ReportWallStreetNews([]int64{groupMessage.GroupCode}, true)
+		},
+		CMDCaixin: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.ReportCaiXinNews([]int64{groupMessage.GroupCode}, true)
 		},
 		CMDZhihu: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.ReportZhihuHot(groupMessage.GroupCode, true)
@@ -112,6 +118,7 @@ func init() {
 		CMDWeibo,
 		CMD36kr,
 		CMDWallStreet,
+		CMDCaixin,
 		CMDZhihu,
 		CMDCoin,
 		CMDTrans,
@@ -132,6 +139,12 @@ func init() {
 			if !bot.ReportWallStreetNews([]int64{privateMessage.Sender.Uin}, false) {
 				bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
 					&message.SendingMessage{Elements: []message.IMessageElement{message.NewText("没有华尔街最新资讯")}})
+			}
+		},
+		CMDCaixin: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			if !bot.ReportCaiXinNews([]int64{privateMessage.Sender.Uin}, false) {
+				bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
+					&message.SendingMessage{Elements: []message.IMessageElement{message.NewText("没有财新网最新新闻")}})
 			}
 		},
 		CMDZhihu: func(bot *CQBot, privateMessage *message.PrivateMessage) {

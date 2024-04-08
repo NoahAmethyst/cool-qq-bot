@@ -22,7 +22,7 @@ var once sync.Once
 type State struct {
 	owner                  int64
 	reportState            *reportState
-	wallstreetSentNews     *wallStreetSentNews
+	sentNews               *sentNews
 	assistantModel         *assistantModel
 	groupDialogueSession   *AiAssistantSession
 	privateDialogueSession *AiAssistantSession
@@ -109,13 +109,13 @@ func (r *reportState) getReportList(isGroup bool) []int64 {
 	return groupIds
 }
 
-// wallStreetSentNews 华尔街日报发送记录
-type wallStreetSentNews struct {
+// sentNews 华尔街日报发送记录
+type sentNews struct {
 	sync.RWMutex
 	SentList map[int64]map[uint32]time.Time
 }
 
-func (s *wallStreetSentNews) add(group int64, title string) {
+func (s *sentNews) add(group int64, title string) {
 	s.Lock()
 	defer s.Unlock()
 	now := time.Now()
@@ -126,7 +126,7 @@ func (s *wallStreetSentNews) add(group int64, title string) {
 	} else {
 		s.SentList[group][encrypt.HashStr(title)] = now
 	}
-	if len(s.SentList[group]) > 20 {
+	if len(s.SentList[group]) > 100 {
 		for _titleHash, _createdAt := range s.SentList[group] {
 			if now.Sub(_createdAt) > 12*time.Hour {
 				delete(s.SentList[group], _titleHash)
@@ -135,7 +135,7 @@ func (s *wallStreetSentNews) add(group int64, title string) {
 	}
 }
 
-func (s *wallStreetSentNews) checkSent(group int64, title string) bool {
+func (s *sentNews) checkSent(group int64, title string) bool {
 	s.RLock()
 	defer s.RUnlock()
 	if v, ok := s.SentList[group]; !ok {
@@ -147,7 +147,7 @@ func (s *wallStreetSentNews) checkSent(group int64, title string) bool {
 
 }
 
-func (s *wallStreetSentNews) SaveCache() {
+func (s *sentNews) SaveCache() {
 	s.RLock()
 	defer s.RUnlock()
 	path := file_util.GetFileRoot()
@@ -380,10 +380,10 @@ func (bot *CQBot) initState() {
 		}
 		if bot.state == nil {
 			bot.state = &State{
-				owner:              owner,
-				reportState:        initReportState(),
-				wallstreetSentNews: initWallStreetSentNews(),
-				assistantModel:     initAssistantModel(),
+				owner:          owner,
+				reportState:    initReportState(),
+				sentNews:       initWallStreetSentNews(),
+				assistantModel: initAssistantModel(),
 				groupDialogueSession: &AiAssistantSession{
 					assistantChan: map[int64]chan string{},
 					parentId:      map[int64]string{},
@@ -445,8 +445,8 @@ func initReportState() *reportState {
 	return &_reportState
 }
 
-func initWallStreetSentNews() *wallStreetSentNews {
-	sentNews := wallStreetSentNews{
+func initWallStreetSentNews() *sentNews {
+	sentNews := sentNews{
 		SentList: map[int64]map[uint32]time.Time{},
 		RWMutex:  sync.RWMutex{},
 	}

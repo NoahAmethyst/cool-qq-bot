@@ -81,6 +81,19 @@ func (bot *CQBot) WallStreetNewsReporter(corn string) *ReportJob {
 	}
 }
 
+func (bot *CQBot) CaiXinNewsReporter(corn string) *ReportJob {
+	return &ReportJob{
+		Report: func() {
+			groupIds := bot.state.reportState.getReportList(true)
+			bot.ReportCaiXinNews(groupIds, true)
+			privateIds := bot.state.reportState.getReportList(false)
+			bot.ReportCaiXinNews(privateIds, false)
+		},
+		Corn:  corn,
+		Model: top_list.WallStreet,
+	}
+}
+
 func init() {
 	JobModels = map[string]string{}
 }
