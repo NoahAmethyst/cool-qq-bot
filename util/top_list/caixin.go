@@ -1,6 +1,5 @@
 package top_list
 
-import "C"
 import (
 	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
 	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
