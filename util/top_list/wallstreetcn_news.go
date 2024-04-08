@@ -1,9 +1,9 @@
 package top_list
 
 import (
-	"github.com/Mrs4s/go-cqhttp/cluster/spider_svc"
-	"github.com/Mrs4s/go-cqhttp/util/encrypt"
-	"github.com/Mrs4s/go-cqhttp/util/file_util"
+	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
+	"github.com/NoahAmethyst/go-cqhttp/util/encrypt"
+	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
 	"time"
 )
 

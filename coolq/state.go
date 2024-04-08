@@ -2,11 +2,11 @@ package coolq
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/constant"
-	"github.com/Mrs4s/go-cqhttp/util/ai_util"
-	"github.com/Mrs4s/go-cqhttp/util/encrypt"
-	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	bingchat_api "github.com/NoahAmethyst/bingchat-api"
+	"github.com/NoahAmethyst/go-cqhttp/constant"
+	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/encrypt"
+	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
 	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"

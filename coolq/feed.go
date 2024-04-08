@@ -3,7 +3,7 @@ package coolq
 import (
 	"github.com/Mrs4s/MiraiGo/topic"
 
-	"github.com/Mrs4s/go-cqhttp/global"
+	"github.com/NoahAmethyst/go-cqhttp/global"
 )
 
 // FeedContentsToArrayMessage 将话题频道帖子内容转换为 Array Message

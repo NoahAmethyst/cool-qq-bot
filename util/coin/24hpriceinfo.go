@@ -2,8 +2,8 @@ package coin
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/constant"
-	"github.com/Mrs4s/go-cqhttp/util/http_util"
+	"github.com/NoahAmethyst/go-cqhttp/constant"
+	"github.com/NoahAmethyst/go-cqhttp/util/http_util"
 	log "github.com/sirupsen/logrus"
 	"os"
 )

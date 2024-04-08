@@ -3,7 +3,7 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/util/math_engine"
+	"github.com/NoahAmethyst/go-cqhttp/util/math_engine"
 )
 
 type Calculator interface {

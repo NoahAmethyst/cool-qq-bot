@@ -16,7 +16,7 @@ import (
 	b14 "github.com/fumiama/go-base16384"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/Mrs4s/go-cqhttp/internal/param"
+	"github.com/NoahAmethyst/go-cqhttp/internal/param"
 )
 
 const (

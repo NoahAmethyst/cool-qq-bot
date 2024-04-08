@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/tidwall/gjson"
 
-	"github.com/Mrs4s/go-cqhttp/coolq/cqcode"
+	"github.com/NoahAmethyst/go-cqhttp/coolq/cqcode"
 )
 
 var bot = CQBot{}

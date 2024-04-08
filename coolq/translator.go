@@ -3,7 +3,7 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/util/trans"
+	"github.com/NoahAmethyst/go-cqhttp/util/trans"
 	translator_engine "github.com/NoahAmethyst/translator-engine"
 	log "github.com/sirupsen/logrus"
 	"regexp"

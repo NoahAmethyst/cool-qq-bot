@@ -3,8 +3,8 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/util/ai_util"
-	"github.com/Mrs4s/go-cqhttp/util/file_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
 	"github.com/pkg/errors"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"

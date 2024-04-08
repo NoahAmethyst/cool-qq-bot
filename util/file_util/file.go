@@ -1,7 +1,7 @@
 package file_util
 
 import (
-	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/NoahAmethyst/go-cqhttp/constant"
 	"os"
 )
 

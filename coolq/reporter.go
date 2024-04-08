@@ -3,9 +3,9 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/protocol/pb/spider_pb"
-	"github.com/Mrs4s/go-cqhttp/util/coin"
-	"github.com/Mrs4s/go-cqhttp/util/top_list"
+	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
+	"github.com/NoahAmethyst/go-cqhttp/util/coin"
+	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
 	log "github.com/sirupsen/logrus"
 	"regexp"
 	"sort"

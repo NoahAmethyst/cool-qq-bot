@@ -20,9 +20,9 @@ import (
 	"github.com/segmentio/asm/base64"
 	log "github.com/sirupsen/logrus"
 
-	"github.com/Mrs4s/go-cqhttp/db"
-	"github.com/Mrs4s/go-cqhttp/global"
-	"github.com/Mrs4s/go-cqhttp/internal/base"
+	"github.com/NoahAmethyst/go-cqhttp/db"
+	"github.com/NoahAmethyst/go-cqhttp/global"
+	"github.com/NoahAmethyst/go-cqhttp/internal/base"
 )
 
 // CQBot CQBot结构体,存储Bot实例相关配置

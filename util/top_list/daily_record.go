@@ -2,8 +2,8 @@ package top_list
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/protocol/pb/spider_pb"
-	"github.com/Mrs4s/go-cqhttp/util/file_util"
+	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
+	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
 	log "github.com/sirupsen/logrus"
 
 	"os"

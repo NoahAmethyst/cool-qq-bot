@@ -17,7 +17,7 @@ import (
 
 	"github.com/tidwall/gjson"
 
-	"github.com/Mrs4s/go-cqhttp/internal/base"
+	"github.com/NoahAmethyst/go-cqhttp/internal/base"
 )
 
 var (

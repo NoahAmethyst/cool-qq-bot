@@ -3,7 +3,7 @@ package ai_util
 import (
 	"context"
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/constant"
+	"github.com/NoahAmethyst/go-cqhttp/constant"
 	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"

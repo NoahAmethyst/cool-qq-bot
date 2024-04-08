@@ -1,8 +1,8 @@
 package coolq
 
 import (
-	"github.com/Mrs4s/go-cqhttp/util/cron"
-	"github.com/Mrs4s/go-cqhttp/util/top_list"
+	"github.com/NoahAmethyst/go-cqhttp/util/cron"
+	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
 	log "github.com/sirupsen/logrus"
 )
 

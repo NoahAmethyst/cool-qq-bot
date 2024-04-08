@@ -3,9 +3,9 @@ package bot_service
 import (
 	"context"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/constant"
-	"github.com/Mrs4s/go-cqhttp/coolq"
-	"github.com/Mrs4s/go-cqhttp/protocol/pb/qqbot_pb"
+	"github.com/NoahAmethyst/go-cqhttp/constant"
+	"github.com/NoahAmethyst/go-cqhttp/coolq"
+	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/qqbot_pb"
 	"github.com/pkg/errors"
 	"os"
 	"strconv"

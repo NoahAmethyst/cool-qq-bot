@@ -1,7 +1,7 @@
 package gotest
 
 import (
-	"github.com/Mrs4s/go-cqhttp/util/trans"
+	"github.com/NoahAmethyst/go-cqhttp/util/trans"
 	translator_engine "github.com/NoahAmethyst/translator-engine"
 	"testing"
 )

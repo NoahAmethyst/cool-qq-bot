@@ -24,11 +24,11 @@ import (
 	"github.com/tidwall/gjson"
 	"gopkg.in/yaml.v3"
 
-	"github.com/Mrs4s/go-cqhttp/coolq"
-	"github.com/Mrs4s/go-cqhttp/global"
-	"github.com/Mrs4s/go-cqhttp/modules/api"
-	"github.com/Mrs4s/go-cqhttp/modules/config"
-	"github.com/Mrs4s/go-cqhttp/modules/filter"
+	"github.com/NoahAmethyst/go-cqhttp/coolq"
+	"github.com/NoahAmethyst/go-cqhttp/global"
+	"github.com/NoahAmethyst/go-cqhttp/modules/api"
+	"github.com/NoahAmethyst/go-cqhttp/modules/config"
+	"github.com/NoahAmethyst/go-cqhttp/modules/filter"
 )
 
 // HTTPServer HTTP通信相关配置

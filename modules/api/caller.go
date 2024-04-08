@@ -4,11 +4,11 @@ package api
 import (
 	"github.com/tidwall/gjson"
 
-	"github.com/Mrs4s/go-cqhttp/coolq"
-	"github.com/Mrs4s/go-cqhttp/global"
+	"github.com/NoahAmethyst/go-cqhttp/coolq"
+	"github.com/NoahAmethyst/go-cqhttp/global"
 )
 
-//go:generate go run github.com/Mrs4s/go-cqhttp/cmd/api-generator -path=./../../coolq/api.go
+//go:generate go run github.com/NoahAmethyst/go-cqhttp/cmd/api-generator -path=./../../coolq/api.go
 
 // Getter 参数获取
 type Getter interface {

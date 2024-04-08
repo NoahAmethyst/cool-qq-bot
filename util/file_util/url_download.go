@@ -2,7 +2,7 @@ package file_util
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/util/encrypt"
+	"github.com/NoahAmethyst/go-cqhttp/util/encrypt"
 	"io"
 	"net/http"
 	"os"

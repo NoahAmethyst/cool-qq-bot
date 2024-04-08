@@ -1,8 +1,8 @@
 package gotest
 
 import (
-	"github.com/Mrs4s/go-cqhttp/util/coin"
-	"github.com/Mrs4s/go-cqhttp/util/top_list"
+	"github.com/NoahAmethyst/go-cqhttp/util/coin"
+	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
 	"testing"
 )
 

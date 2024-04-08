@@ -6,9 +6,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/Mrs4s/go-cqhttp/coolq"
-	"github.com/Mrs4s/go-cqhttp/global"
-	"github.com/Mrs4s/go-cqhttp/modules/api"
+	"github.com/NoahAmethyst/go-cqhttp/coolq"
+	"github.com/NoahAmethyst/go-cqhttp/global"
+	"github.com/NoahAmethyst/go-cqhttp/modules/api"
 
 	"golang.org/x/time/rate"
 )

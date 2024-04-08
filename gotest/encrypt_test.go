@@ -1,7 +1,7 @@
 package gotest
 
 import (
-	"github.com/Mrs4s/go-cqhttp/util/encrypt"
+	"github.com/NoahAmethyst/go-cqhttp/util/encrypt"
 	"testing"
 )
 

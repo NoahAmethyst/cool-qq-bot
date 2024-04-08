@@ -2,7 +2,7 @@ package gotest
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/util/ai_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
 	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	"strings"

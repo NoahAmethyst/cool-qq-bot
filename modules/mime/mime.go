@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Mrs4s/go-cqhttp/internal/base"
+	"github.com/NoahAmethyst/go-cqhttp/internal/base"
 )
 
 func init() {

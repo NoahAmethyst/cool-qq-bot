@@ -2,8 +2,8 @@ package spider_svc
 
 import (
 	"context"
-	"github.com/Mrs4s/go-cqhttp/cluster/rpc"
-	"github.com/Mrs4s/go-cqhttp/protocol/pb/spider_pb"
+	"github.com/NoahAmethyst/go-cqhttp/cluster/rpc"
+	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
 )

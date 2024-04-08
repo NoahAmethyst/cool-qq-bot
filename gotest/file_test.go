@@ -1,7 +1,7 @@
 package gotest
 
 import (
-	"github.com/Mrs4s/go-cqhttp/util/file_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
 	"testing"
 )
 

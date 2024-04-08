@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/Mrs4s/go-cqhttp/global"
+	"github.com/NoahAmethyst/go-cqhttp/global"
 
 	log "github.com/sirupsen/logrus"
 )

@@ -2,7 +2,7 @@ package gotest
 
 import (
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/util/math_engine"
+	"github.com/NoahAmethyst/go-cqhttp/util/math_engine"
 	"github.com/dengsgo/math-engine/engine"
 	"testing"
 )

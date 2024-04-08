@@ -1,8 +1,8 @@
 package ai_util
 
 import (
-	"github.com/Mrs4s/go-cqhttp/constant"
 	bingchat_api "github.com/NoahAmethyst/bingchat-api"
+	"github.com/NoahAmethyst/go-cqhttp/constant"
 	"os"
 	"regexp"
 	"strings"

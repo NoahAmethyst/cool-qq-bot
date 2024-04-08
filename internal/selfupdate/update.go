@@ -16,8 +16,8 @@ import (
 	"github.com/sirupsen/logrus"
 	"github.com/tidwall/gjson"
 
-	"github.com/Mrs4s/go-cqhttp/global"
-	"github.com/Mrs4s/go-cqhttp/internal/base"
+	"github.com/NoahAmethyst/go-cqhttp/global"
+	"github.com/NoahAmethyst/go-cqhttp/internal/base"
 )
 
 func readLine() (str string) {
@@ -48,7 +48,7 @@ func CheckUpdate() {
 		return
 	}
 	if global.VersionNameCompare(base.Version, latest) {
-		logrus.Infof("当前有更新的 go-cqhttp 可供更新, 请前往 https://github.com/Mrs4s/go-cqhttp/releases 下载.")
+		logrus.Infof("当前有更新的 go-cqhttp 可供更新, 请前往 https://github.com/NoahAmethyst/go-cqhttp/releases 下载.")
 		logrus.Infof("当前版本: %v 最新版本: %v", base.Version, latest)
 		return
 	}

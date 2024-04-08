@@ -3,10 +3,10 @@ package cluster
 import (
 	"context"
 	"fmt"
-	"github.com/Mrs4s/go-cqhttp/bot_service"
-	"github.com/Mrs4s/go-cqhttp/cluster/middleware"
-	"github.com/Mrs4s/go-cqhttp/constant"
-	"github.com/Mrs4s/go-cqhttp/protocol/pb/qqbot_pb"
+	"github.com/NoahAmethyst/go-cqhttp/bot_service"
+	"github.com/NoahAmethyst/go-cqhttp/cluster/middleware"
+	"github.com/NoahAmethyst/go-cqhttp/constant"
+	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/qqbot_pb"
 	log "github.com/sirupsen/logrus"
 
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"

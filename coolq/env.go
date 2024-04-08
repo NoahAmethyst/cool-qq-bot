@@ -3,9 +3,9 @@ package coolq
 import (
 	"fmt"
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/Mrs4s/go-cqhttp/constant"
-	"github.com/Mrs4s/go-cqhttp/util/ai_util"
-	"github.com/Mrs4s/go-cqhttp/util/file_util"
+	"github.com/NoahAmethyst/go-cqhttp/constant"
+	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
 	"os"
 	"strings"
 )
