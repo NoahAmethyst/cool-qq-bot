@@ -90,7 +90,7 @@ func (bot *CQBot) CaiXinNewsReporter(corn string) *ReportJob {
 			bot.ReportCaiXinNews(privateIds, false)
 		},
 		Corn:  corn,
-		Model: top_list.WallStreet,
+		Model: top_list.CaiXinNews,
 	}
 }
 

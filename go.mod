@@ -7,7 +7,6 @@ require (
 	github.com/Mrs4s/MiraiGo v0.0.0-20230103130153-8e70b22d1c83
 	github.com/NoahAmethyst/bingchat-api v1.0.3
 	github.com/NoahAmethyst/translator-engine v1.0.4
-	github.com/PuerkitoBio/goquery v1.8.1
 	github.com/RomiChan/syncx v0.0.0-20220404072119-d7ea0ae15a4c
 	github.com/RomiChan/websocket v1.4.3-0.20220123145318-307a86b127bc
 	github.com/anhao/go-ernie v1.0.2
@@ -55,7 +54,6 @@ require (
 	github.com/alibabacloud-go/tea-utils/v2 v2.0.1 // indirect
 	github.com/alibabacloud-go/tea-xml v1.1.2 // indirect
 	github.com/aliyun/credentials-go v1.1.2 // indirect
-	github.com/andybalholm/cascadia v1.3.1 // indirect
 	github.com/bwmarrin/snowflake v0.3.0 // indirect
 	github.com/cenkalti/backoff/v4 v4.1.2 // indirect
 	github.com/clbanning/mxj v1.8.4 // indirect
