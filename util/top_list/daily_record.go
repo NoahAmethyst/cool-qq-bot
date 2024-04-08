@@ -2,6 +2,7 @@ package top_list
 
 import (
 	"fmt"
+	"github.com/Mrs4s/go-cqhttp/protocol/pb/spider_pb"
 	"github.com/Mrs4s/go-cqhttp/util/file_util"
 	log "github.com/sirupsen/logrus"
 
@@ -12,6 +13,7 @@ import (
 
 var D36krDailyRecord d36KrDailyRecord
 var WallStreetNewsDailyRecord wallStreetNewsDailyRecord
+var CaiXinNewsDailyRecord caixinnewsDailyRecord
 var WeiboHotDailyRecord weiboHotDailyRecord
 var ZhihuHotDailyRecord zhihuHotDailyRecord
 
@@ -137,6 +139,64 @@ func (d *wallStreetNewsDailyRecord) Load() {
 	path := file_util.GetFileRoot()
 	data := make(map[string][]WallStreetNews)
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallstreet_news.json", path), &data); err == nil {
+		d.data = data
+	}
+}
+
+type caixinnewsDailyRecord struct {
+	data map[string][]spider_pb.CaiXinNew
+	sync.RWMutex
+}
+
+func (d *caixinnewsDailyRecord) Add(k string, v []spider_pb.CaiXinNew) {
+	d.Lock()
+	defer d.Unlock()
+	if d.data == nil {
+		d.data = map[string][]spider_pb.CaiXinNew{}
+	}
+	d.data[k] = v
+}
+
+func (d *caixinnewsDailyRecord) GetData() map[string][]spider_pb.CaiXinNew {
+	d.RLock()
+	d.RUnlock()
+	data := make(map[string][]spider_pb.CaiXinNew)
+	for k, v := range d.data {
+		data[k] = v
+	}
+	return data
+}
+
+// 写财新新闻当日文件
+func (d *caixinnewsDailyRecord) Upload() {
+	d.Lock()
+	defer d.Unlock()
+	path := file_util.GetFileRoot()
+	caixinNewsFilePath, err := file_util.WriteJsonFile(d.data, path, "caixin_news", true)
+	if err != nil {
+		log.Errorf("Write caixin news daily record failed %s", err.Error())
+	} else {
+		cosPath := fmt.Sprintf("%s/%s", "caixin", time.Now().Format("2006"))
+		cosFileName := fmt.Sprintf("%s_%s.json", "caixin", time.Now().Format("0102"))
+		if err = file_util.TCCosUpload(cosPath, cosFileName, caixinNewsFilePath); err != nil {
+			log.Errorf("Upload wall street news daily record to tencent cos failed %s", err.Error())
+		} else {
+			d.data = nil
+			if err := file_util.ClearFile(caixinNewsFilePath); err != nil {
+				_ = os.Remove(caixinNewsFilePath)
+			}
+		}
+	}
+}
+
+// 加载财新新闻每日记录
+func (d *caixinnewsDailyRecord) Load() {
+	d.RWMutex = sync.RWMutex{}
+	d.Lock()
+	defer d.Unlock()
+	path := file_util.GetFileRoot()
+	data := make(map[string][]spider_pb.CaiXinNew)
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/caixin_news.json", path), &data); err == nil {
 		d.data = data
 	}
 }

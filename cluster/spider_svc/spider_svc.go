@@ -68,3 +68,13 @@ func D36Kr() ([]*spider_pb.D36KrHot, error) {
 	}
 	return resp.D36KrHotList, err
 }
+
+func CaiXinNews() ([]*spider_pb.CaiXinNew, error) {
+	c := context.Background()
+	cli := SvcCli()
+	resp, err := cli.CaiXinNews(c, &spider_pb.SpiderReq{})
+	if err != nil {
+		log.Errorf("Call CaiXin News failed:%s", err.Error())
+	}
+	return resp.CaiXinNews, err
+}
