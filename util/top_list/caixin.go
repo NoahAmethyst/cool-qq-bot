@@ -47,7 +47,7 @@ func LoadCaiXinNews() ([]spider_pb.CaiXinNew, error) {
 
 	go func() {
 		path := file_util.GetFileRoot()
-		_, _ = file_util.WriteJsonFile(D36krDailyRecord.GetData(), path, "caixin_news", true)
+		_, _ = file_util.WriteJsonFile(CaiXinNewsDailyRecord.GetData(), path, "caixin_news", true)
 	}()
 
 	return data, err
