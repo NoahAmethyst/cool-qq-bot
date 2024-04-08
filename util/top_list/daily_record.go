@@ -329,6 +329,9 @@ func UploadDailyRecord() {
 	//写华尔街资讯当日文件
 	WallStreetNewsDailyRecord.Upload()
 
+	//写财新网新闻当日文件
+	CaiXinNewsDailyRecord.Upload()
+
 	//写36氪日榜当日文件
 	D36krDailyRecord.Upload()
 
@@ -342,6 +345,9 @@ func init() {
 
 	//加载华尔街每日记录
 	WallStreetNewsDailyRecord.Load()
+
+	//加载财新网每日记录
+	CaiXinNewsDailyRecord.Load()
 
 	//加载36氪每日记录
 	D36krDailyRecord.Load()
