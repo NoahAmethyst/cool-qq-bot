@@ -126,9 +126,9 @@ func (s *sentNews) add(group int64, title string) {
 	} else {
 		s.SentList[group][encrypt.HashStr(title)] = now
 	}
-	if len(s.SentList[group]) > 100 {
+	if len(s.SentList[group]) > 3600 {
 		for _titleHash, _createdAt := range s.SentList[group] {
-			if now.Sub(_createdAt) > 12*time.Hour {
+			if now.Sub(_createdAt) > 3*24*time.Hour {
 				delete(s.SentList[group], _titleHash)
 			}
 		}
