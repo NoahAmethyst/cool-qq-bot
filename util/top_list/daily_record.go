@@ -81,11 +81,11 @@ func (d *d36KrDailyRecord) Load() {
 	path := file_util.GetFileRoot()
 
 	data := make(map[string][]Data36krHot)
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/36kr.json", path), &data); err == nil {
-		d.data = data
-
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/36kr.json", path), &data); err != nil {
+		log.Errorf("load 36kr daily record failed:%s", err.Error())
+		data = make(map[string][]Data36krHot)
 	}
-
+	d.data = data
 }
 
 func (d *d36KrDailyRecord) Backup() {
@@ -150,9 +150,11 @@ func (d *wallStreetNewsDailyRecord) Load() {
 	defer d.Unlock()
 	path := file_util.GetFileRoot()
 	data := make(map[string][]WallStreetNews)
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallstreet_news.json", path), &data); err == nil {
-		d.data = data
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallstreet_news.json", path), &data); err != nil {
+		log.Errorf("load wallstreet news failed:%s", err.Error())
+		data = make(map[string][]WallStreetNews)
 	}
+	d.data = data
 }
 
 func (d *wallStreetNewsDailyRecord) Backup() {
@@ -216,9 +218,11 @@ func (d *caixinnewsDailyRecord) Load() {
 	defer d.Unlock()
 	path := file_util.GetFileRoot()
 	data := make(map[string][]spider_pb.CaiXinNew)
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/caixin_news.json", path), &data); err == nil {
-		d.data = data
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/caixin_news.json", path), &data); err != nil {
+		log.Errorf("load caxin news faield:%s", err.Error())
+		data = make(map[string][]spider_pb.CaiXinNew)
 	}
+	d.data = data
 }
 
 func (d *caixinnewsDailyRecord) Backup() {
@@ -282,10 +286,11 @@ func (d *weiboHotDailyRecord) Load() {
 	defer d.Unlock()
 	path := file_util.GetFileRoot()
 	data := make(map[string][]WeiboHot)
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/weibo_hot.json", path), &data); err == nil {
-		d.data = data
-
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/weibo_hot.json", path), &data); err != nil {
+		log.Errorf("load weibo hot daily record failed:%s", err.Error())
+		data = make(map[string][]WeiboHot)
 	}
+	d.data = data
 }
 
 func (d *weiboHotDailyRecord) Backup() {
@@ -350,10 +355,11 @@ func (z *zhihuHotDailyRecord) Load() {
 	defer z.Unlock()
 	path := file_util.GetFileRoot()
 	data := make(map[string][]ZhihuHot)
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/zhihu.json", path), &data); err == nil {
-		z.data = data
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/zhihu.json", path), &data); err != nil {
+		log.Errorf("load zhihu hot daily record failed:%s", err.Error())
+		data = make(map[string][]ZhihuHot)
 	}
-
+	z.data = data
 }
 
 func (d *zhihuHotDailyRecord) Backup() {
@@ -382,7 +388,6 @@ func (z *sentCache) Add(title string) {
 
 	}
 	z.data[encrypt.HashStr(title)] = now.Unix()
-
 }
 
 func (z *sentCache) CheckSent(title string) bool {
@@ -418,10 +423,11 @@ func (z *sentCache) Load() {
 	defer z.Unlock()
 	path := file_util.GetFileRoot()
 	data := make(map[uint32]int64)
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/sentNews.json", path), &data); err == nil {
-		z.data = data
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/sentNews.json", path), &data); err != nil {
+		log.Errorf("laod sent news cache failed:%s", err.Error())
+		data = make(map[uint32]int64)
 	}
-
+	z.data = data
 }
 
 func (d *sentCache) Backup() {
