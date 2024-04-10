@@ -2,7 +2,7 @@ package top_list
 
 import (
 	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
-	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
+	_ "github.com/NoahAmethyst/go-cqhttp/util/file_util"
 	"time"
 )
 
@@ -30,10 +30,10 @@ func LoadZhihuHot() ([]ZhihuHot, error) {
 
 	ZhihuHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
 
-	go func() {
-		path := file_util.GetFileRoot()
-		_, _ = file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu", true)
-	}()
+	//go func() {
+	//	path := file_util.GetFileRoot()
+	//	_, _ = file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu", true)
+	//}()
 
 	//only return top 10 of the hot list
 	return hotList[:10], err

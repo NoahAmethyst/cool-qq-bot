@@ -3,6 +3,7 @@ package top_list
 import (
 	"fmt"
 	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
+	"github.com/NoahAmethyst/go-cqhttp/util/encrypt"
 	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
 	log "github.com/sirupsen/logrus"
 
@@ -16,10 +17,12 @@ var WallStreetNewsDailyRecord wallStreetNewsDailyRecord
 var CaiXinNewsDailyRecord caixinnewsDailyRecord
 var WeiboHotDailyRecord weiboHotDailyRecord
 var ZhihuHotDailyRecord zhihuHotDailyRecord
+var SentRecord sentCache
 
 type DailyRecord interface {
 	Upload()
 	Load()
+	Backup()
 }
 
 type d36KrDailyRecord struct {
@@ -85,6 +88,15 @@ func (d *d36KrDailyRecord) Load() {
 
 }
 
+func (d *d36KrDailyRecord) Backup() {
+	d.RLock()
+	defer d.RUnlock()
+	log.Infof("backup 36kr daily record")
+	path := file_util.GetFileRoot()
+	_, _ = file_util.WriteJsonFile(d.data, path, "36kr", true)
+
+}
+
 type wallStreetNewsDailyRecord struct {
 	data map[string][]WallStreetNews
 	sync.RWMutex
@@ -141,6 +153,14 @@ func (d *wallStreetNewsDailyRecord) Load() {
 	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/wallstreet_news.json", path), &data); err == nil {
 		d.data = data
 	}
+}
+
+func (d *wallStreetNewsDailyRecord) Backup() {
+	d.RLock()
+	defer d.RUnlock()
+	log.Infof("backup wallstreet news daily record")
+	path := file_util.GetFileRoot()
+	_, _ = file_util.WriteJsonFile(d.data, path, "wallstreet_news", true)
 }
 
 type caixinnewsDailyRecord struct {
@@ -201,6 +221,14 @@ func (d *caixinnewsDailyRecord) Load() {
 	}
 }
 
+func (d *caixinnewsDailyRecord) Backup() {
+	d.RLock()
+	defer d.RUnlock()
+	log.Infof("backup caixin news daily record")
+	path := file_util.GetFileRoot()
+	_, _ = file_util.WriteJsonFile(d.data, path, "caixin_news", true)
+}
+
 type weiboHotDailyRecord struct {
 	data map[string][]WeiboHot
 	sync.RWMutex
@@ -258,6 +286,14 @@ func (d *weiboHotDailyRecord) Load() {
 		d.data = data
 
 	}
+}
+
+func (d *weiboHotDailyRecord) Backup() {
+	d.RLock()
+	defer d.RUnlock()
+	log.Infof("backup weibo hot daily record")
+	path := file_util.GetFileRoot()
+	_, _ = file_util.WriteJsonFile(d.data, path, "weibo_hot", true)
 }
 
 type zhihuHotDailyRecord struct {
@@ -320,6 +356,82 @@ func (z *zhihuHotDailyRecord) Load() {
 
 }
 
+func (d *zhihuHotDailyRecord) Backup() {
+	d.RLock()
+	defer d.RUnlock()
+	log.Infof("backup zhihu hot daily record")
+	path := file_util.GetFileRoot()
+	_, _ = file_util.WriteJsonFile(d.data, path, "zhihu", true)
+}
+
+type sentCache struct {
+	data map[uint32]int64
+	sync.RWMutex
+}
+
+func (z *sentCache) Add(title string) {
+	z.Lock()
+	defer z.Unlock()
+	now := time.Now()
+	if len(z.data) >= 3000 {
+		for k, v := range z.data {
+			if v < now.AddDate(0, 0, -3).Unix() {
+				delete(z.data, k)
+			}
+		}
+
+	}
+	z.data[encrypt.HashStr(title)] = now.Unix()
+
+}
+
+func (z *sentCache) CheckSent(title string) bool {
+	z.RLock()
+	z.RUnlock()
+	_, ok := z.data[encrypt.HashStr(title)]
+	return ok
+}
+
+// 写入发送新闻记录文件
+func (z *sentCache) Upload() {
+	z.Lock()
+	defer z.Unlock()
+	path := file_util.GetFileRoot()
+	// cause zhihu hot not register as corn job so load data by this time incase it has no data
+	sentNewsFilePath, err := file_util.WriteJsonFile(z.data, path, "sentNews", true)
+	if err != nil {
+		log.Errorf("Write sent news record failed %s", err.Error())
+	} else {
+		cosPath := "cache"
+		cosFileName := "sentNews"
+		if err = file_util.TCCosUpload(cosPath, cosFileName, sentNewsFilePath); err != nil {
+			log.Errorf("Upload sent news cache to tencent cos failed %s", err.Error())
+		}
+	}
+
+}
+
+// 加载发送新闻记录文件
+func (z *sentCache) Load() {
+	z.RWMutex = sync.RWMutex{}
+	z.Lock()
+	defer z.Unlock()
+	path := file_util.GetFileRoot()
+	data := make(map[uint32]int64)
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/sentNews.json", path), &data); err == nil {
+		z.data = data
+	}
+
+}
+
+func (d *sentCache) Backup() {
+	d.RLock()
+	defer d.RUnlock()
+	log.Infof("backup sent news cache")
+	path := file_util.GetFileRoot()
+	_, _ = file_util.WriteJsonFile(d.data, path, "sentNews", true)
+}
+
 // time.Now().Format("2006-01-02 15:04:05")
 func UploadDailyRecord() {
 
@@ -337,6 +449,25 @@ func UploadDailyRecord() {
 
 	//写知乎热榜当日文件
 	ZhihuHotDailyRecord.Upload()
+
+	//写新闻发送缓存文件
+	SentRecord.Upload()
+
+}
+
+func Backup() {
+
+	WeiboHotDailyRecord.Backup()
+
+	WallStreetNewsDailyRecord.Backup()
+
+	CaiXinNewsDailyRecord.Backup()
+
+	D36krDailyRecord.Backup()
+
+	ZhihuHotDailyRecord.Backup()
+
+	SentRecord.Backup()
 }
 
 func init() {
@@ -354,5 +485,8 @@ func init() {
 
 	//加载知乎热榜每日记录
 	ZhihuHotDailyRecord.Load()
+
+	//加载新闻发送cache
+	SentRecord.Load()
 
 }

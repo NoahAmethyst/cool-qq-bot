@@ -286,7 +286,10 @@ func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 			go func(group int64) {
 				defer wait.Done()
 				readyData := make([]top_list.WallStreetNews, 0, 15)
-				for _, _data := range hotList {
+				for _index, _data := range hotList {
+					if _index > 15 {
+						break
+					}
 					if !bot.state.sentNews.checkSent(group, _data.Title) {
 						readyData = append(readyData, _data)
 					}
@@ -311,7 +314,7 @@ func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 			}(_group)
 		}
 		wait.Wait()
-		bot.state.sentNews.SaveCache()
+		//bot.state.sentNews.SaveCache()
 
 	}
 	return hasNews
@@ -328,7 +331,10 @@ func (bot *CQBot) ReportCaiXinNews(groups []int64, isGroup bool) bool {
 			go func(group int64) {
 				defer wait.Done()
 				readyData := make([]spider_pb.CaiXinNew, 0, 15)
-				for _, _data := range news {
+				for _index, _data := range news {
+					if _index > 15 {
+						break
+					}
 					if !bot.state.sentNews.checkSent(group, _data.Title) {
 						readyData = append(readyData, _data)
 					}
@@ -352,7 +358,7 @@ func (bot *CQBot) ReportCaiXinNews(groups []int64, isGroup bool) bool {
 			}(_group)
 		}
 		wait.Wait()
-		bot.state.sentNews.SaveCache()
+		//bot.state.sentNews.SaveCache()
 
 	}
 	return hasNews

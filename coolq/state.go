@@ -28,6 +28,12 @@ type State struct {
 	privateDialogueSession *AiAssistantSession
 }
 
+func (s *State) SaveCache() {
+	log.Infof("save bot state cache")
+	s.reportState.saveCache()
+	s.sentNews.SaveCache()
+}
+
 type reportState struct {
 	sync.RWMutex
 	groups   map[int64]struct{}
@@ -66,7 +72,7 @@ func (r *reportState) add(id int64, isGroup bool) {
 	} else {
 		r.privates[id] = struct{}{}
 	}
-	r.saveCache()
+	//r.saveCache()
 }
 
 func (r *reportState) del(id int64, isGroup bool) {
@@ -77,7 +83,7 @@ func (r *reportState) del(id int64, isGroup bool) {
 	} else {
 		delete(r.privates, id)
 	}
-	r.saveCache()
+	//r.saveCache()
 }
 
 func (r *reportState) exist(id int64, isGroup bool) bool {
@@ -382,7 +388,7 @@ func (bot *CQBot) initState() {
 			bot.state = &State{
 				owner:          owner,
 				reportState:    initReportState(),
-				sentNews:       initWallStreetSentNews(),
+				sentNews:       initSentNews(),
 				assistantModel: initAssistantModel(),
 				groupDialogueSession: &AiAssistantSession{
 					assistantChan: map[int64]chan string{},
@@ -445,8 +451,8 @@ func initReportState() *reportState {
 	return &_reportState
 }
 
-func initWallStreetSentNews() *sentNews {
-	sentNews := sentNews{
+func initSentNews() *sentNews {
+	_sentNews := sentNews{
 		SentList: map[int64]map[uint32]time.Time{},
 		RWMutex:  sync.RWMutex{},
 	}
@@ -460,9 +466,9 @@ func initWallStreetSentNews() *sentNews {
 		}
 	}
 	if len(data) > 0 {
-		sentNews.SentList = data
+		_sentNews.SentList = data
 	}
-	return &sentNews
+	return &_sentNews
 }
 
 func initAssistantModel() *assistantModel {

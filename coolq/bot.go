@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
 	"os"
 	"runtime/debug"
 	"strings"
@@ -64,6 +65,8 @@ func (e *Event) JSONString() string {
 	e.once.Do(e.marshal)
 	return utils.B2S(e.buffer.Bytes())
 }
+
+var ShutdownNotify chan struct{}
 
 // NewQQBot 初始化一个QQBot实例
 func NewQQBot(cli *client.QQClient) *CQBot {
@@ -147,6 +150,17 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 				"interval": base.HeartbeatInterval.Milliseconds(),
 			})
 		}
+	}()
+
+	go func() {
+		ShutdownNotify = make(chan struct{})
+		for {
+			<-ShutdownNotify
+			log.Infof("bot receive shutdown signal")
+			bot.state.SaveCache()
+			top_list.Backup()
+		}
+
 	}()
 	return bot
 }
