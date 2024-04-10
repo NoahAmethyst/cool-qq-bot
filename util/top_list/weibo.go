@@ -30,10 +30,7 @@ func LoadWeiboHot() ([]WeiboHot, error) {
 
 	WeiboHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
 
-	//go func() {
-	//	path := file_util.GetFileRoot()
-	//	_, _ = file_util.WriteJsonFile(WeiboHotDailyRecord.GetData(), path, "weibo_hot", true)
-	//}()
+	WeiboHotDailyRecord.Backup()
 
 	return hotList, err
 }

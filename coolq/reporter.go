@@ -314,7 +314,7 @@ func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 			}(_group)
 		}
 		wait.Wait()
-		//bot.state.sentNews.SaveCache()
+		bot.state.sentNews.SaveCache()
 
 	}
 	return hasNews
@@ -358,7 +358,7 @@ func (bot *CQBot) ReportCaiXinNews(groups []int64, isGroup bool) bool {
 			}(_group)
 		}
 		wait.Wait()
-		//bot.state.sentNews.SaveCache()
+		bot.state.sentNews.SaveCache()
 
 	}
 	return hasNews

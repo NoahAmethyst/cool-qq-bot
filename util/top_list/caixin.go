@@ -24,10 +24,8 @@ func LoadCaiXinNews() ([]spider_pb.CaiXinNew, error) {
 		CaiXinNewsDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), data)
 	}
 
-	//go func() {
-	//	path := file_util.GetFileRoot()
-	//	_, _ = file_util.WriteJsonFile(CaiXinNewsDailyRecord.GetData(), path, "caixin_news", true)
-	//}()
+	CaiXinNewsDailyRecord.Backup()
+	SentRecord.Backup()
 
 	return data, err
 }

@@ -72,7 +72,7 @@ func (r *reportState) add(id int64, isGroup bool) {
 	} else {
 		r.privates[id] = struct{}{}
 	}
-	//r.saveCache()
+	r.saveCache()
 }
 
 func (r *reportState) del(id int64, isGroup bool) {
@@ -83,7 +83,7 @@ func (r *reportState) del(id int64, isGroup bool) {
 	} else {
 		delete(r.privates, id)
 	}
-	//r.saveCache()
+	r.saveCache()
 }
 
 func (r *reportState) exist(id int64, isGroup bool) bool {

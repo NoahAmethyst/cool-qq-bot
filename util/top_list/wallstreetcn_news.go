@@ -33,10 +33,8 @@ func LoadWallStreetNews() ([]WallStreetNews, error) {
 		WallStreetNewsDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), currData)
 	}
 
-	//go func() {
-	//	path := file_util.GetFileRoot()
-	//	_, _ = file_util.WriteJsonFile(WallStreetNewsDailyRecord.GetData(), path, "wallstreet_news", true)
-	//}()
+	WallStreetNewsDailyRecord.Backup()
+	SentRecord.Backup()
 
 	return data, err
 }

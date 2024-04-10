@@ -30,10 +30,7 @@ func LoadZhihuHot() ([]ZhihuHot, error) {
 
 	ZhihuHotDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), hotList)
 
-	//go func() {
-	//	path := file_util.GetFileRoot()
-	//	_, _ = file_util.WriteJsonFile(ZhihuHotDailyRecord.GetData(), path, "zhihu", true)
-	//}()
+	ZhihuHotDailyRecord.Backup()
 
 	//only return top 10 of the hot list
 	return hotList[:10], err
