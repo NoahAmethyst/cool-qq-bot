@@ -2,8 +2,8 @@ package ai_util
 
 import (
 	"context"
-	"github.com/rs/zerolog/log"
 	"github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
 )
 
 func GenerateImage(prompt, size string) (*openai.ImageResponse, error) {
@@ -21,6 +21,8 @@ func GenerateImage(prompt, size string) (*openai.ImageResponse, error) {
 			User:           "",
 		},
 	)
-	log.Info().Msgf("收到openai响应：%+v", resp)
+
+	log.Infof("receive openai response:%+v", resp)
+
 	return &resp, err
 }

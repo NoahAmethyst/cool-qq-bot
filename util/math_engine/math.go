@@ -2,7 +2,7 @@ package math_engine
 
 import (
 	"github.com/dengsgo/math-engine/engine"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 	"strings"
 )
 
@@ -32,7 +32,7 @@ func Calculate(expression string) (float64, error) {
 
 	r, err := engine.ParseAndExec(expression)
 	if err != nil {
-		log.Err(err)
+		log.Error(err)
 	}
 	return r, err
 }

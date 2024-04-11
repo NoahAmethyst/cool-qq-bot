@@ -91,7 +91,7 @@ func (d *d36KrDailyRecord) Load() {
 func (d *d36KrDailyRecord) Backup() {
 	d.RLock()
 	defer d.RUnlock()
-	log.Infof("backup 36kr daily record")
+	//log.Infof("backup 36kr daily record")
 	path := file_util.GetFileRoot()
 	_, _ = file_util.WriteJsonFile(d.data, path, "36kr", true)
 
@@ -160,7 +160,7 @@ func (d *wallStreetNewsDailyRecord) Load() {
 func (d *wallStreetNewsDailyRecord) Backup() {
 	d.RLock()
 	defer d.RUnlock()
-	log.Infof("backup wallstreet news daily record")
+	//log.Infof("backup wallstreet news daily record")
 	path := file_util.GetFileRoot()
 	_, _ = file_util.WriteJsonFile(d.data, path, "wallstreet_news", true)
 }
@@ -228,7 +228,7 @@ func (d *caixinnewsDailyRecord) Load() {
 func (d *caixinnewsDailyRecord) Backup() {
 	d.RLock()
 	defer d.RUnlock()
-	log.Infof("backup caixin news daily record")
+	//log.Infof("backup caixin news daily record")
 	path := file_util.GetFileRoot()
 	_, _ = file_util.WriteJsonFile(d.data, path, "caixin_news", true)
 }
@@ -296,7 +296,7 @@ func (d *weiboHotDailyRecord) Load() {
 func (d *weiboHotDailyRecord) Backup() {
 	d.RLock()
 	defer d.RUnlock()
-	log.Infof("backup weibo hot daily record")
+	//log.Infof("backup weibo hot daily record")
 	path := file_util.GetFileRoot()
 	_, _ = file_util.WriteJsonFile(d.data, path, "weibo_hot", true)
 }
@@ -365,7 +365,7 @@ func (z *zhihuHotDailyRecord) Load() {
 func (d *zhihuHotDailyRecord) Backup() {
 	d.RLock()
 	defer d.RUnlock()
-	log.Infof("backup zhihu hot daily record")
+	//log.Infof("backup zhihu hot daily record")
 	path := file_util.GetFileRoot()
 	_, _ = file_util.WriteJsonFile(d.data, path, "zhihu", true)
 }
@@ -433,7 +433,7 @@ func (z *sentCache) Load() {
 func (d *sentCache) Backup() {
 	d.RLock()
 	defer d.RUnlock()
-	log.Infof("backup sent news cache")
+	//log.Infof("backup sent news cache")
 	path := file_util.GetFileRoot()
 	_, _ = file_util.WriteJsonFile(d.data, path, "sentNews", true)
 }

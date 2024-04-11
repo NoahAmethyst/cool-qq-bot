@@ -5,6 +5,7 @@ import (
 	"github.com/NoahAmethyst/go-cqhttp/cmd/gocq"
 	"github.com/NoahAmethyst/go-cqhttp/util/cron"
 	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
+	"github.com/sirupsen/logrus"
 	"time"
 
 	_ "github.com/NoahAmethyst/go-cqhttp/db/leveldb"   // leveldb
@@ -18,7 +19,7 @@ import (
 func main() {
 	var cstZone = time.FixedZone("CST", 8*3600) // 东八
 	time.Local = cstZone
-
+	logrus.SetFormatter(&logrus.TextFormatter{ForceColors: true})
 	// Initialize grpc client
 	for _, rpcCli := range rpc.RpcCliList {
 		rpc.InitGrpcCli(rpcCli)

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
+	log "github.com/sirupsen/logrus"
 	"io"
 
 	"io/ioutil"
@@ -107,7 +107,7 @@ func PostJSON(url string, params interface{}, headers map[string]string, ret int
 	b, err := Post(url, params, headers)
 
 	if err != nil {
-		log.Err(err)
+		log.Error(err)
 		return err
 	}
 
@@ -143,11 +143,12 @@ func PostForm(thisUrl string, params map[string]string, headers map[string]strin
 	if err != nil {
 		return err
 	}
-	log.Info().Fields(map[string]interface{}{
+
+	log.Infof("%+v", map[string]interface{}{
 		"action":   "post form",
 		"url":      thisUrl,
 		"response": result,
-	}).Send()
+	})
 
 	return err
 }
