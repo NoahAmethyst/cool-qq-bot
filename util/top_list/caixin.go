@@ -21,7 +21,7 @@ func LoadCaiXinNews() ([]spider_pb.CaiXinNew, error) {
 	}
 
 	if len(currData) > 0 {
-		CaiXinNewsDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), data)
+		CaiXinNewsDailyRecord.Add(time.Now().Format("2006-01-02 15:04"), currData)
 	}
 
 	CaiXinNewsDailyRecord.Backup()
