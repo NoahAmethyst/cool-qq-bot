@@ -3,7 +3,6 @@ package top_list
 import (
 	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
 	_ "github.com/NoahAmethyst/go-cqhttp/util/file_util"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"time"
 )
@@ -16,7 +15,6 @@ type WeiboHot struct {
 }
 
 func LoadWeiboHot() ([]WeiboHot, error) {
-	log.Info("Load weibo hot.")
 	_hotList, err := spider_svc.WeiboHot()
 	hotList := make([]WeiboHot, 0, 50)
 	for _, _hot := range _hotList {

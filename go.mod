@@ -19,7 +19,6 @@ require (
 	github.com/mattn/go-colorable v0.1.12
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
-	github.com/rs/zerolog v1.28.0
 	github.com/sashabaranov/go-openai v1.17.7
 	github.com/segmentio/asm v1.1.3
 	github.com/sirupsen/logrus v1.9.0

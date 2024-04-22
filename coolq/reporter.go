@@ -335,8 +335,8 @@ func (bot *CQBot) ReportCaiXinNews(groups []int64, isGroup bool) bool {
 					if _index > 15 {
 						break
 					}
-					if !bot.state.sentNews.checkSent(group, _data.Title) {
-						readyData = append(readyData, _data)
+					if !bot.state.sentNews.checkSent(group, _data.GetTitle()) {
+						readyData = append(readyData, *_data)
 					}
 				}
 

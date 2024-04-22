@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/NoahAmethyst/go-cqhttp/internal/base"
 	"math"
 	"os"
 	"path"
@@ -25,7 +26,7 @@ import (
 
 	"github.com/NoahAmethyst/go-cqhttp/db"
 	"github.com/NoahAmethyst/go-cqhttp/global"
-	"github.com/NoahAmethyst/go-cqhttp/internal/base"
+
 	"github.com/NoahAmethyst/go-cqhttp/internal/cache"
 	"github.com/NoahAmethyst/go-cqhttp/internal/param"
 	"github.com/NoahAmethyst/go-cqhttp/modules/filter"
@@ -1701,6 +1702,8 @@ func (bot *CQBot) CQGetGuildMessage(messageID string, noCache bool) global.MSG {
 	case message.SourceGuildDirect:
 		// todo(mrs4s): 支持 direct 消息
 		m["tiny_id"] = fU64(uint64(source.SecondaryID))
+	default:
+		log.Error("unhandled default case")
 	}
 	return OK(m)
 }
