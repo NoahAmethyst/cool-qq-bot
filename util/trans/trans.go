@@ -90,10 +90,10 @@ func init() {
 		EngBalance.EngList = append(EngBalance.EngList, TencentEng)
 	}
 
-	baiduApiKey, baiduSecretKey := getBaiduCfg()
-	if BaiduEng = translator_engine.EngFactory.BuildBaiduEng(baiduApiKey, baiduSecretKey); BaiduEng != nil {
-		EngBalance.EngList = append(EngBalance.EngList, BaiduEng)
-	}
+	//baiduApiKey, baiduSecretKey := getBaiduCfg()
+	//if BaiduEng = translator_engine.EngFactory.BuildBaiduEng(baiduApiKey, baiduSecretKey); BaiduEng != nil {
+	//	EngBalance.EngList = append(EngBalance.EngList, BaiduEng)
+	//}
 
 	aliAccessId, aliAccessSecret := getAliCfg()
 	if AliEng, _ = translator_engine.EngFactory.BuildAliEngine(aliAccessId, aliAccessSecret); AliEng != nil {
