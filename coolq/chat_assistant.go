@@ -260,7 +260,6 @@ func AskAssistant(assistant Assistant) {
 		assistant.Reply(fmt.Sprintf("no handler set,model:%d", assistant.Model()))
 		return
 	}
-
 	recvChan := make(chan struct{}, 1)
 	go func(assistant Assistant) {
 		select {
@@ -274,9 +273,7 @@ func AskAssistant(assistant Assistant) {
 			assistant.Reply(fmt.Sprintf("%s 正在响应，请稍后...", vendor))
 		}
 	}(assistant)
-
 	askHandler(assistant, recvChan)
-
 }
 
 func askBingCopilot(assistant Assistant, _ chan struct{}) {
@@ -292,10 +289,12 @@ func askBingCopilot(assistant Assistant, _ chan struct{}) {
 	content := strings.ReplaceAll(answer.CopilotResp.Content, "*", "")
 	strBuilder.WriteString(content)
 	if len(answer.CopilotResp.Suggestions) > 0 {
+
 		strBuilder.WriteString("\n\n你也可以这样提问：")
 		for i, _suggestion := range answer.CopilotResp.Suggestions {
 			strBuilder.WriteString(fmt.Sprintf("\n%d. %s", i, _suggestion))
 		}
+
 	}
 	assistant.Reply(strBuilder.String())
 

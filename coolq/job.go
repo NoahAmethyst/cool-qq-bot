@@ -71,6 +71,7 @@ func (bot *CQBot) D36krHotReporter(corn string) *ReportJob {
 func (bot *CQBot) WallStreetNewsReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
+
 			groupIds := bot.state.reportState.getReportList(true)
 			bot.ReportWallStreetNews(groupIds, true)
 			privateIds := bot.state.reportState.getReportList(false)

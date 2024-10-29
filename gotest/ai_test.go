@@ -146,9 +146,10 @@ func Test_BingChat(t *testing.T) {
 }
 
 func Test_Ernie(t *testing.T) {
+
 	completion, err := ai_util.AskErnie([]go_ernie.ChatCompletionMessage{
 		{Role: go_ernie.MessageRoleUser,
-			Content: "怎么制作一个可乐鸡翅"},
+			Content: "今天天气怎么样"},
 	})
 
 	if err != nil {

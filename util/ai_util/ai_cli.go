@@ -55,8 +55,8 @@ func setCli() {
 	}
 
 	if len(ernieKey) == 0 || len(ernieSecret) == 0 {
-		ernieKey = os.Getenv(constant.ERNIE_APP_KEY)
-		ernieSecret = os.Getenv(constant.ERNIE_APP_SECRET)
+		ernieKey = os.Getenv(constant.QIANFAN_ACCESS_KEY)
+		ernieSecret = os.Getenv(constant.QIANFAN_SECRET_KEY)
 	}
 
 	//OpenAI client
