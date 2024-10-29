@@ -267,8 +267,13 @@ func AskAssistant(assistant Assistant) {
 			return
 		case <-time.After(time.Second * 10):
 			vendor := "OpenAI"
-			if assistant.Model() == ai_util.BingCopilot {
+			switch assistant.Model() {
+			case ai_util.BingCopilot:
 				vendor = "BingCopilot"
+			case ai_util.Ernie:
+				vendor = "百度千帆"
+			default:
+				break
 			}
 			assistant.Reply(fmt.Sprintf("%s 正在响应，请稍后...", vendor))
 		}
