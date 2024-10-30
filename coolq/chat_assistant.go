@@ -301,7 +301,7 @@ func askBingCopilot(assistant Assistant, _ chan struct{}) {
 		}
 
 	}
-	assistant.Reply(strBuilder.String())
+	assistant.Reply(strings.ReplaceAll(strBuilder.String(), "*", ""))
 
 }
 
@@ -343,7 +343,7 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 	assistant.Session().putConversation(assistant.Sender(), bingChatCli)
 
 	if len(strBuilder.String()) > 0 {
-		assistant.Reply(strBuilder.String())
+		assistant.Reply(strings.ReplaceAll(strBuilder.String(), "*", ""))
 	} else {
 		assistant.Reply("BingCopilot 响应超时")
 	}
@@ -390,6 +390,7 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 			answer = "OpenAI未响应，请重试"
 		} else {
 			answer = resp.Choices[0].Message.Content
+			answer = strings.ReplaceAll(answer, "*", "")
 			assistant.Session().putOpenaiCtx(assistant.Sender(), msg.Content, answer)
 		}
 	}
@@ -424,6 +425,7 @@ func askErnie(assistant Assistant, recvChan chan struct{}) {
 			answer = "文心千帆未响应，请重试"
 		} else {
 			answer = resp.Result
+			answer = strings.ReplaceAll(answer, "*", "")
 			assistant.Session().putErnieCtx(assistant.Sender(), msg.Content, answer)
 		}
 	}

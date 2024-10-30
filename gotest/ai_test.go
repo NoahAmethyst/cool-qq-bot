@@ -149,7 +149,7 @@ func Test_Ernie(t *testing.T) {
 
 	completion, err := ai_util.AskErnie([]go_ernie.ChatCompletionMessage{
 		{Role: go_ernie.MessageRoleUser,
-			Content: "今天天气怎么样"},
+			Content: "南京今天天气怎么样"},
 	})
 
 	if err != nil {
