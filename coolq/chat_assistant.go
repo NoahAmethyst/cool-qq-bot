@@ -191,6 +191,9 @@ func ChangeModel(assistant Assistant) {
 		currModel = "ChatGpt4.0"
 	case ai_util.Ernie:
 		currModel = "文心千帆"
+	case ai_util.DeepSeek:
+		currModel = "DeepSeek"
+
 	default:
 		currModel = "ChatGpt3.5"
 	}
@@ -198,7 +201,8 @@ func ChangeModel(assistant Assistant) {
 		"%d - ChatGpt3.5(默认)\n"+
 		"%d - Bing Copilot\n"+
 		"%d - ChatGpt4.0\n"+
-		"%d - 文心千帆", ai_util.ChatGPT, ai_util.BingCopilot, ai_util.ChatGPT4, ai_util.Ernie)
+		"%d - 文心千帆\n"+
+		"%d - DeepSeek", ai_util.ChatGPT, ai_util.BingCopilot, ai_util.ChatGPT4, ai_util.Ernie, ai_util.DeepSeek)
 
 	if len(v) == 0 {
 		msg := fmt.Sprintf("当前模式：%s\n%s", currModel, switchModelMsg)
