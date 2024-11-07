@@ -455,5 +455,6 @@ func init() {
 		ai_util.ChatGPT4:    askOfficialChatGpt,
 		ai_util.BingCopilot: askBingCopilot,
 		ai_util.Ernie:       askErnie,
+		ai_util.DeepSeek:    askOfficialChatGpt,
 	}
 }
