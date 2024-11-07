@@ -12,6 +12,13 @@ import (
 	"time"
 )
 
+var AIAssistantAttributions map[ChatModel]AIAssistantAttribution
+
+type AIAssistantAttribution struct {
+	Name   string
+	Vendor string
+}
+
 var openaiCli *openai.Client
 var chimeraCli *openai.Client
 var ernieCli *go_ernie.Client
@@ -123,4 +130,14 @@ func SetChimeraKey(key string) {
 	go func() {
 		changeSignal <- struct{}{}
 	}()
+}
+
+func init() {
+	AIAssistantAttributions = map[ChatModel]AIAssistantAttribution{
+		ChatGPT:     {Name: "ChatGPT(3.5)", Vendor: "OpenAI"},
+		ChatGPT4:    {Name: "ChatGPT(4.0)", Vendor: "OpenAI"},
+		BingCopilot: {Name: "Bing Copilot", Vendor: "Microsoft"},
+		Ernie:       {Name: "百度千帆", Vendor: "Baidu"},
+		DeepSeek:    {Name: "Deep Seek", Vendor: "Deep Seek"},
+	}
 }

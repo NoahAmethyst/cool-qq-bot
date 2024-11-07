@@ -184,25 +184,21 @@ func ChangeModel(assistant Assistant) {
 	v := strings.TrimSpace(strings.ReplaceAll(textEle.Content, "#模式", ""))
 
 	var currModel string
-	switch assistant.Model() {
-	case ai_util.BingCopilot:
-		currModel = "Bing Copilot"
-	case ai_util.ChatGPT4:
-		currModel = "ChatGpt4.0"
-	case ai_util.Ernie:
-		currModel = "文心千帆"
-	case ai_util.DeepSeek:
-		currModel = "DeepSeek"
-
-	default:
-		currModel = "ChatGpt3.5"
+	if v, ok := ai_util.AIAssistantAttributions[assistant.Model()]; ok {
+		currModel = v.Name
+	} else {
+		currModel = ai_util.AIAssistantAttributions[ai_util.ChatGPT].Name
 	}
 	switchModelMsg := fmt.Sprintf("如需更换模式请使用:\n"+
-		"%d - ChatGpt3.5(默认)\n"+
-		"%d - Bing Copilot\n"+
-		"%d - ChatGpt4.0\n"+
-		"%d - 文心千帆\n"+
-		"%d - DeepSeek", ai_util.ChatGPT, ai_util.BingCopilot, ai_util.ChatGPT4, ai_util.Ernie, ai_util.DeepSeek)
+		"%d - %s\n"+
+		"%d - %s\n"+
+		"%d - %s\n"+
+		"%d -%s\n"+
+		"%d - %s", ai_util.ChatGPT, ai_util.AIAssistantAttributions[ai_util.ChatGPT].Name,
+		ai_util.BingCopilot, ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name,
+		ai_util.ChatGPT4, ai_util.AIAssistantAttributions[ai_util.ChatGPT4].Name,
+		ai_util.Ernie, ai_util.AIAssistantAttributions[ai_util.Ernie].Name,
+		ai_util.DeepSeek, ai_util.AIAssistantAttributions[ai_util.DeepSeek].Name)
 
 	if len(v) == 0 {
 		msg := fmt.Sprintf("当前模式：%s\n%s", currModel, switchModelMsg)
@@ -216,31 +212,16 @@ func ChangeModel(assistant Assistant) {
 		return
 	} else {
 		var msg string
-		switch model {
-		case int64(ai_util.ChatGPT):
-			currModel = "ChatGpt3.5"
-			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
-			assistant.ChangeModel(ai_util.ChatGPT)
-		case int64(ai_util.BingCopilot):
-			currModel = "Bing Copilot"
-			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
-			assistant.ChangeModel(ai_util.BingCopilot)
-		case int64(ai_util.ChatGPT4):
-			currModel = "ChatGpt4.0"
-			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
-			assistant.ChangeModel(ai_util.ChatGPT4)
-		case int64(ai_util.Ernie):
-			currModel = "文心千帆"
-			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
-			assistant.ChangeModel(ai_util.Ernie)
-		case int64(ai_util.DeepSeek):
-			currModel = "DEEP SEEK"
-			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
-			assistant.ChangeModel(ai_util.DeepSeek)
 
-		default:
-			msg = fmt.Sprintf("当前模式%s\n%s", currModel, switchModelMsg)
+		if v, ok := ai_util.AIAssistantAttributions[ai_util.ChatModel(model)]; ok {
+			currModel = v.Name
+		} else {
+			currModel = ai_util.AIAssistantAttributions[ai_util.ChatGPT].Name
 		}
+
+		msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
+		assistant.ChangeModel(ai_util.ChatModel(model))
+
 		assistant.Reply(msg)
 	}
 }
@@ -274,17 +255,13 @@ func AskAssistant(assistant Assistant) {
 		case <-recvChan:
 			return
 		case <-time.After(time.Second * 10):
-			vendor := "OpenAI"
-			switch assistant.Model() {
-			case ai_util.BingCopilot:
-				vendor = "BingCopilot"
-			case ai_util.Ernie:
-				vendor = "百度千帆"
-			case ai_util.DeepSeek:
-				vendor = "DEEP SEEK"
 
-			default:
-				break
+			var vendor string
+
+			if v, ok := ai_util.AIAssistantAttributions[assistant.Model()]; ok {
+				vendor = v.Vendor
+			} else {
+				vendor = "Unknown"
 			}
 			assistant.Reply(fmt.Sprintf("%s 正在响应，请稍后...", vendor))
 		}
@@ -295,11 +272,11 @@ func AskAssistant(assistant Assistant) {
 func askBingCopilot(assistant Assistant, _ chan struct{}) {
 	answer, err := spider_svc.AskBingCopilot(assistant.GetText().Content)
 	if err != nil {
-		assistant.Reply(fmt.Sprintf("创建 bing copilot 会话失败:%s", err.Error()))
+		assistant.Reply(fmt.Sprintf("创建 %s 会话失败:%s", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name, err.Error()))
 		return
 	}
 
-	log.Info("Got Bing Copilot answer:%+v", answer.CopilotResp)
+	log.Info("Got %s answer:%+v", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name, answer.CopilotResp)
 
 	var strBuilder strings.Builder
 	content := strings.ReplaceAll(answer.CopilotResp.Content, "*", "")
@@ -324,13 +301,13 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 		bingChatCli, err = ai_util.NewBingChat()
 	}
 	if err != nil {
-		assistant.Reply(fmt.Sprintf("创建bingchat会话失败:%s", err.Error()))
+		assistant.Reply(fmt.Sprintf("创建 %s 会话失败:%s", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name, err.Error()))
 		return
 	}
 	answer, err := ai_util.AskBingChat(bingChatCli, assistant.GetText().Content)
 	recvChan <- struct{}{}
 	if err != nil {
-		assistant.Reply(fmt.Sprintf("询问bingchat失败:%s", err.Error()))
+		assistant.Reply(fmt.Sprintf("询问 %s失败:%s", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name, err.Error()))
 		assistant.Session().closeConversation(assistant.Sender())
 		return
 	}
@@ -356,7 +333,7 @@ func askBingChat(assistant Assistant, recvChan chan struct{}) {
 	if len(strBuilder.String()) > 0 {
 		assistant.Reply(strings.ReplaceAll(strBuilder.String(), "*", ""))
 	} else {
-		assistant.Reply("BingCopilot 响应超时")
+		assistant.Reply(fmt.Sprintf("%s 响应超时", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name))
 	}
 }
 
@@ -433,11 +410,11 @@ func askErnie(assistant Assistant, recvChan chan struct{}) {
 	resp, err := ai_util.AskErnie(ctx)
 
 	if err != nil {
-		answer = fmt.Sprintf("调用文心千帆 失败：%s", err.Error())
+		answer = fmt.Sprintf("调用 %s 失败：%s", ai_util.AIAssistantAttributions[ai_util.Ernie].Name, err.Error())
 	} else {
 		if len(resp.Result) == 0 {
-			log.Warnf("文心千帆 返回空结构：%+v", resp)
-			answer = "文心千帆未响应，请重试"
+			log.Warnf("%s 返回空结构：%+v", ai_util.AIAssistantAttributions[ai_util.Ernie].Name, resp)
+			answer = fmt.Sprintf("%s响应，请重试", ai_util.AIAssistantAttributions[ai_util.Ernie].Name)
 		} else {
 			answer = resp.Result
 			answer = strings.ReplaceAll(answer, "*", "")
@@ -457,4 +434,5 @@ func init() {
 		ai_util.Ernie:       askErnie,
 		ai_util.DeepSeek:    askOfficialChatGpt,
 	}
+
 }
