@@ -181,7 +181,7 @@ func ChangeModel(assistant Assistant) {
 	if textEle == nil {
 		return
 	}
-	v := strings.TrimSpace(strings.ReplaceAll(textEle.Content, "#模式 ", ""))
+	v := strings.TrimSpace(strings.ReplaceAll(textEle.Content, "#模式", ""))
 
 	var currModel string
 	switch assistant.Model() {
@@ -233,9 +233,13 @@ func ChangeModel(assistant Assistant) {
 			currModel = "文心千帆"
 			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
 			assistant.ChangeModel(ai_util.Ernie)
+		case int64(ai_util.DeepSeek):
+			currModel = "DEEP SEEK"
+			msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
+			assistant.ChangeModel(ai_util.DeepSeek)
 
 		default:
-			msg = fmt.Sprintf("非法的参数\n当前模式%s\n%s", currModel, switchModelMsg)
+			msg = fmt.Sprintf("当前模式%s\n%s", currModel, switchModelMsg)
 		}
 		assistant.Reply(msg)
 	}
