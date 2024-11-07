@@ -47,7 +47,7 @@ func init() {
 		CMDImage:                "AI作图，使用DELL.2生成图片，你需要提供提示词",
 		CMDOpenReporter:         "开启微博、华尔街最新资讯、36氪定时推送",
 		CMDCloseReporter:        "关闭微博、华尔街最新资讯、36氪定时推送",
-		CMDSwitchAssistantModel: "更换助手模式，0:Chatgpt(默认),1:Bing Chat",
+		CMDSwitchAssistantModel: "更换助手模式，\n0:Chatgpt(默认) \n1:Bing Chat \n2:ChatGpt(4) \n3:百度千帆 \n4:DeepSeek",
 		CMDEVN:                  "设置新的环境变量",
 	}
 	groupCmdList = []string{

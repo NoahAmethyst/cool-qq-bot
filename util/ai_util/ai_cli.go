@@ -15,11 +15,13 @@ import (
 var openaiCli *openai.Client
 var chimeraCli *openai.Client
 var ernieCli *go_ernie.Client
+var deepSeekCli *openai.Client
 
 var openaiKey string
 var chimeraKey string
 var ernieKey string
 var ernieSecret string
+var deepSeekApiKey string
 
 var changeSignal = make(chan struct{}, 1)
 var once sync.Once
@@ -59,6 +61,9 @@ func setCli() {
 		ernieSecret = os.Getenv(constant.QIANFAN_SECRET_KEY)
 	}
 
+	if len(deepSeekApiKey) == 0 {
+		deepSeekApiKey = os.Getenv(constant.DEEPSEEK_API_KEY)
+	}
 	//OpenAI client
 	{
 		if len(openaiKey) > 0 {
@@ -91,6 +96,16 @@ func setCli() {
 		if len(ernieKey) > 0 && len(ernieSecret) > 0 {
 			log.Info("init Ernie client")
 			ernieCli = go_ernie.NewDefaultClient(ernieKey, ernieSecret)
+		}
+	}
+	//DeepSeek
+	{
+		if len(deepSeekApiKey) > 0 {
+			log.Info("init DeepSeek client")
+			config := openai.DefaultConfig(deepSeekApiKey)
+			config.HTTPClient.Timeout = time.Minute * 120
+			config.BaseURL = deepSeekBaseUrl
+			deepSeekCli = openai.NewClientWithConfig(config)
 		}
 	}
 

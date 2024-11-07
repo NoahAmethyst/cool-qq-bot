@@ -7,4 +7,5 @@ const (
 	BingCopilot
 	ChatGPT4
 	Ernie
+	DeepSeek
 )

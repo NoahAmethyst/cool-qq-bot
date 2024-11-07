@@ -272,6 +272,9 @@ func AskAssistant(assistant Assistant) {
 				vendor = "BingCopilot"
 			case ai_util.Ernie:
 				vendor = "百度千帆"
+			case ai_util.DeepSeek:
+				vendor = "DEEP SEEK"
+
 			default:
 				break
 			}
@@ -368,26 +371,30 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	var answer string
 	var resp openai.ChatCompletionResponse
 	var err error
+	vendor := "OpenAI"
 	switch assistant.Model() {
 	case ai_util.ChatGPT:
 		resp, err = ai_util.AskChatGpt(ctx)
 	case ai_util.ChatGPT4:
 		resp, err = ai_util.AskChatGpt4(ctx)
+	case ai_util.DeepSeek:
+		resp, err = ai_util.AskDeepSeek(ctx)
+
 	default:
 		resp, err = ai_util.AskChatGpt(ctx)
 	}
 
 	if err != nil {
-		answer = fmt.Sprintf("调用openAi 失败：%s", err.Error())
+		answer = fmt.Sprintf("调用%s 失败：%s", vendor, err.Error())
 		if strings.Contains(err.Error(), "401") && assistant.Sender() != assistant.Bot().state.owner {
 			assistant.Bot().SendPrivateMessage(assistant.Bot().state.owner, 0, &message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewText(
-					fmt.Sprintf("用户[%d]调用openai失败：%s", assistant.Sender(), err.Error()))}})
+					fmt.Sprintf("用户[%d]调用%s失败：%s", assistant.Sender(), vendor, err.Error()))}})
 		}
 	} else {
 		if len(resp.Choices) == 0 || len(resp.Choices[0].Message.Content) == 0 {
-			log.Warnf("openai 返回空结构：%v", resp)
-			answer = "OpenAI未响应，请重试"
+			log.Warnf("%s 返回空结构：%v", vendor, resp)
+			answer = fmt.Sprintf("%s，请重试", vendor)
 		} else {
 			answer = resp.Choices[0].Message.Content
 			answer = strings.ReplaceAll(answer, "*", "")

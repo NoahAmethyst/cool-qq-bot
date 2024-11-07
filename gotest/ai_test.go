@@ -33,6 +33,19 @@ func Test_ChatGpt(t *testing.T) {
 	t.Logf("%+v", replyMsg)
 }
 
+func Test_DeepSeek(t *testing.T) {
+	ctx := make([]openai.ChatCompletionMessage, 0, 4)
+	ctx = append(ctx, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: "魔术的起源是什么",
+	})
+	replyMsg, err := ai_util.AskDeepSeek(ctx)
+	if err != nil {
+		panic(err)
+	}
+	t.Logf("%+v", replyMsg)
+}
+
 func Test_ChatGptWithContext(t *testing.T) {
 	ctx := make([]openai.ChatCompletionMessage, 0, 4)
 	ctx = append(ctx, openai.ChatCompletionMessage{
