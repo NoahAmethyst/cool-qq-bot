@@ -33,7 +33,10 @@ func WriteJsonFile(data interface{}, targetPath, fileName string, format bool) (
 
 func LoadJsonFile(file string, data interface{}) error {
 	bytes, err := os.ReadFile(file)
-	if err != nil {
+	if len(bytes) == 0 {
+		log.Warnf("Json file [%s] is empty", file)
+		return nil
+	} else if err != nil {
 		log.Errorf("Read json file [%s] failed %s", file, err.Error())
 		return err
 	}
