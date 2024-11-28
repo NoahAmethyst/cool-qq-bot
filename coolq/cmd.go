@@ -50,7 +50,7 @@ func init() {
 		CMDCloseReporter:        "关闭微博、华尔街最新资讯、36氪定时推送",
 		CMDSwitchAssistantModel: "更换助手模式，\n0:Chatgpt(默认) \n1:Bing Chat \n2:ChatGpt(4) \n3:百度千帆 \n4:DeepSeek",
 		CMDEVN:                  "设置新的环境变量",
-		CMDKelly:                "使用凯利公式(Kelly strategy)计算投资资金比例，依次输入【潜在正收益率】、【获胜概率/收益概率】，输入数值为概率x100，以空格分隔",
+		CMDKelly:                "使用凯利公式(Kelly strategy)计算投资资金比例，依次输入【潜在正收益率】、【潜在损失率】、【获胜概率/收益概率】，输入数值为概率x100，以空格分隔",
 	}
 	groupCmdList = []string{
 		CMDWeibo,
