@@ -116,7 +116,7 @@ func init() {
 			bot.closeReporter(groupMessage.GroupCode, true)
 		},
 		CMDKelly: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			bot.closeReporter(groupMessage.GroupCode, true)
+			bot.kellyStrategyForGroup(groupMessage)
 		},
 	}
 
@@ -188,10 +188,7 @@ func init() {
 			bot.closeReporter(privateMessage.Sender.Uin, false)
 		},
 		CMDKelly: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			TransText(&PrivateTranslator{
-				bot: bot,
-				m:   privateMessage,
-			})
+			bot.kellyStrategyForPrivate(privateMessage)
 		},
 		CMDExist: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			if bot.state.owner != privateMessage.Sender.Uin {
