@@ -19,3 +19,16 @@ func TestParseNumber(t *testing.T) {
 
 	t.Logf("%+v", numbers)
 }
+
+func TestKelly(t *testing.T) {
+	b := 10
+	p := 20
+
+	q := 100 - p // 失败的概率
+
+	// make sure that b > 0 and 0 <= p <= 1
+	// use kelly strategy f* = (b * p - q) / b
+	fStar := (b*p - q) / b
+	t.Logf("%+v", fStar)
+
+}
