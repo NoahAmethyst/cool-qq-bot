@@ -115,7 +115,6 @@ func setCli() {
 			deepSeekCli = openai.NewClientWithConfig(config)
 		}
 	}
-
 }
 
 func SetOpenaiKey(key string) {

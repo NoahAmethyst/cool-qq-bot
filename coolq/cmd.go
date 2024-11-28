@@ -25,6 +25,7 @@ const (
 	CMDSwitchAssistantModel = "模式"
 	CMDExist                = "关闭"
 	CMDEVN                  = "ENV"
+	CMDKelly                = "凯利"
 )
 
 var groupCmdList []string
@@ -49,6 +50,7 @@ func init() {
 		CMDCloseReporter:        "关闭微博、华尔街最新资讯、36氪定时推送",
 		CMDSwitchAssistantModel: "更换助手模式，\n0:Chatgpt(默认) \n1:Bing Chat \n2:ChatGpt(4) \n3:百度千帆 \n4:DeepSeek",
 		CMDEVN:                  "设置新的环境变量",
+		CMDKelly:                "使用凯利公式(Kelly strategy)计算投资资金比例，依次输入【潜在正收益率】、【获胜概率/收益概率】，输入数值为概率x100，以空格分隔",
 	}
 	groupCmdList = []string{
 		CMDWeibo,
@@ -62,6 +64,7 @@ func init() {
 		CMDSwitchAssistantModel,
 		CMDOpenReporter,
 		CMDCloseReporter,
+		CMDKelly,
 	}
 
 	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
@@ -112,6 +115,9 @@ func init() {
 		CMDCloseReporter: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.closeReporter(groupMessage.GroupCode, true)
 		},
+		CMDKelly: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.closeReporter(groupMessage.GroupCode, true)
+		},
 	}
 
 	privateCmdList = []string{
@@ -126,6 +132,7 @@ func init() {
 		CMDSwitchAssistantModel,
 		CMDOpenReporter,
 		CMDCloseReporter,
+		CMDKelly,
 	}
 
 	privateCmdHandlers = map[string]func(bot *CQBot, privateMessage *message.PrivateMessage){
@@ -179,6 +186,12 @@ func init() {
 
 		CMDCloseReporter: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			bot.closeReporter(privateMessage.Sender.Uin, false)
+		},
+		CMDKelly: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			TransText(&PrivateTranslator{
+				bot: bot,
+				m:   privateMessage,
+			})
 		},
 		CMDExist: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			if bot.state.owner != privateMessage.Sender.Uin {

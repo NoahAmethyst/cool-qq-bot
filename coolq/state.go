@@ -100,8 +100,10 @@ func (r *reportState) exist(id int64, isGroup bool) bool {
 
 func (r *reportState) getReportList(isGroup bool) []int64 {
 	r.RLock()
+
 	defer r.RUnlock()
 	groupIds := make([]int64, 0, 4)
+
 	if isGroup {
 		for k := range r.groups {
 			groupIds = append(groupIds, k)
