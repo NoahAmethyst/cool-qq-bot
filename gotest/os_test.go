@@ -22,8 +22,8 @@ func TestParseNumber(t *testing.T) {
 
 func TestKelly(t *testing.T) {
 	b := 0.5
-	l := 0.4
-	p := 0.5
+	l := 0.3
+	p := 0.4
 	q := 1 - p // 失败的概率
 
 	// make sure that b > 0 and 0 <= p <= 1

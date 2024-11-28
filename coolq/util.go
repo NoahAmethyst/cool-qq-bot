@@ -34,7 +34,7 @@ func kellyStrategy(elements []message.IMessageElement) string {
 		response = _err.Error()
 	} else {
 		if fStar > 0 {
-			response = fmt.Sprintf("依据凯利公式(Kelly Strategy)，本次策略中投资金额占总金额的【%.2f%%】", fStar)
+			response = fmt.Sprintf("依据凯利公式(Kelly Strategy)，本次策略中投资金额占总金额的【%.2f%%】", fStar*100)
 		} else {
 			response = fmt.Sprintf("依据凯利公式(Kelly Strategy)，应该放弃这次投资")
 		}
