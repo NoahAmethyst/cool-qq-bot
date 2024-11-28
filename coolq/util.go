@@ -33,7 +33,12 @@ func kellyStrategy(elements []message.IMessageElement) string {
 	if fStar, _err := calculateKelly(numbers[0], numbers[1], numbers[2]); _err != nil {
 		response = _err.Error()
 	} else {
-		response = fmt.Sprintf("依据凯利公式(Kelly Strategy)，本次策略中投资金额占总金额的【%.2f%%】", fStar)
+		if fStar > 0 {
+			response = fmt.Sprintf("依据凯利公式(Kelly Strategy)，本次策略中投资金额占总金额的【%.2f%%】", fStar)
+		} else {
+			response = fmt.Sprintf("依据凯利公式(Kelly Strategy)，应该放弃这次投资")
+		}
+
 	}
 	return response
 }
@@ -54,14 +59,13 @@ func parseAllNumber(text string) ([]float64, error) {
 }
 
 func calculateKelly(b, l, p float64) (float64, error) {
-	q := float64(100) - p // 失败的概率
+	q := 1 - p/100 // 失败的概率
 
 	// make sure that b > 0 and 0 <= p <= 1
 	if b <= 0 || l <= 0 || p < 0 || p > 100 {
 		return 0, errors.New("【潜在收益率】、【潜在损失率】以及【收益概率/获胜概率】必须大于0，且【收益概率/获胜概率】必须不大于100")
 	}
-	bs := b / l
 	// use kelly strategy f* = (b * p - q) / b
-	fStar := (bs*p - q) / bs
+	fStar := ((b/100)*p - (l/100)*q) / ((b / 100) * (l * 100))
 	return fStar, nil
 }
