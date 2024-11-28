@@ -54,14 +54,14 @@ func parseAllNumber(text string) ([]float64, error) {
 }
 
 func calculateKelly(b, p float64) (float64, error) {
-	q := 100 - p // 失败的概率
+	q := 1 - p // 失败的概率
 
 	// make sure that b > 0 and 0 <= p <= 1
-	if b <= 0 || p < 0 || p > 100 {
+	if b <= 0 || p < 0 || p > 1 {
 		return 0, errors.New("【潜在收益率】以及【收益概率/获胜概率】必须大于0，且【收益概率/获胜概率】必须不大于100")
 	}
 
-	// 使用凯利公式 f* = (b * p - q) / b
+	// use kelly strategy f* = (b * p - q) / b
 	fStar := (b*p - q) / b
 	return fStar, nil
 }
