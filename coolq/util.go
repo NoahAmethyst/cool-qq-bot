@@ -29,6 +29,7 @@ func kellyStrategy(elements []message.IMessageElement) string {
 	response := ""
 	if err != nil || len(numbers) != 3 {
 		response = "要使用凯利公式，请依次输入【潜在正收益率】、【潜在损失率】、【收益概率/获胜概率】，输入数值为概率x100，本公式将返回依据凯利公式计算的本次投注金额占总金额比例"
+		return response
 	}
 	if fStar, _err := calculateKelly(numbers[0], numbers[1], numbers[2]); _err != nil {
 		response = _err.Error()
