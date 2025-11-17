@@ -1,6 +1,6 @@
 ## QQ bot
 
-#### [主要依赖项目](https://github.com/NoahAmethyst/go-cqhttp)
+#### [主要依赖项目](https://github.com/Mrs4s/go-cqhttp)
 
 在 **config.yml** 中设置你自己的账号
 
