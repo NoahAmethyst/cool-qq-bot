@@ -364,9 +364,8 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 		resp, err = ai_util.AskChatGpt4(ctx)
 	case ai_util.DeepSeek:
 		resp, err = ai_util.AskDeepSeek(ctx)
-
 	default:
-		resp, err = ai_util.AskChatGpt(ctx)
+		resp, err = ai_util.AskDeepSeek(ctx)
 	}
 
 	if err != nil {
@@ -388,6 +387,7 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	}
 	recvChan <- struct{}{}
 	assistant.Reply(answer)
+
 }
 
 func askErnie(assistant Assistant, recvChan chan struct{}) {
