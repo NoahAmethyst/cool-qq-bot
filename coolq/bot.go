@@ -116,7 +116,7 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	bot.RegisterJob(bot.D36krHotReporter("0 0 12,22 * * *"))
 	bot.RegisterJob(bot.WallStreetNewsReporter("0 5,15,25,35,45,55 9-23 * * *"))
 	bot.RegisterJob(bot.CaiXinNewsReporter("1 11,21,31,41,51, 9-23 * * *"))
-	bot.RegisterJob(bot.SummaryReporter("0 59 23 * * *"))
+	bot.RegisterJob(bot.SummaryReporter("0 10 0 * * *"))
 
 	//notify bot start in group
 	for _, _group := range cli.GroupList {
