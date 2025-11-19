@@ -234,13 +234,13 @@ func (bot *CQBot) reactGroupCmd(_ *client.QQClient, m *message.GroupMessage) {
 	}
 
 	if textEle.Content == "#" {
-		content := ""
+		var content strings.Builder
 		for _, _cmd := range groupCmdList {
-			content += fmt.Sprintf("#%s\t%s\n\n", _cmd, cmdInfo[_cmd])
+			content.WriteString(fmt.Sprintf("#%s\t%s\n\n", _cmd, cmdInfo[_cmd]))
 		}
 
 		bot.SendGroupMessage(m.GroupCode, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(fmt.Sprintf("你可以使用以下命令：\n\n%s", content))}})
+			message.NewText(fmt.Sprintf("你可以使用以下命令：\n\n%s", content.String()))}})
 		return
 	}
 
@@ -283,13 +283,13 @@ func (bot *CQBot) reactPrivateCmd(_ *client.QQClient, m *message.PrivateMessage)
 	}
 
 	if textEle.Content == "#" {
-		content := ""
+		var content strings.Builder
 		for _, _cmd := range privateCmdList {
-			content += fmt.Sprintf("#%s\t%s\n\n", _cmd, cmdInfo[_cmd])
+			content.WriteString(fmt.Sprintf("#%s\t%s\n\n", _cmd, cmdInfo[_cmd]))
 		}
 
 		bot.SendPrivateMessage(m.Sender.Uin, 0, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(fmt.Sprintf("你可以使用以下命令：\n\n%s", content))}})
+			message.NewText(fmt.Sprintf("你可以使用以下命令：\n\n%s", content.String()))}})
 		return
 	}
 

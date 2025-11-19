@@ -236,10 +236,11 @@ func (bot *CQBot) guildMessageReactionsUpdatedEvent(c *client.QQClient, e *clien
 		return
 	}
 	msgID := encodeGuildMessageID(e.GuildId, e.ChannelId, e.MessageId, message.SourceGuildChannel)
-	str := fmt.Sprintf("频道 %v(%v) 消息 %v 表情贴片已更新: ", guild.GuildName, guild.GuildId, msgID)
+	var str strings.Builder
+	str.WriteString(fmt.Sprintf("频道 %v(%v) 消息 %v 表情贴片已更新: ", guild.GuildName, guild.GuildId, msgID))
 	currentReactions := make([]global.MSG, len(e.CurrentReactions))
 	for i, r := range e.CurrentReactions {
-		str += fmt.Sprintf("%v*%v ", r.Face.Name, r.Count)
+		str.WriteString(fmt.Sprintf("%v*%v ", r.Face.Name, r.Count))
 		currentReactions[i] = global.MSG{
 			"emoji_id":    r.EmojiId,
 			"emoji_index": r.Face.Index,
@@ -250,9 +251,9 @@ func (bot *CQBot) guildMessageReactionsUpdatedEvent(c *client.QQClient, e *clien
 		}
 	}
 	if len(e.CurrentReactions) == 0 {
-		str += "无任何表情"
+		str.WriteString("无任何表情")
 	}
-	log.Infof(str)
+	log.Infof(str.String())
 	bot.dispatchEvent("notice/message_reactions_updated", global.MSG{
 		"guild_id":          fU64(e.GuildId),
 		"channel_id":        fU64(e.ChannelId),
