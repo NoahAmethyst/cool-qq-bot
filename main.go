@@ -1,12 +1,13 @@
 package main
 
 import (
+	"time"
+
 	"github.com/NoahAmethyst/go-cqhttp/cluster/rpc"
 	"github.com/NoahAmethyst/go-cqhttp/cmd/gocq"
 	"github.com/NoahAmethyst/go-cqhttp/util/cron"
 	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
 	"github.com/sirupsen/logrus"
-	"time"
 
 	_ "github.com/NoahAmethyst/go-cqhttp/db/leveldb"   // leveldb
 	_ "github.com/NoahAmethyst/go-cqhttp/modules/mime" // mime检查模块
@@ -25,6 +26,6 @@ func main() {
 		rpc.InitGrpcCli(rpcCli)
 	}
 	gracefulShutdown()
-	cron.AddCronJob(top_list.UploadDailyRecord, "0 55 23 * * *")
+	cron.AddCronJob(top_list.UploadDailyRecord, "0 5 0 * * *")
 	gocq.Main()
 }
