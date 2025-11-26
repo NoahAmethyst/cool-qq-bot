@@ -80,7 +80,7 @@ func CaiXinNews() ([]*spider_pb.CaiXinNew, error) {
 	return resp.CaiXinNews, err
 }
 
-func Finance(_from string, _to string, finance_type spider_pb.FinanceType) (*spider_pb.FinanceResp, error) {
+func Finance(finance_type spider_pb.FinanceType, _from string, _to string) (*spider_pb.FinanceResp, error) {
 	c := context.Background()
 	cli := SvcCli()
 	resp, err := cli.Finance(c, &spider_pb.SpiderReq{

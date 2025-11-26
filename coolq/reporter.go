@@ -66,11 +66,11 @@ func (bot *CQBot) ReportCoinPrice(group int64, elements []message.IMessageElemen
 	if len(symbol) > 0 {
 		symbols = append(symbols, fmt.Sprintf("%sUSDT", symbol))
 	} else {
-		symbols = coin.Symbols
+		symbols = finance.Symbols
 	}
 
 	for _, _symbol := range symbols {
-		coinInfo, err := coin.Get24HPriceInfo(_symbol)
+		coinInfo, err := finance.Get24HPriceInfo(_symbol)
 		if err != nil {
 			log.Errorf("get %s error:%s", _symbol, err)
 			continue
