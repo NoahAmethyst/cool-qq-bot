@@ -2,6 +2,7 @@ package spider_svc
 
 import (
 	"context"
+
 	"github.com/NoahAmethyst/go-cqhttp/cluster/rpc"
 	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
 	"github.com/pkg/errors"
@@ -77,4 +78,18 @@ func CaiXinNews() ([]*spider_pb.CaiXinNew, error) {
 		log.Errorf("Call CaiXin News failed:%s", err.Error())
 	}
 	return resp.CaiXinNews, err
+}
+
+func Finance(_from string, _to string, finance_type spider_pb.FinanceType) (*spider_pb.FinanceResp, error) {
+	c := context.Background()
+	cli := SvcCli()
+	resp, err := cli.Finance(c, &spider_pb.SpiderReq{
+		FinanceType: finance_type,
+		XFrom:       _from,
+		XTo:         _to,
+	})
+	if err != nil {
+		log.Errorf("Call Finance failed:%s", err.Error())
+	}
+	return resp.FinanceResp, err
 }

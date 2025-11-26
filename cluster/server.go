@@ -3,20 +3,22 @@ package cluster
 import (
 	"context"
 	"fmt"
+
 	"github.com/NoahAmethyst/go-cqhttp/bot_service"
 	"github.com/NoahAmethyst/go-cqhttp/cluster/middleware"
 	"github.com/NoahAmethyst/go-cqhttp/constant"
 	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/qqbot_pb"
 	log "github.com/sirupsen/logrus"
 
+	"net"
+	"runtime/debug"
+	"strconv"
+
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
-	"net"
-	"runtime/debug"
-	"strconv"
 )
 
 var (
