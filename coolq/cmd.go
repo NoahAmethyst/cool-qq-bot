@@ -2,12 +2,13 @@ package coolq
 
 import (
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/client"
-	"github.com/Mrs4s/MiraiGo/message"
-	log "github.com/sirupsen/logrus"
 	"os"
 	"regexp"
 	"strings"
+
+	"github.com/Mrs4s/MiraiGo/client"
+	"github.com/Mrs4s/MiraiGo/message"
+	log "github.com/sirupsen/logrus"
 )
 
 const (
@@ -26,6 +27,8 @@ const (
 	CMDExist                = "关闭"
 	CMDEVN                  = "ENV"
 	CMDKelly                = "凯利"
+	CMDGold                 = "黄金"
+	CMDExchange             = "汇率"
 )
 
 var groupCmdList []string
@@ -51,6 +54,8 @@ func init() {
 		CMDSwitchAssistantModel: "更换助手模式，\n0:Chatgpt(默认) \n1:Bing Chat \n2:ChatGpt(4) \n3:百度千帆 \n4:DeepSeek",
 		CMDEVN:                  "设置新的环境变量",
 		CMDKelly:                "使用凯利公式(Kelly strategy)计算投资资金比例，依次输入【潜在正收益率】、【潜在损失率】、【获胜概率/收益概率】，输入数值为概率x100，以空格分隔",
+		CMDGold:                 "获取黄金最新价格",
+		CMDExchange:             "计算汇率，实用\"#汇率 源币 目标币\" 的格式获取汇率，如不输入则获取支持的汇率币种列表",
 	}
 	groupCmdList = []string{
 		CMDWeibo,
@@ -65,6 +70,8 @@ func init() {
 		CMDOpenReporter,
 		CMDCloseReporter,
 		CMDKelly,
+		CMDGold,
+		CMDExchange,
 	}
 
 	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
@@ -117,6 +124,12 @@ func init() {
 		},
 		CMDKelly: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.kellyStrategyForGroup(groupMessage)
+		},
+		CMDGold: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.goldPriceForGroup(groupMessage)
+		},
+		CMDExchange: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.exChangeRateForGroup(groupMessage)
 		},
 	}
 
@@ -213,6 +226,12 @@ func init() {
 				})
 			}
 			bot.SetENV(privateMessage)
+		},
+		CMDGold: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.goldPriceForPrivate(privateMessage)
+		},
+		CMDExchange: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.exChangeRateForPrivate(privateMessage)
 		},
 	}
 }

@@ -2,20 +2,21 @@ package coolq
 
 import (
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
-	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
-	"github.com/NoahAmethyst/go-cqhttp/util/coin"
-	"github.com/NoahAmethyst/go-cqhttp/util/content_util"
-	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
-	"github.com/sashabaranov/go-openai"
-	log "github.com/sirupsen/logrus"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
+	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/content_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/finance"
+	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
+	"github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
 )
 
 func (bot *CQBot) openReporter(id int64, isGroup bool) {

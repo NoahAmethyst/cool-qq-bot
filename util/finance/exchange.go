@@ -6,18 +6,18 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func SupportCurrencies() []string {
+func SupportCurrencies() ([]string, error) {
 	resp, err := spider_svc.Finance(spider_pb.FinanceType_CURRENCY_LIST, "", "")
 	if err != nil {
 		log.Errorf("Get gold price error:%s", err.Error())
 	}
-	return resp.StrList
+	return resp.StrList, err
 }
 
-func ExchangeRate(_from string, _to string) float32 {
+func ExchangeRate(_from string, _to string) (float32, error) {
 	resp, err := spider_svc.Finance(spider_pb.FinanceType_EXCHANGE, _from, _to)
 	if err != nil {
 		log.Errorf("Get gold price error:%s", err.Error())
 	}
-	return resp.FloatValue
+	return resp.FloatValue, err
 }

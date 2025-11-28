@@ -6,10 +6,10 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
-func GetGoldPrice() float32 {
+func GetGoldPrice() (float32, error) {
 	resp, err := spider_svc.Finance(spider_pb.FinanceType_GOLD, "", "")
 	if err != nil {
 		log.Errorf("Get gold price error:%s", err.Error())
 	}
-	return resp.FloatValue
+	return resp.FloatValue, err
 }

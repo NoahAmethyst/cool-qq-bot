@@ -2,10 +2,16 @@ package coolq
 
 import (
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
+	"strings"
+
+	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
+	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
+	"github.com/NoahAmethyst/go-cqhttp/util/finance"
+	"github.com/pkg/errors"
+	log "github.com/sirupsen/logrus"
 )
 
 func (bot *CQBot) kellyStrategyForPrivate(privateMessage *message.PrivateMessage) {
@@ -69,4 +75,98 @@ func calculateKelly(b, l, p float64) (float64, error) {
 	// use kelly strategy f* = (b * p - q) / b
 	fStar := ((b/100)*p - (l/100)*q) / ((b / 100) * (l * 100))
 	return fStar, nil
+}
+
+func (bot *CQBot) goldPriceForPrivate(privateMessage *message.PrivateMessage) {
+	if response, err := spider_svc.Finance(spider_pb.FinanceType_GOLD, "", ""); err != nil {
+		log.Errorf("获取最新金价失败：%s", err.Error())
+		bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("获取最新金价失败，请查看日志")}})
+	} else {
+		bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText(fmt.Sprintf("今日最新金价：%.2f", response.FloatValue))}})
+	}
+
+}
+
+func (bot *CQBot) goldPriceForGroup(groupMessage *message.GroupMessage) {
+	if _price, err := finance.GetGoldPrice(); err != nil {
+		log.Errorf("获取最新金价失败：%s", err.Error())
+		bot.SendGroupMessage(groupMessage.GroupCode,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("获取最新金价失败，请查看日志")}})
+	} else {
+		bot.SendGroupMessage(groupMessage.GroupCode,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewReply(groupMessage),
+				message.NewText(fmt.Sprintf("今日最新金价：%.2f", _price))}})
+	}
+}
+
+func (bot *CQBot) exChangeRateForPrivate(privateMessage *message.PrivateMessage) {
+	text := getTextEle(privateMessage.Elements)
+	_from, _to, err := extractCurrenciesRegex(text.Content)
+	if err != nil {
+		bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText(err.Error())}})
+		return
+	}
+
+	if _rate, err := finance.ExchangeRate(_from, _to); err != nil {
+		log.Errorf("获取最新汇率失败：%s", err.Error())
+		bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("获取汇率失败，请查看日志")}})
+	} else {
+		bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText(fmt.Sprintf("【%s】与【%s】的汇率为：%.3f", _from, _to, _rate))}})
+	}
+}
+
+func (bot *CQBot) exChangeRateForGroup(groupMessage *message.GroupMessage) {
+	text := getTextEle(groupMessage.Elements)
+	_from, _to, err := extractCurrenciesRegex(text.Content)
+	if err != nil {
+		bot.SendGroupMessage(groupMessage.GroupCode,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText(err.Error())}})
+		return
+	}
+
+	if _rate, err := finance.ExchangeRate(_from, _to); err != nil {
+		log.Errorf("获取最新汇率失败：%s", err.Error())
+		bot.SendGroupMessage(groupMessage.GroupCode,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText("获取汇率失败，请查看日志")}})
+	} else {
+		bot.SendGroupMessage(groupMessage.GroupCode,
+			&message.SendingMessage{Elements: []message.IMessageElement{
+				message.NewText(fmt.Sprintf("【%s】与【%s】的汇率为：%.3f", _from, _to, _rate))}})
+	}
+}
+
+func extractCurrenciesRegex(text string) (string, string, error) {
+	re := regexp.MustCompile(`#汇率\s+(\S+)\s+(\S+)`)
+	matches := re.FindStringSubmatch(text)
+
+	if len(matches) != 3 {
+		log.Errorf("汇率格式错误：%s", text)
+		var _err_message strings.Builder
+		if _currency_list, err := finance.SupportCurrencies(); err != nil {
+			_err_message.WriteString("汇率命令格式错误，举例：\"#汇率 美金 人民币\"")
+		} else {
+			_err_message.WriteString("汇率命令格式错误，举例：\"#汇率 美金 人民币\",支持的币种列表：")
+			for _, _currency := range _currency_list {
+				_err_message.WriteString(_currency)
+				_err_message.WriteString(" ")
+			}
+		}
+		return "", "", fmt.Errorf(_err_message.String())
+	}
+
+	return matches[1], matches[2], nil
 }
