@@ -58,6 +58,8 @@ func init() {
 		CMDExchange:             "计算汇率，实用\"#汇率 源币 目标币\" 的格式获取汇率，如不输入则获取支持的汇率币种列表",
 	}
 	groupCmdList = []string{
+		CMDOpenReporter,
+		CMDCloseReporter,
 		CMDWeibo,
 		CMD36kr,
 		CMDZhihu,
@@ -65,10 +67,8 @@ func init() {
 		CMDCaixin,
 		CMDCoin,
 		CMDTrans,
-		CMDImage,
+		//CMDImage,
 		CMDSwitchAssistantModel,
-		CMDOpenReporter,
-		CMDCloseReporter,
 		CMDKelly,
 		CMDGold,
 		CMDExchange,
@@ -134,6 +134,8 @@ func init() {
 	}
 
 	privateCmdList = []string{
+		CMDOpenReporter,
+		CMDCloseReporter,
 		CMDWeibo,
 		CMD36kr,
 		CMDWallStreet,
@@ -141,11 +143,11 @@ func init() {
 		CMDZhihu,
 		CMDCoin,
 		CMDTrans,
-		CMDImage,
+		//CMDImage,
 		CMDSwitchAssistantModel,
-		CMDOpenReporter,
-		CMDCloseReporter,
 		CMDKelly,
+		CMDGold,
+		CMDExchange,
 	}
 
 	privateCmdHandlers = map[string]func(bot *CQBot, privateMessage *message.PrivateMessage){
