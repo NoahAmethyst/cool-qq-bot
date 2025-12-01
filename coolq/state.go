@@ -2,6 +2,8 @@ package coolq
 
 import (
 	"fmt"
+	"strconv"
+
 	bingchat_api "github.com/NoahAmethyst/bingchat-api"
 	"github.com/NoahAmethyst/go-cqhttp/constant"
 	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
@@ -10,7 +12,6 @@ import (
 	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	"strconv"
 
 	"os"
 	"sync"
@@ -26,12 +27,49 @@ type State struct {
 	assistantModel         *assistantModel
 	groupDialogueSession   *AiAssistantSession
 	privateDialogueSession *AiAssistantSession
+	globalState            *globalState
+}
+
+type globalState struct {
+	Data map[string]string
+	sync.RWMutex
+}
+
+func (s *globalState) Set(k string, v string) {
+	s.Lock()
+	defer s.Unlock()
+	if len(s.Data) == 0 {
+		s.Data = make(map[string]string)
+	}
+	s.Data[k] = v
+
+}
+
+func (s *globalState) GetData(k string) (string, bool) {
+	s.RLock()
+	defer s.RUnlock()
+	v, ok := s.Data[k]
+	return v, ok
+
+}
+
+func (s *globalState) SaveCache() {
+	s.RLock()
+	defer s.RUnlock()
+	path := file_util.GetFileRoot()
+	_, err := file_util.WriteJsonFile(s.Data, path, "global_state", false)
+	if err != nil {
+		log.Errorf("save wall street news to file faild:%s", err.Error())
+	} else {
+		_ = file_util.TCCosUpload("cache", "global_state.json", fmt.Sprintf("%s/%s", path, "global_state.json"))
+	}
 }
 
 func (s *State) SaveCache() {
 	log.Infof("save bot state cache")
 	s.reportState.saveCache()
 	s.sentNews.SaveCache()
+	s.globalState.SaveCache()
 }
 
 type reportState struct {

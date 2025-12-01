@@ -108,6 +108,19 @@ func (bot *CQBot) SummaryReporter(corn string) *ReportJob {
 	}
 }
 
+func (bot *CQBot) GoldFluctuationReporter(corn string) *ReportJob {
+	return &ReportJob{
+		Report: func() {
+			groupIds := bot.state.reportState.getReportList(true)
+			bot.ReportGoldPriceFluctuation(groupIds, true)
+			privateIds := bot.state.reportState.getReportList(false)
+			bot.ReportGoldPriceFluctuation(privateIds, false)
+		},
+		Corn:  corn,
+		Model: top_list.WallStreet,
+	}
+}
+
 func init() {
 	JobModels = map[string]string{}
 }

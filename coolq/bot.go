@@ -5,12 +5,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
 	"os"
 	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
 
 	"github.com/Mrs4s/MiraiGo/binary"
 	"github.com/Mrs4s/MiraiGo/client"
@@ -117,6 +118,7 @@ func NewQQBot(cli *client.QQClient) *CQBot {
 	bot.RegisterJob(bot.WallStreetNewsReporter("0 5,15,25,35,45,55 9-23 * * *"))
 	bot.RegisterJob(bot.CaiXinNewsReporter("1 11,21,31,41,51, 9-23 * * *"))
 	bot.RegisterJob(bot.SummaryReporter("0 56 23 * * *"))
+	bot.RegisterJob(bot.GoldFluctuationReporter("0 30 * * * *"))
 
 	//notify bot start in group
 	for _, _group := range cli.GroupList {
