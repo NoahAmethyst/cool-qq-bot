@@ -106,7 +106,10 @@ func (bot *CQBot) ReportCoinPrice(group int64, elements []message.IMessageElemen
 func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
 
 	textEle := getTextEle(privateMessage.Elements)
-
+	if textEle == nil {
+		log.Warnf("QQ消息元素 text element 为空")
+		return
+	}
 	params := parseParam(textEle.Content)
 	if len(params) >= 2 {
 		if indexList := parseIndexList(params); len(indexList) > 0 {
@@ -123,7 +126,10 @@ func (bot *CQBot) privateWeiboHot(privateMessage *message.PrivateMessage) {
 
 func (bot *CQBot) groupWeiboHot(groupMessage *message.GroupMessage) {
 	textEle := getTextEle(groupMessage.Elements)
-
+	if textEle == nil {
+		log.Warnf("QQ消息元素：text element为空")
+		return
+	}
 	params := parseParam(textEle.Content)
 	if len(params) >= 2 {
 		if indexList := parseIndexList(params); len(indexList) > 0 {
@@ -478,7 +484,7 @@ func (bot *CQBot) ReportGoldPriceFluctuation(groups []int64, isGroup bool) {
 		return
 	} else {
 		if _lastPrice_, err := strconv.ParseFloat(_lastPrice, 64); err != nil {
-			log.Warnf("convert str format 【last gold price】：【%s】 to decimal failed:%s", _lastPrice_, err.Error())
+			log.Warnf("convert str format 【last gold price】：【%.2f】 to decimal failed:%s", _lastPrice_, err.Error())
 			return
 		} else {
 			lastPrice = _lastPrice_

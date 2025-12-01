@@ -258,6 +258,8 @@ func (bot *CQBot) uploadMedia(target message.Source, elements []message.IMessage
 		source = "私聊"
 	case message.SourceGuildChannel:
 		source = "频道"
+	default:
+		log.Warnf("Unhandled type:%+v", target.SourceType)
 	}
 
 	for i, m := range elements {

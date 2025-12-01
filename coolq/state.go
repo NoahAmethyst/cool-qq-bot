@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
-	bingchat_api "github.com/NoahAmethyst/bingchat-api"
+	bingchatapi "github.com/NoahAmethyst/bingchat-api"
 	"github.com/NoahAmethyst/go-cqhttp/constant"
 	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
 	"github.com/NoahAmethyst/go-cqhttp/util/encrypt"
 	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
-	go_ernie "github.com/anhao/go-ernie"
+	goernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 
@@ -237,13 +237,13 @@ type AiAssistantSession struct {
 	parentId      map[int64]string
 	//bingchat
 	bingChan     map[int64]chan struct{}
-	conversation map[int64]bingchat_api.IBingChat
+	conversation map[int64]bingchatapi.IBingChat
 	//chatgpt
 	chatgptChan map[int64]chan struct{}
 	openaiCtx   map[int64][]openai.ChatCompletionMessage
 	// ernie
 	ernieChan map[int64]chan struct{}
-	ernieCtx  map[int64][]go_ernie.ChatCompletionMessage
+	ernieCtx  map[int64][]goernie.ChatCompletionMessage
 
 	sync.RWMutex
 }
@@ -286,7 +286,7 @@ func (s *AiAssistantSession) delParentId(uid int64) {
 	delete(s.parentId, uid)
 }
 
-func (s *AiAssistantSession) putConversation(uid int64, conversation bingchat_api.IBingChat) {
+func (s *AiAssistantSession) putConversation(uid int64, conversation bingchatapi.IBingChat) {
 	s.Lock()
 	defer s.Unlock()
 	if s.conversation[uid] == nil {
@@ -308,7 +308,7 @@ func (s *AiAssistantSession) putConversation(uid int64, conversation bingchat_ap
 	s.bingChan[uid] <- struct{}{}
 }
 
-func (s *AiAssistantSession) getConversation(uid int64) bingchat_api.IBingChat {
+func (s *AiAssistantSession) getConversation(uid int64) bingchatapi.IBingChat {
 	s.RLock()
 	defer s.RUnlock()
 	return s.conversation[uid]
@@ -375,15 +375,15 @@ func (s *AiAssistantSession) putErnieCtx(uid int64, msg, resp string) {
 	s.Lock()
 	defer s.Unlock()
 	if s.ernieCtx[uid] == nil {
-		s.ernieCtx[uid] = make([]go_ernie.ChatCompletionMessage, 0, 8)
+		s.ernieCtx[uid] = make([]goernie.ChatCompletionMessage, 0, 8)
 	}
-	s.ernieCtx[uid] = append(s.ernieCtx[uid], []go_ernie.ChatCompletionMessage{
+	s.ernieCtx[uid] = append(s.ernieCtx[uid], []goernie.ChatCompletionMessage{
 		{
-			Role:    go_ernie.MessageRoleUser,
+			Role:    goernie.MessageRoleUser,
 			Content: msg,
 		},
 		{
-			Role:    go_ernie.MessageRoleAssistant,
+			Role:    goernie.MessageRoleAssistant,
 			Content: resp,
 		},
 	}...)
@@ -404,10 +404,10 @@ func (s *AiAssistantSession) putErnieCtx(uid int64, msg, resp string) {
 	s.ernieChan[uid] <- struct{}{}
 }
 
-func (s *AiAssistantSession) getErnieCtx(uid int64) []go_ernie.ChatCompletionMessage {
+func (s *AiAssistantSession) getErnieCtx(uid int64) []goernie.ChatCompletionMessage {
 	s.RLock()
 	defer s.RUnlock()
-	ctx := make([]go_ernie.ChatCompletionMessage, len(s.ernieCtx[uid]))
+	ctx := make([]goernie.ChatCompletionMessage, len(s.ernieCtx[uid]))
 	copy(ctx, s.ernieCtx[uid])
 	return ctx
 }
@@ -434,22 +434,22 @@ func (bot *CQBot) initState() {
 					assistantChan: map[int64]chan string{},
 					parentId:      map[int64]string{},
 					bingChan:      map[int64]chan struct{}{},
-					conversation:  map[int64]bingchat_api.IBingChat{},
+					conversation:  map[int64]bingchatapi.IBingChat{},
 					chatgptChan:   map[int64]chan struct{}{},
 					openaiCtx:     map[int64][]openai.ChatCompletionMessage{},
 					ernieChan:     map[int64]chan struct{}{},
-					ernieCtx:      map[int64][]go_ernie.ChatCompletionMessage{},
+					ernieCtx:      map[int64][]goernie.ChatCompletionMessage{},
 					RWMutex:       sync.RWMutex{},
 				},
 				privateDialogueSession: &AiAssistantSession{
 					assistantChan: map[int64]chan string{},
 					parentId:      map[int64]string{},
 					bingChan:      map[int64]chan struct{}{},
-					conversation:  map[int64]bingchat_api.IBingChat{},
+					conversation:  map[int64]bingchatapi.IBingChat{},
 					chatgptChan:   map[int64]chan struct{}{},
 					openaiCtx:     map[int64][]openai.ChatCompletionMessage{},
 					ernieChan:     map[int64]chan struct{}{},
-					ernieCtx:      map[int64][]go_ernie.ChatCompletionMessage{},
+					ernieCtx:      map[int64][]goernie.ChatCompletionMessage{},
 					RWMutex:       sync.RWMutex{},
 				},
 			}

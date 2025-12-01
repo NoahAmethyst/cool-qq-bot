@@ -2,15 +2,16 @@ package coolq
 
 import (
 	"fmt"
-	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
-	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
-	go_ernie "github.com/anhao/go-ernie"
-	"github.com/sashabaranov/go-openai"
-	log "github.com/sirupsen/logrus"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
+	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
+	goernie "github.com/anhao/go-ernie"
+	"github.com/sashabaranov/go-openai"
+	log "github.com/sirupsen/logrus"
 )
 
 var chatModelHandlers map[ai_util.ChatModel]func(assistant Assistant, recvChan chan struct{})
@@ -394,12 +395,12 @@ func askErnie(assistant Assistant, recvChan chan struct{}) {
 	defer close(recvChan)
 	textEle := assistant.GetText()
 	ctx := assistant.Session().getErnieCtx(assistant.Sender())
-	msg := go_ernie.ChatCompletionMessage{
-		Role:    go_ernie.MessageRoleUser,
+	msg := goernie.ChatCompletionMessage{
+		Role:    goernie.MessageRoleUser,
 		Content: textEle.Content,
 	}
 	if len(ctx) == 0 {
-		ctx = []go_ernie.ChatCompletionMessage{
+		ctx = []goernie.ChatCompletionMessage{
 			msg,
 		}
 	} else {
