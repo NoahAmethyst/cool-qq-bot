@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
-	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
 	"github.com/NoahAmethyst/go-cqhttp/util/finance"
 	"github.com/pkg/errors"
 	log "github.com/sirupsen/logrus"
@@ -78,30 +76,38 @@ func calculateKelly(b, l, p float64) (float64, error) {
 }
 
 func (bot *CQBot) goldPriceForPrivate(privateMessage *message.PrivateMessage) {
-	if response, err := spider_svc.Finance(spider_pb.FinanceType_GOLD, "", ""); err != nil {
+
+	if _price, err := finance.GetGoldPrice(); err != nil {
 		log.Errorf("获取最新金价失败：%s", err.Error())
 		bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
 			&message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewText("获取最新金价失败，请查看日志")}})
 	} else {
+		GOLD_PRICE_KEY := "last_gold_price"
 		bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
 			&message.SendingMessage{Elements: []message.IMessageElement{
-				message.NewText(fmt.Sprintf("今日最新金价：%.2f", response.FloatValue))}})
+				message.NewText(fmt.Sprintf("今日最新金价：%.2f", _price))}})
+		bot.state.globalState.Set(GOLD_PRICE_KEY, strconv.FormatFloat(float64(_price), 'f', -1, 32))
+		log.Infof("Update gold price【%.2f】to bot global state.", _price)
 	}
 
 }
 
 func (bot *CQBot) goldPriceForGroup(groupMessage *message.GroupMessage) {
+
 	if _price, err := finance.GetGoldPrice(); err != nil {
 		log.Errorf("获取最新金价失败：%s", err.Error())
 		bot.SendGroupMessage(groupMessage.GroupCode,
 			&message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewText("获取最新金价失败，请查看日志")}})
 	} else {
+		GOLD_PRICE_KEY := "last_gold_price"
 		bot.SendGroupMessage(groupMessage.GroupCode,
 			&message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewReply(groupMessage),
 				message.NewText(fmt.Sprintf("今日最新金价：%.2f", _price))}})
+		bot.state.globalState.Set(GOLD_PRICE_KEY, strconv.FormatFloat(float64(_price), 'f', -1, 32))
+		log.Infof("Update gold price【%.2f】to bot global state.", _price)
 	}
 }
 
