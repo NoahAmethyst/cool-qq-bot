@@ -388,7 +388,6 @@ func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	}
 	recvChan <- struct{}{}
 	assistant.Reply(answer)
-
 }
 
 func askErnie(assistant Assistant, recvChan chan struct{}) {
@@ -409,7 +408,6 @@ func askErnie(assistant Assistant, recvChan chan struct{}) {
 
 	var answer string
 	resp, err := ai_util.AskErnie(ctx)
-
 	if err != nil {
 		answer = fmt.Sprintf("调用 %s 失败：%s", ai_util.AIAssistantAttributions[ai_util.Ernie].Name, err.Error())
 	} else {

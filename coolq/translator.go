@@ -2,12 +2,13 @@ package coolq
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/NoahAmethyst/go-cqhttp/util/trans"
 	translator_engine "github.com/NoahAmethyst/translator-engine"
 	log "github.com/sirupsen/logrus"
-	"regexp"
-	"strings"
 )
 
 type Translator interface {
