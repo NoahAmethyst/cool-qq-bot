@@ -429,6 +429,7 @@ func (bot *CQBot) initState() {
 				owner:          owner,
 				reportState:    initReportState(),
 				sentNews:       initSentNews(),
+				globalState:    initGlobalState(),
 				assistantModel: initAssistantModel(),
 				groupDialogueSession: &AiAssistantSession{
 					assistantChan: map[int64]chan string{},
@@ -509,6 +510,26 @@ func initSentNews() *sentNews {
 		_sentNews.SentList = data
 	}
 	return &_sentNews
+}
+
+func initGlobalState() *globalState {
+	_globalState := globalState{
+		Data:    map[string]string{},
+		RWMutex: sync.RWMutex{},
+	}
+	data := make(map[string]string)
+	path := file_util.GetFileRoot()
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/global_state.json", path), &data); err != nil {
+		log.Info("retry load global_state json from tencent cos")
+		_err := file_util.TCCosDownload("cache", "global_state.json", fmt.Sprintf("%s/%s", path, "global_state.json"))
+		if _err == nil {
+			_ = file_util.LoadJsonFile(fmt.Sprintf("%s/global_state.json", path), &data)
+		}
+	}
+	if len(data) > 0 {
+		_globalState.Data = data
+	}
+	return &_globalState
 }
 
 func initAssistantModel() *assistantModel {
