@@ -9,6 +9,7 @@ import (
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
 	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
+	"github.com/NoahAmethyst/go-cqhttp/util/content_util"
 	goernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
@@ -36,9 +37,22 @@ type PrivateAssistant struct {
 }
 
 func (p *PrivateAssistant) Reply(msg string) {
-	p.bot.SendPrivateMessage(p.Chat(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
-		message.NewText(
-			msg)}})
+	_splittedMsg := content_util.SplitLongMessage(msg, 1000) // 每1000字符分割一次
+	for i, _msg := range _splittedMsg {
+		// 添加分页标识
+		pageMsg := _msg
+		dormant := false
+		if len(_msg) > 1 {
+			pageMsg = fmt.Sprintf("【%d/%d】\n%s", i+1, len(_msg), msg)
+			dormant = true
+		}
+		p.bot.SendPrivateMessage(p.Chat(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
+			message.NewText(
+				pageMsg)}})
+		if dormant {
+			time.Sleep(1 * time.Second) // 每条消息间隔1秒
+		}
+	}
 }
 
 func (p *PrivateAssistant) Bot() *CQBot {
