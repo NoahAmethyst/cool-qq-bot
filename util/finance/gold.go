@@ -7,9 +7,15 @@ import (
 )
 
 func GetGoldPrice() (float32, error) {
+	goldPrice := float32(0)
 	resp, err := spider_svc.Finance(spider_pb.FinanceType_GOLD, "", "")
 	if err != nil {
 		log.Errorf("Get gold price error:%s", err.Error())
 	}
-	return resp.FloatValue, err
+	if resp == nil {
+		log.Errorf("Get nil resp from spider svc")
+	} else {
+		goldPrice = resp.FloatValue
+	}
+	return goldPrice, err
 }

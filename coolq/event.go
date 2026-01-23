@@ -211,7 +211,16 @@ func (bot *CQBot) guildChannelMessageEvent(c *client.QQClient, m *message.GuildC
 		PrimaryID:   int64(m.GuildId),
 		SecondaryID: int64(m.ChannelId),
 	}
-	log.Infof("收到来自频道 %v(%v) 子频道 %v(%v) 内 %v(%v) 的消息: %v", guild.GuildName, guild.GuildId, channel.ChannelName, m.ChannelId, m.Sender.Nickname, m.Sender.TinyId, toStringMessage(m.Elements, source))
+	log.Infof(
+		"收到来自频道 %v(%v) 子频道 %v(%v) 内 %v(%v) 的消息: %v",
+		guild.GuildName,
+		guild.GuildId,
+		channel.ChannelName,
+		m.ChannelId,
+		m.Sender.Nickname,
+		m.Sender.TinyId,
+		toStringMessage(m.Elements, source),
+	)
 	id := bot.InsertGuildChannelMessage(m)
 	ev := bot.event("message/guild/channel", global.MSG{
 		"guild_id":     fU64(m.GuildId),
