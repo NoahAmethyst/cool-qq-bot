@@ -308,50 +308,6 @@ func askBingCopilot(assistant Assistant, _ chan struct{}) {
 
 }
 
-func askBingChat(assistant Assistant, recvChan chan struct{}) {
-	defer close(recvChan)
-	var err error
-	bingChatCli := assistant.Session().getConversation(assistant.Sender())
-	if bingChatCli == nil {
-		bingChatCli, err = ai_util.NewBingChat()
-	}
-	if err != nil {
-		assistant.Reply(fmt.Sprintf("创建 %s 会话失败:%s", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name, err.Error()))
-		return
-	}
-	answer, err := ai_util.AskBingChat(bingChatCli, assistant.GetText().Content)
-	recvChan <- struct{}{}
-	if err != nil {
-		assistant.Reply(fmt.Sprintf("询问 %s失败:%s", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name, err.Error()))
-		assistant.Session().closeConversation(assistant.Sender())
-		return
-	}
-	var strBuilder strings.Builder
-	strBuilder.WriteString(answer.Answer)
-
-	if len(answer.Reference) > 0 {
-		strBuilder.WriteString("\n\n参考资料:")
-	}
-	for title, link := range answer.Reference {
-		strBuilder.WriteString(fmt.Sprintf("\n%s %s", title, link))
-	}
-
-	if len(answer.Suggestions) > 0 {
-		strBuilder.WriteString("\n\n您也可以这样提问")
-	}
-	for i, suggest := range answer.Suggestions {
-		strBuilder.WriteString(fmt.Sprintf("\n%d: %s", i+1, suggest))
-	}
-
-	assistant.Session().putConversation(assistant.Sender(), bingChatCli)
-
-	if len(strBuilder.String()) > 0 {
-		assistant.Reply(strings.ReplaceAll(strBuilder.String(), "*", ""))
-	} else {
-		assistant.Reply(fmt.Sprintf("%s 响应超时", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name))
-	}
-}
-
 func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
 	defer close(recvChan)
 	textEle := assistant.GetText()
