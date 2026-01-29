@@ -492,7 +492,7 @@ func (bot *CQBot) ReportGoldPriceFluctuation(groups []int64, isGroup bool) {
 	}
 
 	if fluctuation := float64(price) / lastPrice; fluctuation > 0.9 && fluctuation < 1.1 {
-		log.Infof("last gold price is %.2f,latest gold price is %.2f ,fluctuation is %.2f under 10%.", price, lastPrice, fluctuation)
+		log.Infof("last gold price is %.2f,latest gold price is %.2f ,fluctuation is %.2f under 10%%", price, lastPrice, fluctuation)
 	} else {
 		content := fmt.Sprintf("最近金价为：%.2f，相比上一次金价（%.2f）,价格波动波动为%.2f，请注意风险", price, lastPrice, 1-fluctuation)
 		bot.state.globalState.Set(GOLD_PRICE_KEY, strconv.FormatFloat(float64(price), 'f', -1, 32))
