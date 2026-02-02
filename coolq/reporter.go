@@ -476,6 +476,10 @@ func (bot *CQBot) ReportGoldPriceFluctuation(groups []int64, isGroup bool) {
 		log.Errorf("获取最新金价失败:%s", err.Error())
 		return
 	}
+	if price == 0 {
+		log.Errorf("获取最新金价失败:金价为0")
+		return
+	}
 	lastPrice := float64(0)
 	if _lastPrice, ok := bot.state.globalState.GetData(GOLD_PRICE_KEY); !ok {
 		log.Warnf("No last gold price found in bot global state")
