@@ -2,11 +2,12 @@ package ai_util
 
 import (
 	"context"
-	openai "github.com/sashabaranov/go-openai"
+
+	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 )
 
-const deepSeekChat = "deepseek-chat"
+const deepSeekChat = "deepseek-v4-flash"
 const deepSeekBaseUrl = "https://api.deepseek.com"
 
 func AskDeepSeek(ctx []openai.ChatCompletionMessage) (openai.ChatCompletionResponse, error) {

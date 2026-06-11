@@ -20,10 +20,10 @@ require (
 	github.com/mattn/go-colorable v0.1.13
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron v1.2.0
-	github.com/sashabaranov/go-openai v1.17.7
+	github.com/sashabaranov/go-openai v1.41.2
 	github.com/segmentio/asm v1.1.3
 	github.com/sirupsen/logrus v1.9.3
-	github.com/stretchr/testify v1.8.4
+	github.com/stretchr/testify v1.10.0
 	github.com/syndtr/goleveldb v1.0.1-0.20210819022825-2ae1ddf74ef7
 	github.com/tencentyun/cos-go-sdk-v5 v0.7.41
 	github.com/tidwall/gjson v1.14.3
@@ -62,6 +62,7 @@ require (
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/fsnotify/fsnotify v1.7.0 // indirect
 	github.com/fumiama/imgsz v0.0.2 // indirect
+	github.com/go-deepseek/deepseek v0.8.0 // indirect
 	github.com/go-stack/stack v1.8.0 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.4 // indirect

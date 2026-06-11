@@ -3,13 +3,13 @@ package ai_util
 import (
 	"context"
 	"fmt"
+	"os"
+	"sync"
+
 	"github.com/NoahAmethyst/go-cqhttp/constant"
 	go_ernie "github.com/anhao/go-ernie"
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
-	"os"
-	"sync"
-	"time"
 )
 
 var AIAssistantAttributions map[ChatModel]AIAssistantAttribution
@@ -80,7 +80,6 @@ func setCli() {
 			} else {
 				openaiProxy := os.Getenv(constant.OPENAI_PROXY)
 				config := openai.DefaultConfig(openaiKey)
-				config.HTTPClient.Timeout = time.Minute * 120
 				config.BaseURL = fmt.Sprintf("https://%s/v1", openaiProxy)
 				openaiCli = openai.NewClientWithConfig(config)
 			}
@@ -92,7 +91,6 @@ func setCli() {
 		if len(chimeraKey) > 0 {
 			log.Info("init ChiemraGpt client")
 			config := openai.DefaultConfig(chimeraKey)
-			config.HTTPClient.Timeout = time.Minute * 120
 			config.BaseURL = "https://chimeragpt.adventblocks.cc/api/v1"
 			chimeraCli = openai.NewClientWithConfig(config)
 		}
@@ -110,7 +108,6 @@ func setCli() {
 		if len(deepSeekApiKey) > 0 {
 			log.Info("init DeepSeek client")
 			config := openai.DefaultConfig(deepSeekApiKey)
-			config.HTTPClient.Timeout = time.Minute * 120
 			config.BaseURL = deepSeekBaseUrl
 			deepSeekCli = openai.NewClientWithConfig(config)
 		}
