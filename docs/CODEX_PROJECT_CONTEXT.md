@@ -2,18 +2,18 @@
 
 ## Purpose and scope
 
-This repository is a customized QQ bot built on the go-cqhttp codebase and MiraiGo client. This document is a fast navigation baseline for Codex: it points to the modules, interfaces, runtime flow, and deployment artifacts that matter most. Source code remains authoritative. Repository configuration describes intended deployment, but any statement about the current Kubernetes context, workload health, image, or logs must be verified with read-only checks against the live cluster.
+This repository is a customized QQ bot built on the go-cqhttp codebase and MiraiGo client. This document is a fast navigation baseline for Codex: it points to the modules, interfaces, runtime flow, and deployment artifacts that matter most. Source code remains authoritative. Tracked automation and the local deployment manifest describe deployment intent, but any statement about the current Kubernetes context, workload health, image, or logs must be verified with read-only checks against the live cluster.
 
 ## User-facing capabilities
 
 - Login supports a configured password, a cached session token, or a QR code, followed by token-based and normal-login reconnect paths.
 - Group and private messages share a `#`-command experience. The bot also exposes OneBot-style HTTP calls and event posts, forward WebSocket and reverse WebSocket transports, and a QQBot gRPC interface with `SendMsg`, `Self`, `Friends`, and `Groups`.
-- On-demand news covers Weibo, 36Kr, Wall Street CN, Caixin, and Zhihu. Scheduled reporters currently cover Weibo, 36Kr, Wall Street CN, and Caixin at different cron frequencies, plus a daily summary; Zhihu is on-demand in the current job registration. Users can enable or disable scheduled delivery for a group or private chat.
+- On-demand news covers Weibo, 36Kr, Wall Street CN, Caixin, and Zhihu. Scheduled reporters currently cover Weibo, 36Kr, Wall Street CN, and Caixin at different cron frequencies, plus a daily summary. `GoldFluctuationReporter` runs hourly, at minute 30, for gold-price fluctuation delivery. Zhihu is on-demand in the current job registration. Users can enable or disable scheduled delivery for a group or private chat.
 - Finance and calculation features include cryptocurrency prices, gold prices and fluctuation reports, exchange rates, mathematical expressions, and the Kelly strategy.
 - Translation rotates across the translation adapters that initialized successfully.
 - Assistant modes include ChatGPT, GPT-4, Bing Copilot, Baidu Qianfan/Ernie, and DeepSeek. Model selection is stored per user, while short-lived conversation context is kept in memory per user and separately for group and private chats.
 - State is stored in local JSON, synchronized to Tencent COS where implemented, and optionally in LevelDB for message history and reply/recall context.
-- AI image generation has a complete shared implementation and group/private adapters, but the image command is commented out of both current command lists, so it is not enabled by default.
+- AI image generation has a complete shared implementation and group/private adapters. `CMDImage` is omitted from both group/private help command lists, so it is not advertised by bare-`#` help, but both handler maps still register it and direct `#图片` remains callable. Command visibility and callability are therefore different.
 
 ## Repository map
 
@@ -31,7 +31,8 @@ This repository is a customized QQ bot built on the go-cqhttp codebase and Mirai
 | `db/` | Persistence interfaces, multi-backend coordination, LevelDB adapter, and an available but not default-registered MongoDB implementation. |
 | `util/` | Cron, news sources and daily records, finance, AI clients, translation rotation, math, file/COS, HTTP, encryption, and content helpers. |
 | `internal/`, `global/` | Internal cache, B-tree, update/diagnosis, flags/version and shared filesystem, network, logging, signal, buffer, parameter, and codec helpers. |
-| `.github/workflows/`, `Dockerfile`, `qq_bot.yml` | Container build/push automation, pod-refresh automation, runtime image definition, and Kubernetes Deployment/Service declaration. |
+| `.github/workflows/`, `Dockerfile` | Tracked container build/push automation, pod-refresh automation, and runtime image definition. |
+| `qq_bot.yml` | Local, untracked, potentially sensitive Kubernetes Deployment/Service manifest in the primary workspace. It is absent from current Git history and will not exist in a fresh clone. |
 
 ## Startup and runtime flow
 
@@ -59,7 +60,7 @@ The following terms use the codebase-design vocabulary: a **module** presents an
 
 - `modules/servers` is the seam between configured transport modules and `coolq.CQBot`. Registration keeps transport selection out of the bot; `server` supplies HTTP/reverse-HTTP, forward-WebSocket, and reverse-WebSocket adapters.
 - `modules/api.Caller` is the seam from a transport's `Getter` plus middleware chain to generated `CQBot` calls. Rate limiting and long polling are adapters at that middleware seam.
-- `db.Database` is the persistence seam. Enabled adapters all receive writes, while reads intentionally use the first configured adapter. LevelDB is registered by the blank import in `main.go` but is still enabled or disabled by configuration. MongoDB code exists, while its `main.go` blank import remains commented out.
+- `db.Database` is the persistence seam. Enabled adapters all receive writes, while reads use `backends[0]`. Driver registration and initialization traverse a Go map, so with multiple enabled adapters the first backend is not guaranteed to match configuration order. LevelDB is registered by the blank import in `main.go` but is still enabled or disabled by configuration. MongoDB code exists, while its `main.go` blank import remains commented out.
 - `Assistant`, `Translator`, `Calculator`, and `ImgGenerator` are shared feature interfaces. Their group and private adapters isolate chat-specific extraction and reply behavior while reusing one implementation, providing leverage and locality.
 - `bot_service.BotService` implements the QQBot gRPC methods `SendMsg`, `Self`, `Friends`, and `Groups` over the active `CQBot`.
 - `cluster/spider_svc` is a wrapper module over the generated Spider client. It is the call seam used by news, finance, and Bing Copilot features.
@@ -68,7 +69,7 @@ The following terms use the codebase-design vocabulary: a **module** presents an
 
 `config.yml` contains account and reconnect behavior, heartbeat, message formatting and handling, output/logging, default transport middleware, database settings, and the configured HTTP/WebSocket transport list. `modules/config` expands both `${NAME}` and `${NAME:default}` before YAML decoding; the default is used only when the named environment variable is empty.
 
-The Kubernetes manifest declares these host-path mounts:
+The primary workspace's local `qq_bot.yml` declares these host-path mounts. The file is untracked, absent from current Git history, and potentially sensitive; treat the table as a description of that local snapshot and re-verify the file before any deployment operation:
 
 | Host path | Container path | Purpose |
 | --- | --- | --- |
@@ -89,16 +90,16 @@ Sensitive inputs belong in runtime configuration or secret stores, never in this
 - `.github/workflows/docker.yml` runs `Docker Image CI` for pushes to `master` except README-only changes, and for pull requests targeting `master`. It sets up QEMU and Buildx, logs in with repository Secrets, builds `linux/amd64`, and pushes `registry.cn-hangzhou.aliyuncs.com/lexmargin/qq-bot:latest`.
 - `.github/workflows/update_pod.yml` runs after the `Docker Image CI` workflow reaches the `completed` event and calls `NoahAmethyst/kuber-opt-action@v1.0.0` with `delete-pod` for app `qq-bot`. It does **not** check `workflow_run.conclusion == 'success'`, so a completed failed build can still trigger pod deletion.
 - `Dockerfile` builds the Go binary in an Alpine-based multi-stage image, exposes 8888, and runs `/opt/go-cqhttp`.
-- `qq_bot.yml` declares a one-replica `qq-bot` Deployment using `imagePullPolicy: Always`, the `aliyun-docker-register` pull secret, the host-path mounts above, and a NodePort Service. It also declares the outbound `SPIDER_SERVICE_ADDR`; the RPC code constructs the same name from `SPIDER` plus `_SERVICE_ADDR`.
+- The local, untracked `qq_bot.yml` snapshot declares a one-replica `qq-bot` Deployment using `imagePullPolicy: Always`, the `aliyun-docker-register` pull secret, the host-path mounts above, and a NodePort Service. It also declares the outbound `SPIDER_SERVICE_ADDR`; the RPC code constructs the same name from `SPIDER` plus `_SERVICE_ADDR`. These are local-manifest facts, not versioned repository guarantees: the file is absent from current Git history and a fresh clone, may contain sensitive deployment data, and must be re-verified before use.
 
 ## Ports and runtime addresses
 
 | Container/Service port | NodePort | Intended role |
 | --- | --- | --- |
-| `8888` | `30088` | Manifest-declared bot/OneBot-facing port. |
-| `9090` | `30091` | QQBot gRPC server started by `cluster.StartServer`. |
+| `8888` | `30088` | Local-manifest-declared bot/OneBot-facing port. |
+| `9090` | `30091` | Local-manifest mapping for the QQBot gRPC server started by `cluster.StartServer`. |
 
-The manifest and Dockerfile expose 8888, but they do not prove that an OneBot HTTP or WebSocket adapter listens there. Actual OneBot listeners and reverse targets are determined by the mounted `config.yml` and must be checked at runtime. Spider is outbound gRPC; its address comes from `SPIDER_SERVICE_ADDR`.
+The tracked Dockerfile exposes 8888, while the port and NodePort mappings above come from the local, untracked `qq_bot.yml` snapshot and require re-verification before operations. Neither artifact proves that an OneBot HTTP or WebSocket adapter listens on 8888. Actual OneBot listeners and reverse targets are determined by the mounted `config.yml` and must be checked at runtime. Spider is outbound gRPC; its address comes from `SPIDER_SERVICE_ADDR`.
 
 ## Tests and verification boundaries
 
@@ -110,7 +111,7 @@ Before reporting live health, perform read-only checks for the current kube cont
 
 ## Maintenance rules
 
-- Update this document when code ownership, active event subscriptions, commands, scheduled jobs, state formats, persistence adapters, ports, workflows, image names, or Kubernetes manifests change.
+- Update this document when code ownership, active event subscriptions, commands, scheduled jobs, state formats, persistence adapters, ports, workflows, image names, or local Kubernetes manifests change.
 - Keep repository facts separate from dated live observations. Re-verify the cluster before making any operational claim.
 - Never add passwords, tokens, cookies, QQ identifiers, QR codes, API key values, cloud credential values, or copied secret payloads.
-- Preserve exact artifact names, especially `qq_bot.yml`, and keep listener claims tied to `config.yml` rather than inferring them from exposed ports alone.
+- If the local deployment manifest is retained, preserve its exact name `qq_bot.yml`, but do not imply that it is versioned until Git actually tracks it. Re-verify the potentially sensitive local file before operations, and keep listener claims tied to `config.yml` rather than inferring them from exposed ports alone.
