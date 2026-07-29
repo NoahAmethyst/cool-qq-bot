@@ -83,12 +83,9 @@ func (bot *CQBot) goldPriceForPrivate(privateMessage *message.PrivateMessage) {
 			&message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewText("获取最新金价失败，请查看日志")}})
 	} else {
-		GOLD_PRICE_KEY := "last_gold_price"
 		bot.SendPrivateMessage(privateMessage.Sender.Uin, 0,
 			&message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewText(fmt.Sprintf("今日最新金价：%.2f", _price))}})
-		bot.state.globalState.Set(GOLD_PRICE_KEY, strconv.FormatFloat(float64(_price), 'f', -1, 32))
-		log.Infof("Update gold price【%.2f】to bot global state.", _price)
 	}
 
 }
@@ -101,13 +98,10 @@ func (bot *CQBot) goldPriceForGroup(groupMessage *message.GroupMessage) {
 			&message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewText("获取最新金价失败，请查看日志")}})
 	} else {
-		GOLD_PRICE_KEY := "last_gold_price"
 		bot.SendGroupMessage(groupMessage.GroupCode,
 			&message.SendingMessage{Elements: []message.IMessageElement{
 				message.NewReply(groupMessage),
 				message.NewText(fmt.Sprintf("今日最新金价：%.2f", _price))}})
-		bot.state.globalState.Set(GOLD_PRICE_KEY, strconv.FormatFloat(float64(_price), 'f', -1, 32))
-		log.Infof("Update gold price【%.2f】to bot global state.", _price)
 	}
 }
 

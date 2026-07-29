@@ -17,6 +17,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 - On-demand news covers Weibo, 36Kr, Wall Street CN, Caixin, and Zhihu. Scheduled reporters cover Weibo, 36Kr, Wall Street CN, and Caixin; gold fluctuation delivery runs hourly at minute 30. Zhihu remains on-demand.
 - Private chats expose `#天气 城市` to set a daily 08:00 weather push, `#天气` to inspect it, and `#天气 关闭` to cancel it. Group chats do not list or handle the weather command.
 - Finance and calculation features include cryptocurrency prices, gold prices, exchange rates, mathematical expressions, and the Kelly strategy.
+- The hourly gold reporter fetches one price per run, compares it with the previous scheduled observation, records every valid observation, and fans a 10%-or-greater rise/fall alert out to both group and private report subscribers. Overlapping runs are skipped, invalid or non-finite prices do not change the baseline, and manual `#黄金` queries do not change the scheduled comparison baseline.
 - Translation rotates across the translation adapters that initialized successfully.
 - Jarvis gRPC is the only text-assistant/model path. OpenAI is retained only for DALL·E 3 image generation.
 - State is stored in local JSON, synchronized to Tencent COS where implemented, and optionally in LevelDB for message history and reply/recall context.

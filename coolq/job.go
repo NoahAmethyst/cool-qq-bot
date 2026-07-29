@@ -113,9 +113,8 @@ func (bot *CQBot) GoldFluctuationReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
 			groupIds := bot.state.reportState.getReportList(true)
-			bot.ReportGoldPriceFluctuation(groupIds, true)
 			privateIds := bot.state.reportState.getReportList(false)
-			bot.ReportGoldPriceFluctuation(privateIds, false)
+			bot.ReportGoldPriceFluctuation(groupIds, privateIds)
 		},
 		Corn:  corn,
 		Model: top_list.WallStreet,

@@ -31,8 +31,9 @@ import (
 type CQBot struct {
 	Client *client.QQClient
 
-	lock   sync.RWMutex
-	events []func(*Event)
+	lock         sync.RWMutex
+	goldReportMu sync.Mutex
+	events       []func(*Event)
 
 	friendReqCache   syncx.Map[string, *client.NewFriendRequest]
 	tempSessionCache syncx.Map[int64, *client.TempSessionInfo]

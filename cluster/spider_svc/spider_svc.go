@@ -2,6 +2,7 @@ package spider_svc
 
 import (
 	"context"
+	"errors"
 
 	"github.com/NoahAmethyst/go-cqhttp/cluster/rpc"
 	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
@@ -72,6 +73,12 @@ func Finance(finance_type spider_pb.FinanceType, _from string, _to string) (*spi
 	})
 	if err != nil {
 		log.Errorf("Call Finance failed:%s", err.Error())
+		return nil, err
 	}
-	return resp.FinanceResp, err
+	if resp == nil || resp.FinanceResp == nil {
+		err = errors.New("finance response is empty")
+		log.Errorf("Call Finance failed:%s", err.Error())
+		return nil, err
+	}
+	return resp.FinanceResp, nil
 }

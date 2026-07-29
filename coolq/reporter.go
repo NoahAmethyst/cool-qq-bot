@@ -2,6 +2,7 @@ package coolq
 
 import (
 	"fmt"
+	"math"
 	"regexp"
 	"sort"
 	"strconv"
@@ -516,46 +517,97 @@ func (bot *CQBot) sendWallStreetSummaryMessage(id int64, isGroup bool, content s
 	bot.SendPrivateMessage(id, 0, sendingMessage)
 }
 
-func (bot *CQBot) ReportGoldPriceFluctuation(groups []int64, isGroup bool) {
-	GOLD_PRICE_KEY := "last_gold_price"
+func goldPriceFluctuation(lastPrice, latestPrice float64) (float64, bool) {
+	if lastPrice <= 0 || latestPrice <= 0 {
+		return 0, false
+	}
+	percentage := (latestPrice - lastPrice) / lastPrice * 100
+	const float32PercentageTolerance = 0.0001
+	return percentage, math.Abs(percentage)+float32PercentageTolerance >= 10
+}
+
+type goldPriceAlertSender interface {
+	SendGroupMessage(int64, *message.SendingMessage) int32
+	SendPrivateMessage(int64, int64, *message.SendingMessage) int32
+}
+
+func sendGoldPriceAlert(sender goldPriceAlertSender, groupIDs, privateIDs []int64, content string) {
+	for _, id := range groupIDs {
+		sender.SendGroupMessage(id, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+	}
+	for _, id := range privateIDs {
+		sender.SendPrivateMessage(id, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
+	}
+}
+
+func (bot *CQBot) reportGoldPriceFluctuation(
+	groupIDs, privateIDs []int64,
+	sender goldPriceAlertSender,
+) {
+	const goldPriceKey = "last_gold_price"
+
 	price, err := finance.GetGoldPrice()
 	if err != nil {
 		log.Errorf("获取最新金价失败:%s", err.Error())
 		return
 	}
-	if price == 0 {
-		log.Errorf("获取最新金价失败:金价为0")
+	if price <= 0 || math.IsNaN(float64(price)) || math.IsInf(float64(price), 0) {
+		log.Errorf("获取最新金价失败:金价必须大于0，实际为%.2f", price)
 		return
-	}
-	lastPrice := float64(0)
-	if _lastPrice, ok := bot.state.globalState.GetData(GOLD_PRICE_KEY); !ok {
-		log.Warnf("No last gold price found in bot global state")
-		bot.state.globalState.Set(GOLD_PRICE_KEY, strconv.FormatFloat(float64(price), 'f', -1, 32))
-		log.Infof("Save gold price【%.2f】to bot global state.", price)
-		return
-	} else {
-		if _lastPrice_, err := strconv.ParseFloat(_lastPrice, 64); err != nil {
-			log.Warnf("convert str format 【last gold price】：【%.2f】 to decimal failed:%s", _lastPrice_, err.Error())
-			return
-		} else {
-			lastPrice = _lastPrice_
-		}
 	}
 
-	if fluctuation := float64(price) / lastPrice; fluctuation > 0.9 && fluctuation < 1.1 {
-		log.Infof("last gold price is %.2f,latest gold price is %.2f ,fluctuation is %.2f under 10%%", price, lastPrice, fluctuation)
-	} else {
-		content := fmt.Sprintf("最近金价为：%.2f，相比上一次金价（%.2f）,价格波动波动为%.2f，请注意风险", price, lastPrice, 1-fluctuation)
-		bot.state.globalState.Set(GOLD_PRICE_KEY, strconv.FormatFloat(float64(price), 'f', -1, 32))
-		log.Infof("Update gold price【%.2f】to bot global state.", price)
-		for _, _id := range groups {
-			if isGroup {
-				bot.SendGroupMessage(_id, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
-			} else {
-				bot.SendPrivateMessage(_id, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
-			}
-		}
+	currentPrice := float64(price)
+	currentPriceText := strconv.FormatFloat(currentPrice, 'f', -1, 32)
+	lastPriceText, ok := bot.state.globalState.GetData(goldPriceKey)
+	if !ok {
+		log.Warn("No last gold price found in bot global state")
+		bot.state.globalState.Set(goldPriceKey, currentPriceText)
+		log.Infof("Save gold price【%.2f】to bot global state.", price)
+		return
 	}
+
+	lastPrice, err := strconv.ParseFloat(lastPriceText, 64)
+	if err != nil || lastPrice <= 0 || math.IsNaN(lastPrice) || math.IsInf(lastPrice, 0) {
+		log.Warnf("Invalid last gold price %q: %v; reset baseline to %.2f", lastPriceText, err, price)
+		bot.state.globalState.Set(goldPriceKey, currentPriceText)
+		return
+	}
+
+	percentage, shouldAlert := goldPriceFluctuation(lastPrice, currentPrice)
+	bot.state.globalState.Set(goldPriceKey, currentPriceText)
+	log.Infof("Update gold price【%.2f】to bot global state.", price)
+	if !shouldAlert {
+		log.Infof(
+			"last gold price is %.2f, latest gold price is %.2f, fluctuation is %.2f%% under 10%%",
+			lastPrice,
+			price,
+			percentage,
+		)
+		return
+	}
+
+	direction := "上涨"
+	if percentage < 0 {
+		direction = "下跌"
+	}
+	content := fmt.Sprintf(
+		"金价告警：最新金价为%.2f，相比上一次记录价格（%.2f）%s%.2f%%，请注意风险",
+		price,
+		lastPrice,
+		direction,
+		math.Abs(percentage),
+	)
+	sendGoldPriceAlert(sender, groupIDs, privateIDs, content)
+}
+
+func (bot *CQBot) ReportGoldPriceFluctuation(groupIDs, privateIDs []int64) {
+	if !bot.goldReportMu.TryLock() {
+		log.Warn("Skip overlapping gold price report")
+		return
+	}
+	defer bot.goldReportMu.Unlock()
+
+	bot.reportGoldPriceFluctuation(groupIDs, privateIDs, bot)
 }
 
 func getTextEle(eleList []message.IMessageElement) *message.TextElement {
