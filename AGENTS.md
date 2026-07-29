@@ -5,6 +5,7 @@
 - Before working in this repository, read `docs/CODEX_PROJECT_CONTEXT.md`.
 - Treat that document as navigation, not as a substitute for reading the source relevant to the current task.
 - Keep it synchronized when a change materially affects features, modules, runtime flows, CI/CD, or deployment.
+- For Jarvis gRPC integration, treat `/Users/amethyst/Jarvis/jarvis/api/grpc` as the authoritative Proto definition directory and inspect it before generating or updating Go stubs.
 
 ## Development and verification
 
