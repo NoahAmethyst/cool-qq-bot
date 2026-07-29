@@ -37,9 +37,54 @@ type Account struct {
 	AllowTempSession bool       `yaml:"allow-temp-session"`
 }
 
+// Jarvis Jarvis gRPC 服务配置
+type Jarvis struct {
+	GRPCTarget            string `yaml:"grpc-target"`
+	ConnectTimeoutSeconds int    `yaml:"connect-timeout-seconds"`
+	ChatTimeoutSeconds    int    `yaml:"chat-timeout-seconds"`
+	IngestTimeoutSeconds  int    `yaml:"ingest-timeout-seconds"`
+	SummaryTimeoutSeconds int    `yaml:"summary-timeout-seconds"`
+	WallStreetUserID      string `yaml:"wallstreet-user-id"`
+}
+
+// DefaultJarvis 返回 Jarvis 服务的默认配置。
+func DefaultJarvis() Jarvis {
+	return Jarvis{
+		GRPCTarget:            "jarvis:9090",
+		ConnectTimeoutSeconds: 10,
+		ChatTimeoutSeconds:    300,
+		IngestTimeoutSeconds:  60,
+		SummaryTimeoutSeconds: 600,
+		WallStreetUserID:      "go-cqhttp:wallstreet",
+	}
+}
+
+func (j Jarvis) validate() error {
+	if strings.TrimSpace(j.GRPCTarget) == "" {
+		return fmt.Errorf("jarvis.grpc-target 不能为空")
+	}
+	if strings.TrimSpace(j.WallStreetUserID) == "" {
+		return fmt.Errorf("jarvis.wallstreet-user-id 不能为空")
+	}
+	if j.ConnectTimeoutSeconds <= 0 {
+		return fmt.Errorf("jarvis.connect-timeout-seconds 必须为正数")
+	}
+	if j.ChatTimeoutSeconds <= 0 {
+		return fmt.Errorf("jarvis.chat-timeout-seconds 必须为正数")
+	}
+	if j.IngestTimeoutSeconds <= 0 {
+		return fmt.Errorf("jarvis.ingest-timeout-seconds 必须为正数")
+	}
+	if j.SummaryTimeoutSeconds <= 0 {
+		return fmt.Errorf("jarvis.summary-timeout-seconds 必须为正数")
+	}
+	return nil
+}
+
 // Config 总配置文件
 type Config struct {
 	Account   *Account `yaml:"account"`
+	Jarvis    Jarvis   `yaml:"jarvis"`
 	Heartbeat struct {
 		Disabled bool `yaml:"disabled"`
 		Interval int  `yaml:"interval"`
@@ -78,11 +123,14 @@ type Server struct {
 // Parse 从默认配置文件路径中获取
 func Parse(path string) *Config {
 	file, err := os.ReadFile(path)
-	config := &Config{}
+	config := &Config{Jarvis: DefaultJarvis()}
 	if err == nil {
 		err = yaml.NewDecoder(strings.NewReader(expand(string(file), os.Getenv))).Decode(config)
 		if err != nil {
 			log.Fatal("配置文件不合法!", err)
+		}
+		if err = config.Jarvis.validate(); err != nil {
+			log.Fatal("Jarvis 配置不合法: ", err)
 		}
 	} else {
 		generateConfig()

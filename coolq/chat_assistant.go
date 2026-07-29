@@ -2,20 +2,15 @@ package coolq
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/message"
-	"github.com/NoahAmethyst/go-cqhttp/cluster/spider_svc"
-	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
+	"github.com/NoahAmethyst/go-cqhttp/cluster/jarvis_svc"
 	"github.com/NoahAmethyst/go-cqhttp/util/content_util"
-	goernie "github.com/anhao/go-ernie"
-	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc/status"
 )
-
-var chatModelHandlers map[ai_util.ChatModel]func(assistant Assistant, recvChan chan struct{})
 
 type Assistant interface {
 	Reply(content string)
@@ -24,9 +19,7 @@ type Assistant interface {
 	Check() bool
 	Chat() int64
 	Sender() int64
-	Model() ai_util.ChatModel
-	ChangeModel(model ai_util.ChatModel)
-	Session() *AiAssistantSession
+	JarvisUserID() string
 	Me() int64
 	Bot() *CQBot
 }
@@ -39,18 +32,17 @@ type PrivateAssistant struct {
 func (p *PrivateAssistant) Reply(msg string) {
 	_splittedMsg := content_util.SplitLongMessage(msg, 1000) // 每1000字符分割一次
 	for i, _msg := range _splittedMsg {
-		// 添加分页标识
 		pageMsg := _msg
 		dormant := false
-		if len(_msg) > 1 {
-			pageMsg = fmt.Sprintf("【%d/%d】\n%s", i+1, len(_msg), msg)
+		if len(_splittedMsg) > 1 {
+			pageMsg = fmt.Sprintf("【%d/%d】\n%s", i+1, len(_splittedMsg), _msg)
 			dormant = true
 		}
 		p.bot.SendPrivateMessage(p.Chat(), 0, &message.SendingMessage{Elements: []message.IMessageElement{
-			message.NewText(
-				pageMsg)}})
+			message.NewText(pageMsg),
+		}})
 		if dormant {
-			time.Sleep(1 * time.Second) // 每条消息间隔1秒
+			time.Sleep(time.Second) // 每条消息间隔1秒
 		}
 	}
 }
@@ -67,6 +59,10 @@ func (p *PrivateAssistant) Sender() int64 {
 	return p.m.Sender.Uin
 }
 
+func (p *PrivateAssistant) JarvisUserID() string {
+	return fmt.Sprintf("qq:private:%d", p.Sender())
+}
+
 func (p *PrivateAssistant) Check() bool {
 	return p.bot != nil && p.m != nil
 }
@@ -78,20 +74,16 @@ func (p *PrivateAssistant) GetText() *message.TextElement {
 		case message.Text:
 			textEle = _ele.(*message.TextElement)
 		default:
-
 		}
 	}
 	return textEle
 }
 
 func (p *PrivateAssistant) Mention() *message.AtElement {
-	var mentionEle *message.AtElement
+	mentionEle := &message.AtElement{}
 	for _, _ele := range p.m.Elements {
-		switch _ele.Type() {
-		case message.At:
+		if _ele.Type() == message.At {
 			mentionEle = _ele.(*message.AtElement)
-		default:
-			mentionEle = &message.AtElement{}
 		}
 	}
 	return mentionEle
@@ -101,30 +93,16 @@ func (p *PrivateAssistant) Me() int64 {
 	return p.bot.Client.Uin
 }
 
-func (p *PrivateAssistant) Model() ai_util.ChatModel {
-	return p.bot.state.assistantModel.getModel(p.m.Sender.Uin)
-}
-
-func (p *PrivateAssistant) ChangeModel(model ai_util.ChatModel) {
-	p.bot.state.assistantModel.setModel(p.Sender(), model)
-
-}
-
-func (p *PrivateAssistant) Session() *AiAssistantSession {
-	return p.bot.state.privateDialogueSession
-}
-
 type GroupAssistant struct {
 	bot *CQBot
 	m   *message.GroupMessage
 }
 
 func (p *GroupAssistant) Reply(msg string) {
-
 	p.bot.SendGroupMessage(p.Chat(), &message.SendingMessage{Elements: []message.IMessageElement{
 		message.NewReply(p.m),
-		message.NewText(
-			msg)}})
+		message.NewText(msg),
+	}})
 }
 
 func (p *GroupAssistant) Bot() *CQBot {
@@ -139,6 +117,10 @@ func (p *GroupAssistant) Sender() int64 {
 	return p.m.Sender.Uin
 }
 
+func (p *GroupAssistant) JarvisUserID() string {
+	return fmt.Sprintf("qq:group:%d:%d", p.Chat(), p.Sender())
+}
+
 func (p *GroupAssistant) Check() bool {
 	return p.bot != nil && p.m != nil
 }
@@ -150,20 +132,16 @@ func (p *GroupAssistant) GetText() *message.TextElement {
 		case message.Text:
 			textEle = _ele.(*message.TextElement)
 		default:
-
 		}
 	}
 	return textEle
 }
 
 func (p *GroupAssistant) Mention() *message.AtElement {
-	var mentionEle *message.AtElement
+	mentionEle := &message.AtElement{}
 	for _, _ele := range p.m.Elements {
-		switch _ele.Type() {
-		case message.At:
+		if _ele.Type() == message.At {
 			mentionEle = _ele.(*message.AtElement)
-		default:
-			mentionEle = &message.AtElement{}
 		}
 	}
 	return mentionEle
@@ -173,22 +151,9 @@ func (p *GroupAssistant) Me() int64 {
 	return p.bot.Client.Uin
 }
 
-func (p *GroupAssistant) Model() ai_util.ChatModel {
-	return p.bot.state.assistantModel.getModel(p.m.Sender.Uin)
-}
-
-func (p *GroupAssistant) ChangeModel(model ai_util.ChatModel) {
-	p.bot.state.assistantModel.setModel(p.Sender(), model)
-
-}
-
-func (p *GroupAssistant) Session() *AiAssistantSession {
-	return p.bot.state.groupDialogueSession
-}
-
-func ChangeModel(assistant Assistant) {
+func ShowAssistantMode(assistant Assistant) {
 	if assistant == nil || !assistant.Check() {
-		log.Warnf("invalid image generator")
+		log.Warn("invalid assistant")
 		return
 	}
 
@@ -196,54 +161,17 @@ func ChangeModel(assistant Assistant) {
 	if textEle == nil {
 		return
 	}
-	v := strings.TrimSpace(strings.ReplaceAll(textEle.Content, "#模式", ""))
-
-	var currModel string
-	if v, ok := ai_util.AIAssistantAttributions[assistant.Model()]; ok {
-		currModel = v.Name
-	} else {
-		currModel = ai_util.AIAssistantAttributions[ai_util.ChatGPT].Name
-	}
-	switchModelMsg := fmt.Sprintf("如需更换模式请使用:\n"+
-		"%d - %s\n"+
-		"%d - %s\n"+
-		"%d - %s\n"+
-		"%d -%s\n"+
-		"%d - %s", ai_util.ChatGPT, ai_util.AIAssistantAttributions[ai_util.ChatGPT].Name,
-		ai_util.BingCopilot, ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name,
-		ai_util.ChatGPT4, ai_util.AIAssistantAttributions[ai_util.ChatGPT4].Name,
-		ai_util.Ernie, ai_util.AIAssistantAttributions[ai_util.Ernie].Name,
-		ai_util.DeepSeek, ai_util.AIAssistantAttributions[ai_util.DeepSeek].Name)
-
-	if len(v) == 0 {
-		msg := fmt.Sprintf("当前模式：%s\n%s", currModel, switchModelMsg)
-		assistant.Reply(msg)
+	argument := strings.TrimSpace(strings.TrimPrefix(textEle.Content, "#模式"))
+	if argument == "" {
+		assistant.Reply("当前助手模式：Jarvis")
 		return
 	}
-
-	if model, err := strconv.ParseInt(v, 10, 64); err != nil {
-		msg := fmt.Sprintf("非法的参数\n当前模式：%s\n%s", currModel, switchModelMsg)
-		assistant.Reply(msg)
-		return
-	} else {
-		var msg string
-
-		if v, ok := ai_util.AIAssistantAttributions[ai_util.ChatModel(model)]; ok {
-			currModel = v.Name
-		} else {
-			currModel = ai_util.AIAssistantAttributions[ai_util.ChatGPT].Name
-		}
-
-		msg = fmt.Sprintf("更换模式为：%s\n%s", currModel, switchModelMsg)
-		assistant.ChangeModel(ai_util.ChatModel(model))
-
-		assistant.Reply(msg)
-	}
+	assistant.Reply("模型已由 Jarvis 服务统一管理，不支持在机器人端切换")
 }
 
 func AskAssistant(assistant Assistant) {
 	if assistant == nil || !assistant.Check() {
-		log.Warnf("invalid image generator")
+		log.Warn("invalid assistant")
 		return
 	}
 
@@ -258,150 +186,33 @@ func AskAssistant(assistant Assistant) {
 		return
 	}
 
-	askHandler := chatModelHandlers[assistant.Model()]
-	if askHandler == nil {
-		log.Errorf("no handler set,model:%d", assistant.Model())
-		assistant.Reply(fmt.Sprintf("no handler set,model:%d", assistant.Model()))
-		return
-	}
-	recvChan := make(chan struct{}, 1)
-	go func(assistant Assistant) {
+	timer := time.NewTimer(10 * time.Second)
+	cancelProgress := make(chan struct{})
+	progressDone := make(chan struct{})
+	go func() {
+		defer close(progressDone)
 		select {
-		case <-recvChan:
-			return
-		case <-time.After(time.Second * 10):
-
-			var vendor string
-
-			if v, ok := ai_util.AIAssistantAttributions[assistant.Model()]; ok {
-				vendor = v.Vendor
-			} else {
-				vendor = "Unknown"
-			}
-			assistant.Reply(fmt.Sprintf("%s 正在响应，请稍后...", vendor))
+		case <-cancelProgress:
+		case <-timer.C:
+			assistant.Reply("Jarvis 正在响应，请稍后...")
 		}
-	}(assistant)
-	askHandler(assistant, recvChan)
-}
+	}()
 
-func askBingCopilot(assistant Assistant, _ chan struct{}) {
-	answer, err := spider_svc.AskBingCopilot(assistant.GetText().Content)
+	userID := assistant.JarvisUserID()
+	response, err := jarvis_svc.Chat(textEle.Content, userID)
+	if timer.Stop() {
+		close(cancelProgress)
+	}
+	<-progressDone
 	if err != nil {
-		assistant.Reply(fmt.Sprintf("创建 %s 会话失败:%s", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name, err.Error()))
+		log.Errorf("Jarvis chat failed: code=%s", status.Code(err))
+		assistant.Reply("调用 Jarvis 失败，请稍后重试")
 		return
 	}
-
-	log.Info("Got %s answer:%+v", ai_util.AIAssistantAttributions[ai_util.BingCopilot].Name, answer.CopilotResp)
-
-	var strBuilder strings.Builder
-	content := strings.ReplaceAll(answer.CopilotResp.Content, "*", "")
-	strBuilder.WriteString(content)
-	if len(answer.CopilotResp.Suggestions) > 0 {
-
-		strBuilder.WriteString("\n\n你也可以这样提问：")
-		for i, _suggestion := range answer.CopilotResp.Suggestions {
-			strBuilder.WriteString(fmt.Sprintf("\n%d. %s", i, _suggestion))
-		}
-
+	if response == nil || strings.TrimSpace(response.Answer) == "" {
+		log.Warn("Jarvis chat returned empty answer")
+		assistant.Reply("Jarvis 返回空回答，请稍后重试")
+		return
 	}
-	assistant.Reply(strings.ReplaceAll(strBuilder.String(), "*", ""))
-
-}
-
-func askOfficialChatGpt(assistant Assistant, recvChan chan struct{}) {
-	defer close(recvChan)
-	textEle := assistant.GetText()
-	ctx := assistant.Session().getOpenaiCtx(assistant.Sender())
-	msg := openai.ChatCompletionMessage{
-		Role:    openai.ChatMessageRoleUser,
-		Content: textEle.Content,
-	}
-	if len(ctx) == 0 {
-		ctx = []openai.ChatCompletionMessage{
-			msg,
-		}
-	} else {
-		ctx = append(ctx, msg)
-	}
-
-	var answer string
-	var resp openai.ChatCompletionResponse
-	var err error
-	vendor := "OpenAI"
-	switch assistant.Model() {
-	case ai_util.ChatGPT:
-		resp, err = ai_util.AskChatGpt(ctx)
-	case ai_util.ChatGPT4:
-		resp, err = ai_util.AskChatGpt4(ctx)
-	case ai_util.DeepSeek:
-		resp, err = ai_util.AskDeepSeek(ctx)
-	default:
-		resp, err = ai_util.AskDeepSeek(ctx)
-	}
-
-	if err != nil {
-		answer = fmt.Sprintf("调用%s 失败：%s", vendor, err.Error())
-		if strings.Contains(err.Error(), "401") && assistant.Sender() != assistant.Bot().state.owner {
-			assistant.Bot().SendPrivateMessage(assistant.Bot().state.owner, 0, &message.SendingMessage{Elements: []message.IMessageElement{
-				message.NewText(
-					fmt.Sprintf("用户[%d]调用%s失败：%s", assistant.Sender(), vendor, err.Error()))}})
-		}
-	} else {
-		if len(resp.Choices) == 0 || len(resp.Choices[0].Message.Content) == 0 {
-			log.Warnf("%s 返回空结构：%v", vendor, resp)
-			answer = fmt.Sprintf("%s，请重试", vendor)
-		} else {
-			answer = resp.Choices[0].Message.Content
-			answer = strings.ReplaceAll(answer, "*", "")
-			assistant.Session().putOpenaiCtx(assistant.Sender(), msg.Content, answer)
-		}
-	}
-	recvChan <- struct{}{}
-	assistant.Reply(answer)
-}
-
-func askErnie(assistant Assistant, recvChan chan struct{}) {
-	defer close(recvChan)
-	textEle := assistant.GetText()
-	ctx := assistant.Session().getErnieCtx(assistant.Sender())
-	msg := goernie.ChatCompletionMessage{
-		Role:    goernie.MessageRoleUser,
-		Content: textEle.Content,
-	}
-	if len(ctx) == 0 {
-		ctx = []goernie.ChatCompletionMessage{
-			msg,
-		}
-	} else {
-		ctx = append(ctx, msg)
-	}
-
-	var answer string
-	resp, err := ai_util.AskErnie(ctx)
-	if err != nil {
-		answer = fmt.Sprintf("调用 %s 失败：%s", ai_util.AIAssistantAttributions[ai_util.Ernie].Name, err.Error())
-	} else {
-		if len(resp.Result) == 0 {
-			log.Warnf("%s 返回空结构：%+v", ai_util.AIAssistantAttributions[ai_util.Ernie].Name, resp)
-			answer = fmt.Sprintf("%s响应，请重试", ai_util.AIAssistantAttributions[ai_util.Ernie].Name)
-		} else {
-			answer = resp.Result
-			answer = strings.ReplaceAll(answer, "*", "")
-			assistant.Session().putErnieCtx(assistant.Sender(), msg.Content, answer)
-		}
-	}
-	recvChan <- struct{}{}
-	assistant.Reply(answer)
-}
-
-func init() {
-	chatModelHandlers = map[ai_util.ChatModel]func(assistant Assistant, recvChan chan struct{}){
-		//ai_util.ChatGPT:  askRemoteChatGpt,
-		ai_util.ChatGPT:     askOfficialChatGpt,
-		ai_util.ChatGPT4:    askOfficialChatGpt,
-		ai_util.BingCopilot: askBingCopilot,
-		ai_util.Ernie:       askErnie,
-		ai_util.DeepSeek:    askOfficialChatGpt,
-	}
-
+	assistant.Reply(strings.ReplaceAll(response.Answer, "*", ""))
 }

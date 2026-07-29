@@ -2,12 +2,13 @@ package coolq
 
 import (
 	"fmt"
+	"os"
+	"strings"
+
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/NoahAmethyst/go-cqhttp/constant"
 	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
 	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
-	"os"
-	"strings"
 )
 
 func (bot *CQBot) SetENV(privateMsg *message.PrivateMessage) {
@@ -61,9 +62,6 @@ func envSetHandler(env, value string) string {
 	case constant.FILE_ROOT:
 		file_util.SetFileRoot(value)
 		res = "文件本地存储根目录 设置完成"
-	case constant.CHIMERA_KEY:
-		ai_util.SetChimeraKey(value)
-		res = "Chimera API Key 设置完成"
 	default:
 		_ = os.Setenv(env, value)
 		res = fmt.Sprintf("环境变量 %s 设置完成", env)

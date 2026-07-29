@@ -113,7 +113,7 @@ func (d *wallStreetNewsDailyRecord) Add(k string, v []WallStreetNews) {
 
 func (d *wallStreetNewsDailyRecord) GetData() map[string][]WallStreetNews {
 	d.RLock()
-	d.RUnlock()
+	defer d.RUnlock()
 	data := make(map[string][]WallStreetNews)
 	for k, v := range d.data {
 		data[k] = v
@@ -379,6 +379,9 @@ func (z *sentCache) Add(title string) {
 	z.Lock()
 	defer z.Unlock()
 	now := time.Now()
+	if z.data == nil {
+		z.data = make(map[uint32]int64)
+	}
 	if len(z.data) >= 3000 {
 		for k, v := range z.data {
 			if v < now.AddDate(0, 0, -3).Unix() {
@@ -390,9 +393,33 @@ func (z *sentCache) Add(title string) {
 	z.data[encrypt.HashStr(title)] = now.Unix()
 }
 
+func (z *sentCache) MarkIfNew(title string) bool {
+	z.Lock()
+	defer z.Unlock()
+
+	titleHash := encrypt.HashStr(title)
+	if _, exists := z.data[titleHash]; exists {
+		return false
+	}
+
+	now := time.Now()
+	if z.data == nil {
+		z.data = make(map[uint32]int64)
+	}
+	if len(z.data) >= 3000 {
+		for k, v := range z.data {
+			if v < now.AddDate(0, 0, -3).Unix() {
+				delete(z.data, k)
+			}
+		}
+	}
+	z.data[titleHash] = now.Unix()
+	return true
+}
+
 func (z *sentCache) CheckSent(title string) bool {
 	z.RLock()
-	z.RUnlock()
+	defer z.RUnlock()
 	_, ok := z.data[encrypt.HashStr(title)]
 	return ok
 }

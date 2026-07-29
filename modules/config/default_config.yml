@@ -21,6 +21,15 @@ heartbeat:
   # -1 为关闭心跳
   interval: 5
 
+jarvis:
+  # Jarvis gRPC 服务地址。同一 Kubernetes 集群内默认通过 Service DNS 访问。
+  grpc-target: ${JARVIS_GRPC_TARGET:jarvis:9090}
+  connect-timeout-seconds: 10
+  chat-timeout-seconds: 300
+  ingest-timeout-seconds: 60
+  summary-timeout-seconds: 600
+  wallstreet-user-id: go-cqhttp:wallstreet
+
 message:
   # 上报数据类型
   # 可选: string,array

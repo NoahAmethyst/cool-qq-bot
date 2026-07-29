@@ -4,13 +4,9 @@ import (
 	"fmt"
 	"strconv"
 
-	bingchatapi "github.com/NoahAmethyst/bingchat-api"
 	"github.com/NoahAmethyst/go-cqhttp/constant"
-	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
 	"github.com/NoahAmethyst/go-cqhttp/util/encrypt"
 	"github.com/NoahAmethyst/go-cqhttp/util/file_util"
-	goernie "github.com/anhao/go-ernie"
-	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 
 	"os"
@@ -21,13 +17,10 @@ import (
 var once sync.Once
 
 type State struct {
-	owner                  int64
-	reportState            *reportState
-	sentNews               *sentNews
-	assistantModel         *assistantModel
-	groupDialogueSession   *AiAssistantSession
-	privateDialogueSession *AiAssistantSession
-	globalState            *globalState
+	owner       int64
+	reportState *reportState
+	sentNews    *sentNews
+	globalState *globalState
 }
 
 type globalState struct {
@@ -205,219 +198,6 @@ func (s *sentNews) SaveCache() {
 	}
 }
 
-// assistantModel  用户chatgpt模型选择
-type assistantModel struct {
-	selectedModel map[int64]ai_util.ChatModel
-	sync.RWMutex
-}
-
-func (a *assistantModel) setModel(uid int64, model ai_util.ChatModel) {
-	a.Lock()
-	defer a.Unlock()
-	a.selectedModel[uid] = model
-	path := file_util.GetFileRoot()
-	_, err := file_util.WriteJsonFile(a.selectedModel, path, "assistant_model", false)
-	if err != nil {
-		log.Errorf("ave assistant_model to file faild:%s", err.Error())
-	} else {
-		_ = file_util.TCCosUpload("cache", "assistant_model.json", fmt.Sprintf("%s/%s", path, "assistant_model.json"))
-	}
-}
-
-func (a *assistantModel) getModel(uid int64) ai_util.ChatModel {
-	a.RLock()
-	defer a.RUnlock()
-	return a.selectedModel[uid]
-}
-
-// AiAssistantSession record ai assistant chat conversation to maintain the context of the conversation
-type AiAssistantSession struct {
-	//chat assistant
-	assistantChan map[int64]chan string
-	parentId      map[int64]string
-	//bingchat
-	bingChan     map[int64]chan struct{}
-	conversation map[int64]bingchatapi.IBingChat
-	//chatgpt
-	chatgptChan map[int64]chan struct{}
-	openaiCtx   map[int64][]openai.ChatCompletionMessage
-	// ernie
-	ernieChan map[int64]chan struct{}
-	ernieCtx  map[int64][]goernie.ChatCompletionMessage
-
-	sync.RWMutex
-}
-
-func (s *AiAssistantSession) putParentMsgId(uid int64, parentMsgId string) {
-	s.Lock()
-	defer s.Unlock()
-	if s.assistantChan[uid] == nil {
-		s.assistantChan[uid] = make(chan string)
-		go func(int64) {
-			for {
-				select {
-				case id := <-s.assistantChan[uid]:
-					s.setParentMsgId(uid, id)
-				case <-time.After(time.Minute * 10):
-					s.delParentId(uid)
-				}
-			}
-		}(uid)
-	}
-	s.assistantChan[uid] <- parentMsgId
-}
-
-func (s *AiAssistantSession) getParentMsgId(uid int64) (string, bool) {
-	s.RLock()
-	defer s.RUnlock()
-	v, ok := s.parentId[uid]
-	return v, ok
-}
-
-func (s *AiAssistantSession) setParentMsgId(uid int64, parentMsgId string) {
-	s.Lock()
-	defer s.Unlock()
-	s.parentId[uid] = parentMsgId
-}
-
-func (s *AiAssistantSession) delParentId(uid int64) {
-	s.Lock()
-	defer s.Unlock()
-	delete(s.parentId, uid)
-}
-
-func (s *AiAssistantSession) putConversation(uid int64, conversation bingchatapi.IBingChat) {
-	s.Lock()
-	defer s.Unlock()
-	if s.conversation[uid] == nil {
-		s.conversation[uid] = conversation
-	}
-	if s.bingChan[uid] == nil {
-		s.bingChan[uid] = make(chan struct{})
-		go func(int64) {
-			for {
-				select {
-				case <-s.bingChan[uid]:
-
-				case <-time.After(time.Minute * 5):
-					s.closeConversation(uid)
-				}
-			}
-		}(uid)
-	}
-	s.bingChan[uid] <- struct{}{}
-}
-
-func (s *AiAssistantSession) getConversation(uid int64) bingchatapi.IBingChat {
-	s.RLock()
-	defer s.RUnlock()
-	return s.conversation[uid]
-}
-
-func (s *AiAssistantSession) closeConversation(uid int64) {
-	s.Lock()
-	defer s.Unlock()
-	if _, ok := s.conversation[uid]; ok {
-		s.conversation[uid].Close()
-	}
-
-	delete(s.conversation, uid)
-}
-
-func (s *AiAssistantSession) putOpenaiCtx(uid int64, msg, resp string) {
-	s.Lock()
-	defer s.Unlock()
-	if s.openaiCtx[uid] == nil {
-		s.openaiCtx[uid] = make([]openai.ChatCompletionMessage, 0, 8)
-	}
-	s.openaiCtx[uid] = append(s.openaiCtx[uid], []openai.ChatCompletionMessage{
-		{
-			Role:    openai.ChatMessageRoleUser,
-			Content: msg,
-		},
-		{
-			Role:    openai.ChatMessageRoleAssistant,
-			Content: resp,
-		},
-	}...)
-
-	if s.chatgptChan[uid] == nil {
-		s.chatgptChan[uid] = make(chan struct{})
-		go func(int64) {
-			for {
-				select {
-				case <-s.chatgptChan[uid]:
-
-				case <-time.After(time.Minute * 10):
-					s.clearOpenaiCtx(uid)
-				}
-			}
-		}(uid)
-	}
-	s.chatgptChan[uid] <- struct{}{}
-}
-
-func (s *AiAssistantSession) getOpenaiCtx(uid int64) []openai.ChatCompletionMessage {
-	s.RLock()
-	defer s.RUnlock()
-	ctx := make([]openai.ChatCompletionMessage, len(s.openaiCtx[uid]))
-	copy(ctx, s.openaiCtx[uid])
-	return ctx
-}
-
-func (s *AiAssistantSession) clearOpenaiCtx(uid int64) {
-	s.Lock()
-	defer s.Unlock()
-	delete(s.openaiCtx, uid)
-}
-
-func (s *AiAssistantSession) putErnieCtx(uid int64, msg, resp string) {
-	s.Lock()
-	defer s.Unlock()
-	if s.ernieCtx[uid] == nil {
-		s.ernieCtx[uid] = make([]goernie.ChatCompletionMessage, 0, 8)
-	}
-	s.ernieCtx[uid] = append(s.ernieCtx[uid], []goernie.ChatCompletionMessage{
-		{
-			Role:    goernie.MessageRoleUser,
-			Content: msg,
-		},
-		{
-			Role:    goernie.MessageRoleAssistant,
-			Content: resp,
-		},
-	}...)
-
-	if s.ernieChan[uid] == nil {
-		s.ernieChan[uid] = make(chan struct{})
-		go func(int64) {
-			for {
-				select {
-				case <-s.ernieChan[uid]:
-
-				case <-time.After(time.Minute * 10):
-					s.clearOpenaiCtx(uid)
-				}
-			}
-		}(uid)
-	}
-	s.ernieChan[uid] <- struct{}{}
-}
-
-func (s *AiAssistantSession) getErnieCtx(uid int64) []goernie.ChatCompletionMessage {
-	s.RLock()
-	defer s.RUnlock()
-	ctx := make([]goernie.ChatCompletionMessage, len(s.ernieCtx[uid]))
-	copy(ctx, s.ernieCtx[uid])
-	return ctx
-}
-
-func (s *AiAssistantSession) clearErnieCtx(uid int64) {
-	s.Lock()
-	defer s.Unlock()
-	delete(s.ernieCtx, uid)
-}
-
 func (bot *CQBot) initState() {
 	once.Do(func() {
 		var owner int64
@@ -426,33 +206,10 @@ func (bot *CQBot) initState() {
 		}
 		if bot.state == nil {
 			bot.state = &State{
-				owner:          owner,
-				reportState:    initReportState(),
-				sentNews:       initSentNews(),
-				globalState:    initGlobalState(),
-				assistantModel: initAssistantModel(),
-				groupDialogueSession: &AiAssistantSession{
-					assistantChan: map[int64]chan string{},
-					parentId:      map[int64]string{},
-					bingChan:      map[int64]chan struct{}{},
-					conversation:  map[int64]bingchatapi.IBingChat{},
-					chatgptChan:   map[int64]chan struct{}{},
-					openaiCtx:     map[int64][]openai.ChatCompletionMessage{},
-					ernieChan:     map[int64]chan struct{}{},
-					ernieCtx:      map[int64][]goernie.ChatCompletionMessage{},
-					RWMutex:       sync.RWMutex{},
-				},
-				privateDialogueSession: &AiAssistantSession{
-					assistantChan: map[int64]chan string{},
-					parentId:      map[int64]string{},
-					bingChan:      map[int64]chan struct{}{},
-					conversation:  map[int64]bingchatapi.IBingChat{},
-					chatgptChan:   map[int64]chan struct{}{},
-					openaiCtx:     map[int64][]openai.ChatCompletionMessage{},
-					ernieChan:     map[int64]chan struct{}{},
-					ernieCtx:      map[int64][]goernie.ChatCompletionMessage{},
-					RWMutex:       sync.RWMutex{},
-				},
+				owner:       owner,
+				reportState: initReportState(),
+				sentNews:    initSentNews(),
+				globalState: initGlobalState(),
 			}
 		}
 	})
@@ -530,24 +287,4 @@ func initGlobalState() *globalState {
 		_globalState.Data = data
 	}
 	return &_globalState
-}
-
-func initAssistantModel() *assistantModel {
-	_assistantModel := assistantModel{
-		selectedModel: map[int64]ai_util.ChatModel{},
-		RWMutex:       sync.RWMutex{},
-	}
-	data := make(map[int64]ai_util.ChatModel)
-	path := file_util.GetFileRoot()
-	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/assistant_model.json", path), &data); err != nil {
-		log.Info("retry load assistant_model json from tencent cos")
-		_err := file_util.TCCosDownload("cache", "assistant_model.json", fmt.Sprintf("%s/%s", path, "assistant_model.json"))
-		if _err == nil {
-			_ = file_util.LoadJsonFile(fmt.Sprintf("%s/assistant_model.json", path), &data)
-		}
-	}
-	if len(data) > 0 {
-		_assistantModel.selectedModel = data
-	}
-	return &_assistantModel
 }

@@ -51,7 +51,7 @@ func init() {
 		CMDImage:                "AI作图，使用DELL.2生成图片，你需要提供提示词",
 		CMDOpenReporter:         "开启微博、华尔街最新资讯、36氪定时推送",
 		CMDCloseReporter:        "关闭微博、华尔街最新资讯、36氪定时推送",
-		CMDSwitchAssistantModel: "更换助手模式，\n0:Chatgpt(默认) \n1:Bing Chat \n2:ChatGpt(4) \n3:百度千帆 \n4:DeepSeek",
+		CMDSwitchAssistantModel: "查看当前助手模式；模型由 Jarvis 服务统一管理",
 		CMDEVN:                  "设置新的环境变量",
 		CMDKelly:                "使用凯利公式(Kelly strategy)计算投资资金比例，依次输入【潜在正收益率】、【潜在损失率】、【获胜概率/收益概率】，输入数值为概率x100，以空格分隔",
 		CMDGold:                 "获取黄金最新价格",
@@ -111,7 +111,7 @@ func init() {
 		},
 
 		CMDSwitchAssistantModel: func(bot *CQBot, groupMessage *message.GroupMessage) {
-			ChangeModel(&GroupAssistant{
+			ShowAssistantMode(&GroupAssistant{
 				bot: bot,
 				m:   groupMessage,
 			})
@@ -189,7 +189,7 @@ func init() {
 		},
 
 		CMDSwitchAssistantModel: func(bot *CQBot, privateMessage *message.PrivateMessage) {
-			ChangeModel(&PrivateAssistant{
+			ShowAssistantMode(&PrivateAssistant{
 				bot: bot,
 				m:   privateMessage,
 			})

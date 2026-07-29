@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/Mrs4s/MiraiGo/message"
+	"github.com/NoahAmethyst/go-cqhttp/cluster/jarvis_svc"
 	"github.com/NoahAmethyst/go-cqhttp/protocol/pb/spider_pb"
-	"github.com/NoahAmethyst/go-cqhttp/util/ai_util"
-	"github.com/NoahAmethyst/go-cqhttp/util/content_util"
 	"github.com/NoahAmethyst/go-cqhttp/util/finance"
 	"github.com/NoahAmethyst/go-cqhttp/util/top_list"
-	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func (bot *CQBot) openReporter(id int64, isGroup bool) {
@@ -287,9 +287,12 @@ func (bot *CQBot) Report36kr(groups []int64, isGroup bool) {
 
 func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 	hasNews := true
-	if hotList, err := top_list.LoadWallStreetNews(); err != nil {
+	var hasNewsMu sync.Mutex
+	hotList, updates, err := top_list.LoadWallStreetNewsWithUpdates()
+	if err != nil {
 		log.Errorf("爬取华尔街见闻最新资讯失败：%s", err.Error())
 	} else {
+		go ingestWallStreetNewsUpdates(updates)
 		var wait sync.WaitGroup
 		for _, _group := range groups {
 			wait.Add(1)
@@ -307,7 +310,9 @@ func (bot *CQBot) ReportWallStreetNews(groups []int64, isGroup bool) bool {
 
 				if len(readyData) == 0 {
 					//log.Warn().Msgf("华尔街见闻：没有最新资讯，爬取资讯数量:%d", len(hotList))
+					hasNewsMu.Lock()
 					hasNews = false
+					hasNewsMu.Unlock()
 				} else {
 					//倒序输出，因为最新资讯在第一个
 					for i := len(readyData) - 1; i >= 0; i-- {
@@ -390,83 +395,125 @@ func (bot *CQBot) ReportZhihuHot(group int64, isGroup bool) {
 	}
 }
 
-// ReportSummary 推送每日新闻总结
-func (bot *CQBot) ReportSummary(groups []int64, isGroup bool) {
-	// Summary wall street news
-	if wallStreetData := top_list.WallStreetNewsDailyRecord.GetData(); len(wallStreetData) == 0 {
-		log.Warnf("没有华尔街今日资讯缓存")
-	} else {
-		var content strings.Builder
-		date := time.Now().Format("2006-01-02")
-		for k, _list := range wallStreetData {
-			if len(_list) == 0 {
-				log.Warnf("时间 %s 的华尔街资讯为空", k)
-			} else {
-				date = k
-				for _, _data := range _list {
-					content.WriteString(fmt.Sprintf("标题：%s,内容：%s\n", _data.Title, _data.Content))
-				}
-			}
-
-		}
-		if content.Len() == 0 {
-			log.Warnf("No wall street news found.")
-			return
-		}
-
-		content.WriteString(fmt.Sprintf("上面是我提供的新闻内容,新闻日期为%s，根据我提供的今日经济新闻列表（包含标题和概述），生成一份专业的“每日全球经济形势总结报告”。\n报告输出要求与结构：\n\n请务必严格按照以下四个部分的结构和内容要点进行组织：\n\n第一部分：今日全球经济形势概览\n\n核心基调判断： 用一两句话概括今日全球市场呈现出的主要情绪和趋势（例如：风险偏好上升/下降、避险情绪浓厚、增长担忧加剧、通胀预期分化等）。\n\n主要驱动力： 指出是哪些关键事件或数据（来自新闻列表）主导了今日的市场基调。\n\n第二部分：重点事件与影响深度分析\n\n请提炼出今日最具影响力的2-4个核心事件。\n\n对每个核心事件，按以下层次进行分析：\n\n事件简述： 简要说明是什么事。\n\n直接影响： 分析该事件对特定市场（如股市、债市、外汇、大宗商品）、国家/地区或行业的直接影响。\n\n潜在深层影响： 推测该事件可能引发的连锁反应或长期政策含义。\n\n第三部分：关键关联性推测\n\n这是报告的核心。请分析不同新闻事件之间存在的逻辑关联，并给出合理解释。\n\n跨市场关联： 例如，A国的货币政策新闻如何影响到B国的债券市场，并进而波及C国的大宗商品价格。\n\n因果与传导链条： 尝试构建一个或多个“因为事件A，所以可能导致结果B，进而需要关注C”的逻辑链条。\n\n主题关联： 将看似孤立的事件，归纳到更大的主题下（例如：“全球央行政策分化”、“能源转型的地缘政治影响”、“供应链重构新动向”）。\n\n第四部分：未来展望与风险提示\n\n明日/近期关注点： 基于今日事件的发展，指出未来1-3个交易日需要重点关注的数据、事件或政策信号。\n\n潜在风险预警： 提示当前市场中可能被忽视或正在酝酿的下行风险。\n\n机会提示： 简要提及今日事件可能带来的潜在投资或市场机会。\n\n语言与风格：\n\n专业、严谨、客观。\n\n使用规范的宏观经济术语，但对可能难以理解的概念可稍作解释。\n\n避免使用“可能”、“也许”等模糊词汇，结论和推测需基于我上面提供的新闻内容，并明确指出是“推测”或“分析”。\n", date))
-
-		ctx := make([]openai.ChatCompletionMessage, 0, 4)
-		ctx = append(ctx, openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleUser,
-			Content: content.String(),
-		})
-		replyMsg, err := ai_util.AskDeepSeek(ctx)
-		answer := "华尔街每日资讯总结失败，请查看日志"
-		if err != nil {
-			answer = fmt.Sprintf("调用Deepseek失败：%s", err.Error())
-		} else {
-			if len(replyMsg.Choices) == 0 || len(replyMsg.Choices[0].Message.Content) == 0 {
-				log.Warnf("Deepseek返回空结构：%v", replyMsg)
-			} else {
-				answer = replyMsg.Choices[0].Message.Content
-				answer = strings.ReplaceAll(answer, "*", "")
-			}
-		}
-
-		var wait sync.WaitGroup
-		// 分割长消息
-		messages := content_util.SplitLongMessage(answer, 1000) // 每1000字符分割一次
-		for _, _group := range groups {
-			wait.Add(1)
-			go func(group int64) {
-				defer wait.Done()
-				if isGroup {
-					for i, msg := range messages {
-						// 添加分页标识
-						pageMsg := msg
-						if len(messages) > 1 {
-							pageMsg = fmt.Sprintf("【%d/%d】\n%s", i+1, len(messages), msg)
-						}
-						bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(pageMsg)}})
-						time.Sleep(1 * time.Second) // 每条消息间隔1秒
-					}
-				} else {
-					for i, msg := range messages {
-						// 添加分页标识
-						pageMsg := msg
-						if len(messages) > 1 {
-							pageMsg = fmt.Sprintf("【%d/%d】\n%s", i+1, len(messages), msg)
-						}
-						bot.SendPrivateMessage(group, 0, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(pageMsg)}})
-						time.Sleep(1 * time.Second) // 每条消息间隔1秒
-					}
-				}
-				time.Sleep(1 * time.Second)
-			}(_group)
-		}
-		wait.Wait()
+// ReportSummary 生成一次每日新闻总结，并推送给全部群聊和私聊订阅者。
+func (bot *CQBot) ReportSummary(groupIDs, privateIDs []int64) {
+	if len(groupIDs) == 0 && len(privateIDs) == 0 {
+		return
 	}
+
+	wallStreetData := top_list.WallStreetNewsDailyRecord.GetData()
+	if len(wallStreetData) == 0 {
+		log.Warnf("没有华尔街今日资讯缓存")
+		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
+		return
+	}
+
+	prompt, err := buildWallStreetSummaryPrompt(wallStreetData)
+	if err != nil {
+		log.Warnf("Jarvis summary preparation failed: operation=build_prompt code=%s", status.Code(err))
+		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
+		return
+	}
+
+	response, err := jarvis_svc.Summary(prompt)
+	if err != nil {
+		log.Errorf("Jarvis summary failed: operation=summary code=%s", status.Code(err))
+		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
+		return
+	}
+	if response == nil || strings.TrimSpace(response.GetAnswer()) == "" {
+		log.Errorf("Jarvis summary failed: operation=validate_response code=%s", codes.Unknown)
+		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
+		return
+	}
+
+	chapters, err := parseJarvisSummary(response.GetAnswer())
+	if err != nil {
+		log.Errorf("Jarvis summary failed: operation=parse_chapters code=%s", status.Code(err))
+		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
+		return
+	}
+
+	var wait sync.WaitGroup
+	sendToRecipients := func(ids []int64, isGroup bool) {
+		for _, reportID := range ids {
+			wait.Add(1)
+			go func(id int64) {
+				defer wait.Done()
+				if response.GetLowConfidence() {
+					bot.sendWallStreetSummaryMessage(id, isGroup, "提示：Jarvis 将本次总结标记为低置信度，请结合原始新闻核验。")
+					time.Sleep(time.Second)
+				}
+				for chapterIndex, chapter := range chapters {
+					for _, chapterMessage := range formatJarvisSummaryChapter(chapterIndex, chapter) {
+						bot.sendWallStreetSummaryMessage(id, isGroup, chapterMessage)
+						time.Sleep(time.Second)
+					}
+				}
+			}(reportID)
+		}
+	}
+	sendToRecipients(groupIDs, true)
+	sendToRecipients(privateIDs, false)
+	wait.Wait()
+}
+
+func ingestWallStreetNewsUpdates(updates []top_list.WallStreetNews) {
+	seenURLs := make(map[string]struct{}, len(updates))
+	for _, news := range updates {
+		if !isTrustedWallStreetURL(news.Url) {
+			continue
+		}
+		if _, exists := seenURLs[news.Url]; exists {
+			continue
+		}
+		seenURLs[news.Url] = struct{}{}
+
+		content := fmt.Sprintf(
+			"新闻日期：%s\n标题：%s\n摘要：%s",
+			wallStreetNewsDate(news.CollectedAt),
+			news.Title,
+			news.Content,
+		)
+		response, err := jarvis_svc.Ingest(content, news.Url)
+		if err != nil {
+			log.Errorf("Jarvis Ingest failed: url=%s code=%s", news.Url, status.Code(err))
+			continue
+		}
+		if response == nil || !response.GetSuccess() {
+			responseErr := status.Error(codes.Unknown, "ingest rejected")
+			log.Errorf("Jarvis Ingest failed: url=%s code=%s", news.Url, status.Code(responseErr))
+		}
+	}
+}
+
+func wallStreetNewsDate(collectedAt string) string {
+	shanghai := time.FixedZone("Asia/Shanghai", 8*60*60)
+	if collectedTime, err := time.Parse(time.RFC3339, collectedAt); err == nil {
+		return collectedTime.In(shanghai).Format("2006-01-02")
+	}
+	return time.Now().In(shanghai).Format("2006-01-02")
+}
+
+func (bot *CQBot) sendWallStreetSummaryFailure(groupIDs, privateIDs []int64) {
+	const failureMessage = "华尔街每日资讯总结失败，请稍后查看"
+	for _, id := range groupIDs {
+		bot.sendWallStreetSummaryMessage(id, true, failureMessage)
+	}
+	for _, id := range privateIDs {
+		bot.sendWallStreetSummaryMessage(id, false, failureMessage)
+	}
+}
+
+func (bot *CQBot) sendWallStreetSummaryMessage(id int64, isGroup bool, content string) {
+	sendingMessage := &message.SendingMessage{
+		Elements: []message.IMessageElement{message.NewText(content)},
+	}
+	if isGroup {
+		bot.SendGroupMessage(id, sendingMessage)
+		return
+	}
+	bot.SendPrivateMessage(id, 0, sendingMessage)
 }
 
 func (bot *CQBot) ReportGoldPriceFluctuation(groups []int64, isGroup bool) {

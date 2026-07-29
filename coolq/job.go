@@ -99,9 +99,8 @@ func (bot *CQBot) SummaryReporter(corn string) *ReportJob {
 	return &ReportJob{
 		Report: func() {
 			groupIds := bot.state.reportState.getReportList(true)
-			bot.ReportSummary(groupIds, true)
 			privateIds := bot.state.reportState.getReportList(false)
-			bot.ReportSummary(privateIds, false)
+			bot.ReportSummary(groupIds, privateIds)
 		},
 		Corn:  corn,
 		Model: top_list.WallStreet,

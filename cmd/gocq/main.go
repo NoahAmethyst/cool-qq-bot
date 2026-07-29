@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"github.com/NoahAmethyst/go-cqhttp/bot_service"
 	"github.com/NoahAmethyst/go-cqhttp/cluster"
+	"github.com/NoahAmethyst/go-cqhttp/cluster/jarvis_svc"
 	"github.com/NoahAmethyst/go-cqhttp/constant"
 	rotatelogs "github.com/lestrrat-go/file-rotatelogs"
 	"os"
@@ -65,6 +66,14 @@ func Main() {
 		base.ResetWorkingDir()
 	}
 	base.Init()
+	if err := jarvis_svc.Init(base.Jarvis); err != nil {
+		log.Fatal("Jarvis gRPC 初始化失败，请检查配置和服务可达性")
+	}
+	defer func() {
+		if err := jarvis_svc.Close(); err != nil {
+			log.Warn("关闭 Jarvis gRPC 连接失败")
+		}
+	}()
 
 	rotateOptions := []rotatelogs.Option{
 		rotatelogs.WithRotationTime(time.Hour * 24),

@@ -2,13 +2,18 @@ package ai_util
 
 import (
 	"context"
+	"fmt"
+
 	"github.com/sashabaranov/go-openai"
 	log "github.com/sirupsen/logrus"
 )
 
 func GenerateImage(prompt, size string) (*openai.ImageResponse, error) {
-	initCli()
-	resp, err := openaiCli.CreateImage(
+	client := openAIClient()
+	if client == nil {
+		return nil, fmt.Errorf("OpenAI image client is not configured")
+	}
+	resp, err := client.CreateImage(
 		context.Background(),
 		openai.ImageRequest{
 			Prompt:         prompt,
