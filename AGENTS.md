@@ -35,5 +35,6 @@
 - Begin with read-only inspection of the Kubernetes context, namespace, workloads, Pods, events, logs, and images.
 - Without explicit authorization, do not make remote changes, including modifying remote files, applying manifests, scaling workloads, setting images, changing Secrets, or restarting or deleting Pods.
 - Prefer the normal release path: GitHub Actions, then the Alibaba Cloud registry, then Kubernetes. Do not build manually unless an emergency procedure is explicitly requested.
+- A push to `master` triggers the GitHub Actions image-build and Pod-update workflow chain. After pushing, monitor both workflows through completion, investigate any failure, and verify the resulting Kubernetes rollout, running image, readiness, restarts, and relevant logs; a triggered or completed workflow alone is not evidence of a successful deployment.
 - Before deployment, confirm the Kubernetes context and namespace, target Deployment, current image, and rollback point.
 - After a change, verify rollout status, readiness, logs, and exposed ports.
