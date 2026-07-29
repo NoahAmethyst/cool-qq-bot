@@ -104,7 +104,9 @@ jarvis:
 
 聊天助手只保留 Jarvis 模式：
 
-- `#模式` 只显示当前模式为 Jarvis，不再接受旧模型编号切换；
+- `#模式` 不带参数时只显示“当前助手模式：Jarvis”；
+- `#模式 <编号>` 不再切换模型，统一返回“模型已由 Jarvis 服务统一管理，不支持在机器人端切换”；
+- 帮助文本不再显示 ChatGPT、GPT-4、Bing Copilot、百度千帆或 DeepSeek 的模式编号；
 - 删除持久化的用户模型选择；
 - 删除 OpenAI、千帆和 Bing 本地会话对象、上下文数组、活动 channel 和十分钟清理 goroutine；
 - 删除旧文本模型 handler；
