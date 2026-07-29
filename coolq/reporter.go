@@ -428,7 +428,7 @@ func (bot *CQBot) ReportSummary(groupIDs, privateIDs []int64) {
 		return
 	}
 
-	chapters, err := parseJarvisSummary(response.GetAnswer())
+	chapters, err := parsePlainJarvisSummary(response.GetAnswer())
 	if err != nil {
 		log.Errorf("Jarvis summary failed: operation=parse_chapters code=%s", status.Code(err))
 		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)

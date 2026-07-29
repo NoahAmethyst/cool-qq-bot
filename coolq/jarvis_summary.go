@@ -100,7 +100,8 @@ func buildWallStreetSummaryPrompt(records map[string][]top_list.WallStreetNews) 
 2. 必须检索同一用户身份知识库中的历史材料和过往新闻，写出明确日期，串联跨日时间线与因果传导，不得只罗列单日新闻。
 3. 区分可核验事实与分析判断；事实注明事件日期和依据，分析、推测、风险或机会须明确标识。
 4. 专业、严谨、客观，重点解释全球市场、政策、行业和资产价格之间的影响路径。
-5. 最终答案必须严格按以下顺序输出四章；每个 marker 必须恰好出现一次，不得改写、遗漏或重复 marker。每个 marker 后只输出该章正文，不要重复章节标题；marker 前可有少量说明但不会被发送：
+5. 返回适合直接发送到QQ的普通文本。不要使用Markdown，不要使用Markdown标题、项目符号、加粗、斜体、删除线、代码块、表格、引用或Markdown链接。可以使用emoji和普通符号突出章节重点、重要结论、风险与机会。
+6. 最终答案必须严格按以下顺序输出四章；每个 marker 必须恰好出现一次，不得改写、遗漏或重复 marker。每个 marker 后只输出该章正文，不要重复章节标题；marker 前可有少量说明但不会被发送：
 <<<CHAPTER_1>>> 对应“今日全球经济形势概览”
 <<<CHAPTER_2>>> 对应“重点事件、原文补充与影响分析”
 <<<CHAPTER_3>>> 对应“跨日时间线及因果传导”
@@ -142,6 +143,21 @@ func parseJarvisSummary(answer string) ([4]string, error) {
 		chapters[i] = strings.TrimSpace(answer[start:end])
 		if chapters[i] == "" {
 			return [4]string{}, fmt.Errorf("summary chapter %d is empty", i+1)
+		}
+	}
+	return chapters, nil
+}
+
+func parsePlainJarvisSummary(answer string) ([4]string, error) {
+	chapters, err := parseJarvisSummary(answer)
+	if err != nil {
+		return [4]string{}, err
+	}
+
+	for index, chapter := range chapters {
+		chapters[index] = toPlainQQText(chapter)
+		if chapters[index] == "" {
+			return [4]string{}, fmt.Errorf("summary chapter %d is empty after sanitization", index+1)
 		}
 	}
 	return chapters, nil

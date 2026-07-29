@@ -76,6 +76,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
   2. `重点事件、原文补充与影响分析`
   3. `跨日时间线及因果传导`
   4. `未来展望、风险与机会`
+- Summary chapters are sent as QQ-safe plain text rather than Markdown. The prompt permits emoji and ordinary symbols for emphasis, and the bot removes common Markdown headings, list markers, emphasis, code fences, tables, quotes, and links before formatting each chapter. If any sanitized chapter is empty, the whole summary uses the existing failure notification path.
 - Only an individual chapter longer than the message limit is split further. Low-confidence responses receive a warning. Build, empty-response, RPC, or marker-parse failures send a summary-failure message.
 
 ## Private weather flow

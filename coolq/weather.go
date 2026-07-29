@@ -3,7 +3,6 @@ package coolq
 import (
 	"crypto/sha256"
 	"fmt"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -15,15 +14,6 @@ import (
 	log "github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-)
-
-var (
-	markdownImagePattern  = regexp.MustCompile(`!\[([^\]]*)\]\([^)]+\)`)
-	markdownLinkPattern   = regexp.MustCompile(`\[([^\]]+)\]\([^)]+\)`)
-	markdownHeadingPrefix = regexp.MustCompile(`^\s{0,3}#{1,6}\s*`)
-	markdownQuotePrefix   = regexp.MustCompile(`^\s{0,3}>\s?`)
-	markdownListPrefix    = regexp.MustCompile(`^\s{0,3}(?:[-+*]|\d+[.)])\s+`)
-	markdownTableDivider  = regexp.MustCompile(`^\s*\|?[\s:|-]+\|?\s*$`)
 )
 
 func (bot *CQBot) handlePrivateWeather(privateMessage *message.PrivateMessage) {
@@ -103,54 +93,6 @@ func weatherJarvisUserID(city string) string {
 	return fmt.Sprintf("go-cqhttp:weather:%x", hash[:12])
 }
 
-func plainQQText(answer string) string {
-	answer = strings.ReplaceAll(answer, "\r\n", "\n")
-	answer = strings.ReplaceAll(answer, "\r", "\n")
-	answer = markdownImagePattern.ReplaceAllString(answer, "$1")
-	answer = markdownLinkPattern.ReplaceAllString(answer, "$1")
-
-	lines := strings.Split(answer, "\n")
-	result := make([]string, 0, len(lines))
-	previousBlank := false
-	replacer := strings.NewReplacer(
-		"```", "",
-		"**", "",
-		"__", "",
-		"~~", "",
-		"`", "",
-		"*", "",
-		"|", " ",
-	)
-
-	for _, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "```") || markdownTableDivider.MatchString(trimmed) {
-			continue
-		}
-		line = markdownHeadingPrefix.ReplaceAllString(line, "")
-		line = markdownQuotePrefix.ReplaceAllString(line, "")
-		line = markdownListPrefix.ReplaceAllString(line, "")
-		line = strings.TrimSpace(replacer.Replace(line))
-
-		if line == "" {
-			if previousBlank || len(result) == 0 {
-				continue
-			}
-			result = append(result, "")
-			previousBlank = true
-			continue
-		}
-
-		result = append(result, line)
-		previousBlank = false
-	}
-
-	for len(result) > 0 && result[len(result)-1] == "" {
-		result = result[:len(result)-1]
-	}
-	return strings.TrimSpace(strings.Join(result, "\n"))
-}
-
 func (bot *CQBot) ReportWeather(subscriptions map[int64]string) {
 	if len(subscriptions) == 0 {
 		return
@@ -193,7 +135,7 @@ func (bot *CQBot) ReportWeather(subscriptions map[int64]string) {
 			continue
 		}
 
-		content := plainQQText(response.GetAnswer())
+		content := toPlainQQText(response.GetAnswer())
 		if content == "" {
 			log.Errorf("Jarvis weather query failed: operation=sanitize_response code=%s", codes.Unknown)
 			bot.sendWeatherFailure(userIDs)
