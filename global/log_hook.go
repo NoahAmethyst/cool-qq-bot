@@ -180,19 +180,26 @@ func (f LogFormat) Format(entry *logrus.Entry) ([]byte, error) {
 	buf := NewBuffer()
 	defer PutBuffer(buf)
 
-	if f.EnableColor {
+	colorInfoLabelOnly := f.EnableColor && entry.Level == logrus.InfoLevel
+	if f.EnableColor && !colorInfoLabelOnly {
 		buf.WriteString(GetLogLevelColorCode(entry.Level))
 	}
 
 	buf.WriteByte('[')
 	buf.WriteString(entry.Time.Format("2006-01-02 15:04:05"))
 	buf.WriteString("] [")
+	if colorInfoLabelOnly {
+		buf.WriteString(GetLogLevelColorCode(entry.Level))
+	}
 	buf.WriteString(strings.ToUpper(entry.Level.String()))
+	if colorInfoLabelOnly {
+		buf.WriteString(colorReset)
+	}
 	buf.WriteString("]: ")
 	buf.WriteString(entry.Message)
 	buf.WriteString(" \n")
 
-	if f.EnableColor {
+	if f.EnableColor && !colorInfoLabelOnly {
 		buf.WriteString(colorReset)
 	}
 
@@ -206,7 +213,7 @@ const (
 	colorCodeFatal = "\x1b[1;31m" // color.Style{color.Bold, color.Red}.String()
 	colorCodeError = "\x1b[31m"   // color.Style{color.Red}.String()
 	colorCodeWarn  = "\x1b[33m"   // color.Style{color.Yellow}.String()
-	colorCodeInfo  = "\x1b[37m"   // color.Style{color.White}.String()
+	colorCodeInfo  = "\x1b[32m"   // color.Style{color.Green}.String()
 	colorCodeDebug = "\x1b[32m"   // color.Style{color.Green}.String()
 	colorCodeTrace = "\x1b[36m"   // color.Style{color.Cyan}.String()
 	colorReset     = "\x1b[0m"
