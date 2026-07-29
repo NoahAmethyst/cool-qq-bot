@@ -53,7 +53,7 @@ func DefaultJarvis() Jarvis {
 		GRPCTarget:            "jarvis:9090",
 		ConnectTimeoutSeconds: 10,
 		ChatTimeoutSeconds:    300,
-		IngestTimeoutSeconds:  60,
+		IngestTimeoutSeconds:  120,
 		SummaryTimeoutSeconds: 600,
 		WallStreetUserID:      "go-cqhttp:wallstreet",
 	}

@@ -1,6 +1,6 @@
-#export IS_TEST_NET=1
+#！/bin/bash
 prod_name="qq_bot"
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o $prod_name .
+CGO_ENABLED=0 GOOS=linux GOARCH=x86_64 go build -o $prod_name .
 chmod +x $prod_name
 kill -9 $(ps -ax | grep $prod_name | grep -v grep | awk '{print $1}')
 nohup ./$prod_name 2 >>log >&1 &

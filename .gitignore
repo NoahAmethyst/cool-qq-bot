@@ -9,5 +9,5 @@ data/
 logs/
 internal/btree/*.lock
 internal/btree/*.db
-Dockerfile
+Dockerfile.bac
 crun.sh

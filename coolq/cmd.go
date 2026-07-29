@@ -29,6 +29,7 @@ const (
 	CMDKelly                = "凯利"
 	CMDGold                 = "黄金"
 	CMDExchange             = "汇率"
+	CMDWeather              = "天气"
 )
 
 var groupCmdList []string
@@ -56,6 +57,7 @@ func init() {
 		CMDKelly:                "使用凯利公式(Kelly strategy)计算投资资金比例，依次输入【潜在正收益率】、【潜在损失率】、【获胜概率/收益概率】，输入数值为概率x100，以空格分隔",
 		CMDGold:                 "获取黄金最新价格",
 		CMDExchange:             "计算汇率，实用\"#汇率 源币 目标币\" 的格式获取汇率，如不输入则获取支持的汇率币种列表",
+		CMDWeather:              "设置每天08:00天气推送，使用\"#天气 城市\"设置，\"#天气\"查看，\"#天气 关闭\"取消",
 	}
 	groupCmdList = []string{
 		CMDOpenReporter,
@@ -148,6 +150,7 @@ func init() {
 		CMDKelly,
 		CMDGold,
 		CMDExchange,
+		CMDWeather,
 	}
 
 	privateCmdHandlers = map[string]func(bot *CQBot, privateMessage *message.PrivateMessage){
@@ -234,6 +237,9 @@ func init() {
 		},
 		CMDExchange: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			bot.exChangeRateForPrivate(privateMessage)
+		},
+		CMDWeather: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.handlePrivateWeather(privateMessage)
 		},
 	}
 }

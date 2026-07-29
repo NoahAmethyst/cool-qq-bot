@@ -26,7 +26,9 @@ type (
 )
 
 func (r *ReportJob) RunJob() {
-	JobModels[r.Model] = r.Corn
+	if r.Model != "" {
+		JobModels[r.Model] = r.Corn
+	}
 	cron.AddCronJob(r.Report, r.Corn)
 }
 
@@ -117,6 +119,15 @@ func (bot *CQBot) GoldFluctuationReporter(corn string) *ReportJob {
 		},
 		Corn:  corn,
 		Model: top_list.WallStreet,
+	}
+}
+
+func (bot *CQBot) WeatherReporter(corn string) *ReportJob {
+	return &ReportJob{
+		Report: func() {
+			bot.ReportWeather(bot.state.weatherState.snapshot())
+		},
+		Corn: corn,
 	}
 }
 

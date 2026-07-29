@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Add a private-chat-only `#天气` subscription command and send Jarvis-generated, QQ-safe plain-text weather advice every day at 08:00.
+**Goal:** Add a private-chat-only `#天气` subscription command and send Jarvis-generated, QQ-safe non-Markdown weather advice, including optional emoji, every day at 08:00.
 
-**Architecture:** Persist a concurrency-safe `QQ user ID -> city` map independently from existing news subscriptions. At 08:00, group subscribers by city, call Jarvis once per city with a date-specific weather prompt, sanitize common Markdown syntax, and fan the plain text out to private recipients.
+**Architecture:** Persist a concurrency-safe `QQ user ID -> city` map independently from existing news subscriptions. At 08:00, group subscribers by city, call Jarvis once per city with a date-specific weather prompt, sanitize common Markdown syntax while preserving emoji, and fan the QQ text out to private recipients.
 
 **Tech Stack:** Go 1.19, MiraiGo messages, robfig/cron, Jarvis gRPC, existing JSON/Tencent COS cache utilities.
 
@@ -73,7 +73,7 @@ In `coolq/weather.go`, implement `handlePrivateWeather` with these exact outcome
 
 All replies use `SendPrivateMessage` with one `message.TextElement`.
 
-### Task 3: Query Jarvis and enforce QQ-safe plain text
+### Task 3: Query Jarvis and enforce QQ-safe non-Markdown text
 
 **Files:**
 - Create: `coolq/weather.go`
@@ -87,7 +87,7 @@ func buildWeatherPrompt(city string, now time.Time) string
 func weatherJarvisUserID(city string) string
 ```
 
-The prompt must request the selected city's current-day weather, temperature range, rain, wind and UV when available, plus travel, sun-protection, clothing and safety advice. It must forbid invented values and explicitly prohibit Markdown headings, bullets, emphasis, code fences, tables and link syntax.
+The prompt must request the selected city's current-day weather, temperature range, rain, wind and UV when available, plus travel, sun-protection, clothing and safety advice. It may use emoji and symbolic expressions, but must forbid invented values and explicitly prohibit Markdown headings, bullets, emphasis, code fences, tables and link syntax.
 
 Use a stable, city-isolated Jarvis identity prefixed with `go-cqhttp:weather:` so one city's history does not pollute another city's request.
 
@@ -99,7 +99,7 @@ Implement:
 func plainQQText(answer string) string
 ```
 
-Normalize line endings, convert Markdown links to labels, remove code fences, common heading/quote/list prefixes, emphasis/backtick markers and table pipes, collapse excessive blank lines, and trim the result. An empty sanitized answer is a failure.
+Normalize line endings, convert Markdown links to labels, remove code fences, common heading/quote/list prefixes, emphasis/backtick markers and table pipes, preserve emoji, collapse excessive blank lines, and trim the result. An empty sanitized answer is a failure.
 
 - [ ] **Step 3: Fan out once per city**
 
@@ -158,4 +158,3 @@ Document the private-only `#天气` command, daily 08:00 task, per-city Jarvis r
 - [ ] **Step 2: Review the final diff without running verification**
 
 Inspect only the scoped diff to ensure no existing sensitive or unrelated files are included. Do not run tests, builds, formatting commands, deployment, or remote operations because the user reserved runtime verification for the post-deployment environment.
-

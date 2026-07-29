@@ -17,10 +17,11 @@ import (
 var once sync.Once
 
 type State struct {
-	owner       int64
-	reportState *reportState
-	sentNews    *sentNews
-	globalState *globalState
+	owner        int64
+	reportState  *reportState
+	weatherState *weatherState
+	sentNews     *sentNews
+	globalState  *globalState
 }
 
 type globalState struct {
@@ -61,6 +62,7 @@ func (s *globalState) SaveCache() {
 func (s *State) SaveCache() {
 	log.Infof("save bot state cache")
 	s.reportState.saveCache()
+	s.weatherState.saveCache()
 	s.sentNews.SaveCache()
 	s.globalState.SaveCache()
 }
@@ -69,6 +71,70 @@ type reportState struct {
 	sync.RWMutex
 	groups   map[int64]struct{}
 	privates map[int64]struct{}
+}
+
+type weatherState struct {
+	sync.RWMutex
+	saveMu sync.Mutex
+	Cities map[int64]string
+}
+
+func (s *weatherState) set(userID int64, city string) {
+	s.Lock()
+	if s.Cities == nil {
+		s.Cities = make(map[int64]string)
+	}
+	s.Cities[userID] = city
+	s.Unlock()
+	s.saveCache()
+}
+
+func (s *weatherState) del(userID int64) bool {
+	s.Lock()
+	_, existed := s.Cities[userID]
+	if existed {
+		delete(s.Cities, userID)
+	}
+	s.Unlock()
+	if existed {
+		s.saveCache()
+	}
+	return existed
+}
+
+func (s *weatherState) get(userID int64) (string, bool) {
+	s.RLock()
+	defer s.RUnlock()
+	city, ok := s.Cities[userID]
+	return city, ok
+}
+
+func (s *weatherState) snapshot() map[int64]string {
+	s.RLock()
+	defer s.RUnlock()
+	cities := make(map[int64]string, len(s.Cities))
+	for userID, city := range s.Cities {
+		cities[userID] = city
+	}
+	return cities
+}
+
+func (s *weatherState) saveCache() {
+	s.saveMu.Lock()
+	defer s.saveMu.Unlock()
+
+	data := s.snapshot()
+	path := file_util.GetFileRoot()
+	_, err := file_util.WriteJsonFile(data, path, "weatherPrivateState", false)
+	if err != nil {
+		log.Errorf("save private weather state to file failed: %s", err.Error())
+		return
+	}
+	_ = file_util.TCCosUpload(
+		"cache",
+		"weatherPrivateState.json",
+		fmt.Sprintf("%s/%s", path, "weatherPrivateState.json"),
+	)
 }
 
 func (r *reportState) saveCache() {
@@ -206,10 +272,11 @@ func (bot *CQBot) initState() {
 		}
 		if bot.state == nil {
 			bot.state = &State{
-				owner:       owner,
-				reportState: initReportState(),
-				sentNews:    initSentNews(),
-				globalState: initGlobalState(),
+				owner:        owner,
+				reportState:  initReportState(),
+				weatherState: initWeatherState(),
+				sentNews:     initSentNews(),
+				globalState:  initGlobalState(),
 			}
 		}
 	})
@@ -247,6 +314,31 @@ func initReportState() *reportState {
 		_reportState.privates = privateData
 	}
 	return &_reportState
+}
+
+func initWeatherState() *weatherState {
+	_weatherState := weatherState{
+		Cities:  map[int64]string{},
+		RWMutex: sync.RWMutex{},
+		saveMu:  sync.Mutex{},
+	}
+	data := make(map[int64]string)
+	path := file_util.GetFileRoot()
+	if err := file_util.LoadJsonFile(fmt.Sprintf("%s/weatherPrivateState.json", path), &data); err != nil {
+		log.Info("retry load private weather state from tencent cos")
+		downloadErr := file_util.TCCosDownload(
+			"cache",
+			"weatherPrivateState.json",
+			fmt.Sprintf("%s/%s", path, "weatherPrivateState.json"),
+		)
+		if downloadErr == nil {
+			_ = file_util.LoadJsonFile(fmt.Sprintf("%s/weatherPrivateState.json", path), &data)
+		}
+	}
+	if len(data) > 0 {
+		_weatherState.Cities = data
+	}
+	return &_weatherState
 }
 
 func initSentNews() *sentNews {

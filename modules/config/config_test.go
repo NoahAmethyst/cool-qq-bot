@@ -46,3 +46,17 @@ func Test_expand(t *testing.T) {
 		}
 	}
 }
+
+func TestDefaultJarvisIngestTimeoutCoversEmbeddingTailLatency(t *testing.T) {
+	const want = 120
+	if got := DefaultJarvis().IngestTimeoutSeconds; got != want {
+		t.Fatalf("DefaultJarvis().IngestTimeoutSeconds = %d, want %d", got, want)
+	}
+}
+
+func TestGeneratedConfigUsesJarvisIngestTimeout(t *testing.T) {
+	const want = "ingest-timeout-seconds: 120"
+	if !strings.Contains(defaultConfig, want) {
+		t.Fatalf("embedded default config does not contain %q", want)
+	}
+}
