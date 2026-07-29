@@ -70,17 +70,23 @@ Jarvis Proto 的权威来源是：
 ```yaml
 jarvis:
   grpc-target: ${JARVIS_GRPC_TARGET:jarvis:9090}
-  timeout-seconds: 120
+  connect-timeout-seconds: 10
+  chat-timeout-seconds: 300
+  ingest-timeout-seconds: 60
+  summary-timeout-seconds: 600
   wallstreet-user-id: go-cqhttp:wallstreet
 ```
 
 字段语义：
 
 - `grpc-target`：Jarvis gRPC 目标；集群内默认使用 Service DNS；
-- `timeout-seconds`：每次 `Chat` 和 `Ingest` 的 deadline；
+- `connect-timeout-seconds`：进程启动时建立 Jarvis gRPC 连接的 deadline；
+- `chat-timeout-seconds`：普通私聊和群聊 `Chat` 的 deadline；
+- `ingest-timeout-seconds`：单条华尔街新闻 `Ingest` 的 deadline；
+- `summary-timeout-seconds`：23:56 跨日总结 `Chat` 的 deadline，允许 Jarvis 完成相关 URL 抓取和反思；
 - `wallstreet-user-id`：华尔街新闻知识和每日总结共享的稳定隔离键。
 
-配置中的 timeout 必须大于零，目标和知识用户 ID 必须非空。运行时建立一个复用的明文 gRPC 连接，并在进程关闭时释放连接。
+四类 timeout 必须大于零，目标和知识用户 ID 必须非空。运行时建立一个复用的明文 gRPC 连接，并在进程关闭时释放连接。
 
 ## 组件边界
 
@@ -93,7 +99,7 @@ jarvis:
 新增与现有 `cluster/spider_svc` 类似的 Jarvis 适配模块，职责仅为：
 
 - 初始化和关闭 gRPC 连接；
-- 为每次调用创建带配置 deadline 的 context；
+- 按连接、普通聊天、知识写入和总结调用类型创建对应 deadline；
 - 将本地请求转换为生成的 `ChatRequest` 或 `IngestRequest`；
 - 返回有类型的响应；
 - 将 gRPC 错误保留为可用 `status.Code` 分类的错误。
