@@ -24,15 +24,15 @@
 
 ## Secrets and sensitive data
 
-- Never write server passwords, QQ credentials, API keys, cookies, or cloud, registry, or GitHub Secrets values into tracked files.
-- Never echo those values in responses, patches, logs, commits, or persistent shell history.
+- Never persist or echo server passwords, QQ credentials, API keys, cookies, or cloud, registry, or GitHub Secrets values.
+- This prohibition includes tracked or untracked files, temporary credential files, responses, patches, logs, commits, and persistent shell history.
 - Obtain credentials only through an approved session or secure channel. Record secret names only, never their values.
 - Treat `config.yml`, `qq_bot.yml`, device or session data, QR codes, and logs as sensitive; redact them before sharing.
 
 ## Remote-operation rules
 
 - Begin with read-only inspection of the Kubernetes context, namespace, workloads, Pods, events, logs, and images.
-- Without explicit authorization, do not modify remote files, apply manifests, change Secrets, or restart or delete Pods.
+- Without explicit authorization, do not make remote changes, including modifying remote files, applying manifests, scaling workloads, setting images, changing Secrets, or restarting or deleting Pods.
 - Prefer the normal release path: GitHub Actions, then the Alibaba Cloud registry, then Kubernetes. Do not build manually unless an emergency procedure is explicitly requested.
 - Before deployment, confirm the Kubernetes context and namespace, target Deployment, current image, and rollback point.
 - After a change, verify rollout status, readiness, logs, and exposed ports.
