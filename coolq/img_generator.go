@@ -162,7 +162,7 @@ func GenerateImage(generator ImgGenerator) {
 	generator.SendMessage("正在上传图片，请稍后...")
 	f, path, err := file_util.DownloadImgFromUrl(r.Data[0].URL)
 	if err != nil {
-		log.Error("读取图片转换为reader失败：%s", err.Error())
+		log.Errorf("读取图片转换为reader失败：%s", err.Error())
 		generator.SendMessage(fmt.Sprintf("读取图片转换为reader失败(%s)，图片地址：%s", err.Error(), r.Data[0].URL))
 		return
 	}

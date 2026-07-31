@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	JarvisService_Chat_FullMethodName         = "/jarvis.JarvisService/Chat"
+	JarvisService_Generate_FullMethodName     = "/jarvis.JarvisService/Generate"
 	JarvisService_Ingest_FullMethodName       = "/jarvis.JarvisService/Ingest"
 	JarvisService_GetMemory_FullMethodName    = "/jarvis.JarvisService/GetMemory"
 	JarvisService_DeleteMemory_FullMethodName = "/jarvis.JarvisService/DeleteMemory"
@@ -30,6 +31,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type JarvisServiceClient interface {
 	Chat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (*ChatResponse, error)
+	Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateResponse, error)
 	Ingest(ctx context.Context, in *IngestRequest, opts ...grpc.CallOption) (*IngestResponse, error)
 	GetMemory(ctx context.Context, in *MemoryRequest, opts ...grpc.CallOption) (*MemoryResponse, error)
 	DeleteMemory(ctx context.Context, in *MemoryRequest, opts ...grpc.CallOption) (*DeleteResponse, error)
@@ -46,6 +48,15 @@ func NewJarvisServiceClient(cc grpc.ClientConnInterface) JarvisServiceClient {
 func (c *jarvisServiceClient) Chat(ctx context.Context, in *ChatRequest, opts ...grpc.CallOption) (*ChatResponse, error) {
 	out := new(ChatResponse)
 	err := c.cc.Invoke(ctx, JarvisService_Chat_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *jarvisServiceClient) Generate(ctx context.Context, in *GenerateRequest, opts ...grpc.CallOption) (*GenerateResponse, error) {
+	out := new(GenerateResponse)
+	err := c.cc.Invoke(ctx, JarvisService_Generate_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -84,6 +95,7 @@ func (c *jarvisServiceClient) DeleteMemory(ctx context.Context, in *MemoryReques
 // for forward compatibility
 type JarvisServiceServer interface {
 	Chat(context.Context, *ChatRequest) (*ChatResponse, error)
+	Generate(context.Context, *GenerateRequest) (*GenerateResponse, error)
 	Ingest(context.Context, *IngestRequest) (*IngestResponse, error)
 	GetMemory(context.Context, *MemoryRequest) (*MemoryResponse, error)
 	DeleteMemory(context.Context, *MemoryRequest) (*DeleteResponse, error)
@@ -96,6 +108,9 @@ type UnimplementedJarvisServiceServer struct {
 
 func (UnimplementedJarvisServiceServer) Chat(context.Context, *ChatRequest) (*ChatResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Chat not implemented")
+}
+func (UnimplementedJarvisServiceServer) Generate(context.Context, *GenerateRequest) (*GenerateResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Generate not implemented")
 }
 func (UnimplementedJarvisServiceServer) Ingest(context.Context, *IngestRequest) (*IngestResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Ingest not implemented")
@@ -133,6 +148,24 @@ func _JarvisService_Chat_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(JarvisServiceServer).Chat(ctx, req.(*ChatRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _JarvisService_Generate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GenerateRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(JarvisServiceServer).Generate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: JarvisService_Generate_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(JarvisServiceServer).Generate(ctx, req.(*GenerateRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -201,6 +234,10 @@ var JarvisService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Chat",
 			Handler:    _JarvisService_Chat_Handler,
+		},
+		{
+			MethodName: "Generate",
+			Handler:    _JarvisService_Generate_Handler,
 		},
 		{
 			MethodName: "Ingest",

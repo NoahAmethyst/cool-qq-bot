@@ -116,12 +116,12 @@ func (bot *CQBot) ReportWeather(subscriptions map[int64]string) {
 			return userIDs[i] < userIDs[j]
 		})
 
-		response, err := jarvis_svc.Chat(
+		response, err := jarvis_svc.Weather(
 			buildWeatherPrompt(city, time.Now()),
 			weatherJarvisUserID(city),
 		)
 		if err != nil {
-			log.Errorf("Jarvis weather query failed: operation=chat code=%s", status.Code(err))
+			log.Errorf("Jarvis weather query failed: operation=generate code=%s", status.Code(err))
 			bot.sendWeatherFailure(userIDs)
 			continue
 		}
@@ -132,14 +132,11 @@ func (bot *CQBot) ReportWeather(subscriptions map[int64]string) {
 			continue
 		}
 
-		content := toPlainQQText(response.GetAnswer())
+		content := toPlainQQText(response.GetText())
 		if content == "" {
 			log.Errorf("Jarvis weather query failed: operation=sanitize_response code=%s", codes.Unknown)
 			bot.sendWeatherFailure(userIDs)
 			continue
-		}
-		if response.GetLowConfidence() {
-			content = "提示：本次天气信息置信度较低，请以当地气象部门最新预报为准。\n\n" + content
 		}
 
 		for _, userID := range userIDs {

@@ -30,7 +30,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 | `main.go`, `shutdown.go` | Process entry point, timezone/logging, outbound Spider gRPC initialization, daily-record upload scheduling, and shutdown notification wiring. |
 | `cmd/gocq/` | CLI/config initialization, blocking Jarvis startup and deferred close, login/reconnect, bot construction, transports, and process lifetime. |
 | `coolq/` | Core bot, events, commands, single Jarvis assistant adapter, reporters/jobs, Jarvis summary formatting, state, CQ codes, and generated OneBot call targets. |
-| `cluster/jarvis_svc/` | Reusable Jarvis gRPC connection, per-operation deadlines, chat/ingest/summary calls, stable Wall Street knowledge identity, and close lifecycle. |
+| `cluster/jarvis_svc/` | Reusable Jarvis gRPC connection, per-operation deadlines, chat/generate/ingest calls, stable Wall Street knowledge identity, and close lifecycle. |
 | `protocol/jarvis.proto`, `protocol/pb/jarvis_pb/` | Repository copy of the Jarvis API and generated Go bindings. |
 | `server/`, `modules/servers/`, `modules/api/` | HTTP/WebSocket transports, server registry, middleware, and generated OneBot action routing. |
 | `modules/config/`, `internal/base/` | YAML generation/parsing, environment expansion, flags, and normalized runtime configuration including Jarvis. |
@@ -70,7 +70,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 - The scheduled Wall Street reporter runs at minutes 05/15/25/35/45/55 from 09:00 through 23:59. Each fetch atomically marks a URL/title/summary fingerprint, records an RFC3339 collection time, stores new or changed items in the daily record, and asynchronously ingests trusted URLs deduplicated within that fetch batch.
 - Ingest content contains the Asia/Shanghai news date, title, and summary; `source_url` contains an allowlisted Wall Street CN HTTPS URL. The stable date plus unchanged title, summary, and URL produce deterministic same-day knowledge input. Jarvis is not asked to scrape that URL during ingest.
 - At 23:56, `SummaryReporter` fetches group and private subscribers and calls `ReportSummary` once. One Jarvis result is then fanned out to all recipients.
-- The summary uses the same stable Wall Street Jarvis identity as ingestion. Its prompt includes the current collected material, asks Jarvis to use historical knowledge to build a dated cross-day causal timeline, and permits selective `web_scrape` calls only for relevant allowlisted URLs at summary time.
+- The summary uses Jarvis `Generate` with operation `wallstreet_summary`, the same stable Wall Street Jarvis identity as ingestion, and no conversation memory. Its prompt includes the current collected material, asks Jarvis to use historical knowledge to build a dated cross-day causal timeline, and permits selective `web_scrape` calls only for relevant allowlisted URLs at summary time.
 - The response must contain exactly five ordered chapter markers. The bot sends these fixed chapters separately:
   1. `今日全球经济形势概览`
   2. `重点事件、原文补充与影响分析`
@@ -78,14 +78,14 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
   4. `未来展望、风险与机会`
   5. `投资建议/注意事项`
 - Summary chapters are sent as QQ-safe plain text rather than Markdown. The centralized Jarvis output policy permits emoji and ordinary symbols for emphasis, and the bot removes common Markdown headings, list markers, emphasis, code fences, tables, quotes, and links before formatting each chapter. If any sanitized chapter is empty, the whole summary uses the existing failure notification path.
-- Only an individual chapter longer than the message limit is split further. Low-confidence responses receive a warning. Build, empty-response, RPC, or marker-parse failures send a summary-failure message.
+- Only an individual chapter longer than the message limit is split further. Build, empty-response, RPC, or marker-parse failures send a summary-failure message.
 
 ## Private weather flow
 
 - Weather settings are private-chat only. `#天气 城市` saves or replaces the sender's city, `#天气` reports the current city and 08:00 schedule, and `#天气 关闭` removes the subscription.
-- The scheduled job snapshots the private weather state, groups recipients by city, and calls Jarvis once for each distinct city. The same city result is fanned out to all subscribed private users.
+- The scheduled job snapshots the private weather state, groups recipients by city, and calls Jarvis `Generate` once for each distinct city with operation `weather_daily` and no conversation memory. The same city result is fanned out to all subscribed private users.
 - Each request includes the current Asia/Shanghai date and asks Jarvis to query that city's daily forecast, then provide travel, sun-protection, clothing, and safety advice without inventing unavailable weather values.
-- User-facing Jarvis chat and summary requests receive a centralized QQ output policy in `cluster/jarvis_svc`: plain QQ text, emoji allowed, Markdown disallowed. The bot also removes common Markdown headings, list markers, emphasis, code fences, tables, quotes, and links before sending weather, summary, and free-form assistant responses without filtering emoji.
+- User-facing Jarvis chat and scheduled Generate requests receive a centralized QQ output policy in `cluster/jarvis_svc`: plain QQ text, emoji allowed, Markdown disallowed. The bot also removes common Markdown headings, list markers, emphasis, code fences, tables, quotes, and links before sending weather, summary, and free-form assistant responses without filtering emoji.
 - Jarvis requests use a stable hashed identity per city. RPC, nil-response, empty-response, or empty-sanitized-response failures produce a short private failure message for that city's recipients without stopping other cities.
 
 ## Interfaces and seams
@@ -94,8 +94,8 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 - `modules/api.Caller` connects a transport `Getter` plus middleware to generated `CQBot` calls.
 - `db.Database` is the persistence seam. Enabled adapters all receive writes, while reads use `backends[0]`; map traversal means the first backend is not guaranteed to match configuration order.
 - `Assistant`, `Translator`, `Calculator`, and `ImgGenerator` are shared feature interfaces. Group/private assistant adapters provide chat-specific extraction and stable Jarvis identities.
-- `cluster/jarvis_svc` is the outbound Jarvis seam. It owns one reusable insecure in-cluster gRPC connection, operation-specific context deadlines, and the centralized QQ output policy for user-facing chat and summary calls; it does not retry calls.
-- The weather reporter uses the normal Jarvis chat deadline and a city-isolated identity; it does not add another gRPC client or connection.
+- `cluster/jarvis_svc` is the outbound Jarvis seam. It owns one reusable insecure in-cluster gRPC connection, operation-specific context deadlines, `Chat`, `Generate`, and `Ingest` wrappers, and the centralized QQ output policy for user-facing text calls; it does not retry calls.
+- The weather reporter uses the normal Jarvis chat deadline for its Generate call and a city-isolated identity; it does not add another gRPC client or connection.
 - `cluster/spider_svc` wraps the generated Spider client for active news and finance calls. Legacy Bing text-assistant use has been removed.
 - `bot_service.BotService` implements the inbound QQBot gRPC methods.
 

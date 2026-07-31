@@ -9,6 +9,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"github.com/Mrs4s/MiraiGo/message"
 	"github.com/NoahAmethyst/go-cqhttp/cluster/jarvis_svc"
@@ -422,15 +423,21 @@ func (bot *CQBot) ReportSummary(groupIDs, privateIDs []int64) {
 		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
 		return
 	}
-	if response == nil || strings.TrimSpace(response.GetAnswer()) == "" {
+	if response == nil || strings.TrimSpace(response.GetText()) == "" {
 		log.Errorf("Jarvis summary failed: operation=validate_response code=%s", codes.Unknown)
 		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
 		return
 	}
 
-	chapters, err := parsePlainJarvisSummary(response.GetAnswer())
+	chapters, err := parsePlainJarvisSummary(response.GetText())
 	if err != nil {
-		log.Errorf("Jarvis summary failed: operation=parse_chapters code=%s", status.Code(err))
+		log.Errorf(
+			"Jarvis summary failed: operation=parse_chapters code=%s error=%q answer_runes=%d marker_counts=%s",
+			status.Code(err),
+			err.Error(),
+			utf8.RuneCountInString(response.GetText()),
+			jarvisSummaryMarkerCounts(response.GetText()),
+		)
 		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
 		return
 	}
@@ -441,10 +448,6 @@ func (bot *CQBot) ReportSummary(groupIDs, privateIDs []int64) {
 			wait.Add(1)
 			go func(id int64) {
 				defer wait.Done()
-				if response.GetLowConfidence() {
-					bot.sendWallStreetSummaryMessage(id, isGroup, "提示：Jarvis 将本次总结标记为低置信度，请结合原始新闻核验。")
-					time.Sleep(time.Second)
-				}
 				for chapterIndex, chapter := range chapters {
 					for _, chapterMessage := range formatJarvisSummaryChapter(chapterIndex, chapter) {
 						bot.sendWallStreetSummaryMessage(id, isGroup, chapterMessage)

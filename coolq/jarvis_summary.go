@@ -165,6 +165,14 @@ func parsePlainJarvisSummary(answer string) ([]string, error) {
 	return chapters, nil
 }
 
+func jarvisSummaryMarkerCounts(answer string) string {
+	counts := make([]string, 0, len(jarvisSummaryMarkers))
+	for i, marker := range jarvisSummaryMarkers {
+		counts = append(counts, fmt.Sprintf("%d:%d", i+1, strings.Count(answer, marker)))
+	}
+	return strings.Join(counts, ",")
+}
+
 func formatJarvisSummaryChapter(index int, content string) []string {
 	const maxMessageRunes = 1000
 

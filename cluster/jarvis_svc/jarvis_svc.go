@@ -128,6 +128,16 @@ func chatWithTimeout(s clientSnapshot, timeout time.Duration, message, userID st
 	})
 }
 
+func generateWithTimeout(s clientSnapshot, timeout time.Duration, prompt, userID, operation string) (*jarvis_pb.GenerateResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return s.client.Generate(ctx, &jarvis_pb.GenerateRequest{
+		Prompt:    withQQOutputPolicy(prompt),
+		UserId:    userID,
+		Operation: operation,
+	})
+}
+
 // Chat 向 Jarvis 发起普通对话，由 Jarvis 管理模型和对话生命周期。
 func Chat(message, userID string) (*jarvis_pb.ChatResponse, error) {
 	s, err := snapshot()
@@ -137,13 +147,22 @@ func Chat(message, userID string) (*jarvis_pb.ChatResponse, error) {
 	return chatWithTimeout(s, s.chatTimeout, message, userID)
 }
 
-// Summary 使用华尔街见闻知识身份请求 Jarvis 生成总结。
-func Summary(message string) (*jarvis_pb.ChatResponse, error) {
+// Summary 使用无记忆生成接口请求 Jarvis 生成华尔街见闻总结。
+func Summary(prompt string) (*jarvis_pb.GenerateResponse, error) {
 	s, err := snapshot()
 	if err != nil {
 		return nil, err
 	}
-	return chatWithTimeout(s, s.summaryTimeout, message, s.wallStreetUserID)
+	return generateWithTimeout(s, s.summaryTimeout, prompt, s.wallStreetUserID, "wallstreet_summary")
+}
+
+// Weather 使用无记忆生成接口请求 Jarvis 生成定时天气报告。
+func Weather(prompt, userID string) (*jarvis_pb.GenerateResponse, error) {
+	s, err := snapshot()
+	if err != nil {
+		return nil, err
+	}
+	return generateWithTimeout(s, s.chatTimeout, prompt, userID, "weather_daily")
 }
 
 // Ingest 将华尔街见闻材料写入 Jarvis 知识库。
