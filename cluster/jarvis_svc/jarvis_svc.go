@@ -27,6 +27,12 @@ var (
 	wallStreetUserID string
 )
 
+const qqOutputPolicy = `QQ输出约束：
+返回适合直接发送到QQ的普通文本。
+可以使用emoji和普通中文标点、普通符号突出标题和重点。
+不允许使用Markdown格式，不要使用Markdown标题、项目符号、加粗、斜体、删除线、代码块、表格、引用或Markdown链接。
+可以用简短自然段组织内容。`
+
 // Init 建立并保存一个可复用的 Jarvis gRPC 连接。
 func Init(cfg config.Jarvis) error {
 	target := strings.TrimSpace(cfg.GRPCTarget)
@@ -105,18 +111,30 @@ func snapshot() (clientSnapshot, error) {
 	}, nil
 }
 
+func withQQOutputPolicy(message string) string {
+	message = strings.TrimSpace(message)
+	if message == "" {
+		return qqOutputPolicy
+	}
+	return message + "\n\n" + qqOutputPolicy
+}
+
+func chatWithTimeout(s clientSnapshot, timeout time.Duration, message, userID string) (*jarvis_pb.ChatResponse, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+	defer cancel()
+	return s.client.Chat(ctx, &jarvis_pb.ChatRequest{
+		Message: withQQOutputPolicy(message),
+		UserId:  userID,
+	})
+}
+
 // Chat 向 Jarvis 发起普通对话，由 Jarvis 管理模型和对话生命周期。
 func Chat(message, userID string) (*jarvis_pb.ChatResponse, error) {
 	s, err := snapshot()
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), s.chatTimeout)
-	defer cancel()
-	return s.client.Chat(ctx, &jarvis_pb.ChatRequest{
-		Message: message,
-		UserId:  userID,
-	})
+	return chatWithTimeout(s, s.chatTimeout, message, userID)
 }
 
 // Summary 使用华尔街见闻知识身份请求 Jarvis 生成总结。
@@ -125,12 +143,7 @@ func Summary(message string) (*jarvis_pb.ChatResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), s.summaryTimeout)
-	defer cancel()
-	return s.client.Chat(ctx, &jarvis_pb.ChatRequest{
-		Message: message,
-		UserId:  s.wallStreetUserID,
-	})
+	return chatWithTimeout(s, s.summaryTimeout, message, s.wallStreetUserID)
 }
 
 // Ingest 将华尔街见闻材料写入 Jarvis 知识库。

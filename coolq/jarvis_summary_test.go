@@ -25,9 +25,8 @@ func TestBuildWallStreetSummaryPromptRequiresPlainQQTextAndAllowsEmoji(t *testin
 	}
 
 	for _, required := range []string{
-		"适合直接发送到QQ的普通文本",
-		"不要使用Markdown",
-		"可以使用emoji和普通符号",
+		"严格按以下顺序输出五章",
+		"<<<CHAPTER_5>>> 对应“投资建议/注意事项”",
 	} {
 		if !strings.Contains(prompt, required) {
 			t.Errorf("prompt does not contain %q", required)
@@ -39,15 +38,16 @@ func TestParsePlainJarvisSummarySanitizesEveryChapter(t *testing.T) {
 	answer := "<<<CHAPTER_1>>>\n# 📈 **概览**\n" +
 		"<<<CHAPTER_2>>>\n- 重点事件\n" +
 		"<<<CHAPTER_3>>>\n> 因果链条\n" +
-		"<<<CHAPTER_4>>>\n`风险`与机会"
+		"<<<CHAPTER_4>>>\n`风险`与机会\n" +
+		"<<<CHAPTER_5>>>\n投资建议/注意事项"
 
 	chapters, err := parsePlainJarvisSummary(answer)
 	if err != nil {
 		t.Fatalf("parsePlainJarvisSummary() error = %v", err)
 	}
 
-	want := [4]string{"📈 概览", "重点事件", "因果链条", "风险与机会"}
-	if chapters != want {
+	want := []string{"📈 概览", "重点事件", "因果链条", "风险与机会", "投资建议/注意事项"}
+	if strings.Join(chapters, "\n") != strings.Join(want, "\n") {
 		t.Fatalf("parsePlainJarvisSummary() = %#v, want %#v", chapters, want)
 	}
 }
@@ -56,7 +56,8 @@ func TestParsePlainJarvisSummaryRejectsChapterEmptyAfterCleanup(t *testing.T) {
 	answer := "<<<CHAPTER_1>>>\n---\n" +
 		"<<<CHAPTER_2>>>\n重点事件\n" +
 		"<<<CHAPTER_3>>>\n因果链条\n" +
-		"<<<CHAPTER_4>>>\n风险与机会"
+		"<<<CHAPTER_4>>>\n风险与机会\n" +
+		"<<<CHAPTER_5>>>\n投资建议/注意事项"
 
 	if _, err := parsePlainJarvisSummary(answer); err == nil {
 		t.Fatal("parsePlainJarvisSummary() error = nil, want sanitized-empty chapter error")

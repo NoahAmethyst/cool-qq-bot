@@ -214,5 +214,11 @@ func AskAssistant(assistant Assistant) {
 		assistant.Reply("Jarvis 返回空回答，请稍后重试")
 		return
 	}
-	assistant.Reply(strings.ReplaceAll(response.Answer, "*", ""))
+	content := toPlainQQText(response.GetAnswer())
+	if content == "" {
+		log.Warn("Jarvis chat returned empty answer after sanitization")
+		assistant.Reply("Jarvis 返回空回答，请稍后重试")
+		return
+	}
+	assistant.Reply(content)
 }
