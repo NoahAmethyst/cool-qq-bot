@@ -153,7 +153,7 @@ func Summary(prompt string) (*jarvis_pb.GenerateResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return generateWithTimeout(s, s.summaryTimeout, prompt, s.wallStreetUserID, "wallstreet_summary")
+	return generateWithTimeout(s, s.summaryTimeout, prompt, s.wallStreetUserID, "wallstreet_summary_v2")
 }
 
 // Weather 使用无记忆生成接口请求 Jarvis 生成定时天气报告。
@@ -162,7 +162,7 @@ func Weather(prompt, userID string) (*jarvis_pb.GenerateResponse, error) {
 	if err != nil {
 		return nil, err
 	}
-	return generateWithTimeout(s, s.chatTimeout, prompt, userID, "weather_daily")
+	return generateWithTimeout(s, s.chatTimeout, prompt, userID, "weather_lookup")
 }
 
 // Ingest 将华尔街见闻材料写入 Jarvis 知识库。

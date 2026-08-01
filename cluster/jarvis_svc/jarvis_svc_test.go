@@ -82,8 +82,14 @@ func TestSummaryUsesGenerateWithoutChatMemory(t *testing.T) {
 	if fake.generateReq.GetUserId() != "go-cqhttp:wallstreet" {
 		t.Fatalf("Generate user_id = %q", fake.generateReq.GetUserId())
 	}
-	if fake.generateReq.GetOperation() != "wallstreet_summary" {
+	if fake.generateReq.GetOperation() != "wallstreet_summary_v2" {
 		t.Fatalf("Generate operation = %q", fake.generateReq.GetOperation())
+	}
+	if fake.generateReq.GetDisableTools() {
+		t.Fatal("Generate disable_tools = true, want default false")
+	}
+	if fake.generateReq.GetDisableRag() {
+		t.Fatal("Generate disable_rag = true, want default false")
 	}
 	if !strings.Contains(fake.generateReq.GetPrompt(), "summary prompt") {
 		t.Fatalf("Generate prompt = %q, want original prompt included", fake.generateReq.GetPrompt())
@@ -109,7 +115,13 @@ func TestWeatherUsesGenerateWithoutChatMemory(t *testing.T) {
 	if fake.generateReq.GetUserId() != "go-cqhttp:weather:test" {
 		t.Fatalf("Generate user_id = %q", fake.generateReq.GetUserId())
 	}
-	if fake.generateReq.GetOperation() != "weather_daily" {
+	if fake.generateReq.GetOperation() != "weather_lookup" {
 		t.Fatalf("Generate operation = %q", fake.generateReq.GetOperation())
+	}
+	if fake.generateReq.GetDisableTools() {
+		t.Fatal("Generate disable_tools = true, want default false")
+	}
+	if fake.generateReq.GetDisableRag() {
+		t.Fatal("Generate disable_rag = true, want default false")
 	}
 }

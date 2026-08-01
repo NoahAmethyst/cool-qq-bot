@@ -70,7 +70,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 - The scheduled Wall Street reporter runs at minutes 05/15/25/35/45/55 from 09:00 through 23:59. Each fetch atomically marks a URL/title/summary fingerprint, records an RFC3339 collection time, stores new or changed items in the daily record, and asynchronously ingests trusted URLs deduplicated within that fetch batch.
 - Ingest content contains the Asia/Shanghai news date, title, and summary; `source_url` contains an allowlisted Wall Street CN HTTPS URL. The stable date plus unchanged title, summary, and URL produce deterministic same-day knowledge input. Jarvis is not asked to scrape that URL during ingest.
 - At 23:56, `SummaryReporter` fetches group and private subscribers and calls `ReportSummary` once. One Jarvis result is then fanned out to all recipients.
-- The summary uses Jarvis `Generate` with operation `wallstreet_summary`, the same stable Wall Street Jarvis identity as ingestion, and no conversation memory. Its prompt includes the current collected material, asks Jarvis to use historical knowledge to build a dated cross-day causal timeline, and permits selective `web_scrape` calls only for relevant allowlisted URLs at summary time.
+- The summary uses Jarvis `Generate` with operation `wallstreet_summary_v2`, the same stable Wall Street Jarvis identity as ingestion, and no conversation memory. Its prompt includes the current collected material, asks Jarvis to use historical knowledge to build a dated cross-day causal timeline, and permits selective `web_scrape` calls only for relevant allowlisted URLs at summary time.
 - The response must contain exactly five ordered chapter markers. The bot sends these fixed chapters separately:
   1. `今日全球经济形势概览`
   2. `重点事件、原文补充与影响分析`
@@ -83,9 +83,9 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 ## Private weather flow
 
 - Weather settings are private-chat only. `#天气 城市` saves or replaces the sender's city, `#天气` reports the current city and 08:00 schedule, and `#天气 关闭` removes the subscription.
-- The scheduled job snapshots the private weather state, groups recipients by city, and calls Jarvis `Generate` once for each distinct city with operation `weather_daily` and no conversation memory. The same city result is fanned out to all subscribed private users.
+- The scheduled job snapshots the private weather state, groups recipients by city, and calls Jarvis `Generate` once for each distinct city with operation `weather_lookup` and no conversation memory. The same city result is fanned out to all subscribed private users.
 - Each request includes the current Asia/Shanghai date and asks Jarvis to query that city's daily forecast, then provide travel, sun-protection, clothing, and safety advice without inventing unavailable weather values.
-- User-facing Jarvis chat and scheduled Generate requests receive a centralized QQ output policy in `cluster/jarvis_svc`: plain QQ text, emoji allowed, Markdown disallowed. The bot also removes common Markdown headings, list markers, emphasis, code fences, tables, quotes, and links before sending weather, summary, and free-form assistant responses without filtering emoji.
+- User-facing Jarvis chat and scheduled Generate requests receive a centralized QQ output policy in `cluster/jarvis_svc`: plain QQ text, emoji allowed, Markdown disallowed. Scheduled weather and summary Generate requests leave `disable_tools` and `disable_rag` at their default `false` values so Jarvis may use tools and RAG. The bot also removes common Markdown headings, list markers, emphasis, code fences, tables, quotes, and links before sending weather, summary, and free-form assistant responses without filtering emoji.
 - Jarvis requests use a stable hashed identity per city. RPC, nil-response, empty-response, or empty-sanitized-response failures produce a short private failure message for that city's recipients without stopping other cities.
 
 ## Interfaces and seams
