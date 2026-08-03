@@ -16,7 +16,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 - Group and private messages share a `#` command experience. The bot also exposes OneBot-style HTTP calls and event posts, forward/reverse WebSocket transports, and a QQBot gRPC interface with `SendMsg`, `Self`, `Friends`, and `Groups`.
 - On-demand news covers Weibo, 36Kr, Wall Street CN, Caixin, and Zhihu. Scheduled reporters cover Weibo, 36Kr, Wall Street CN, and Caixin; gold fluctuation delivery runs hourly at minute 30. Zhihu remains on-demand.
 - Private chats expose `#天气 城市` to set a daily 08:00 weather push, `#天气` to inspect it, and `#天气 关闭` to cancel it. Group chats do not list or handle the weather command.
-- Finance and calculation features include cryptocurrency prices, gold prices, exchange rates, mathematical expressions, and the Kelly strategy.
+- Finance and calculation features include cryptocurrency prices, gold prices, exchange rates, mathematical expressions, the Kelly strategy, and manual `#经济总结` generation for the current group or private chat.
 - The hourly gold reporter fetches one price per run, compares it with the previous scheduled observation, records every valid observation, and fans a 10%-or-greater rise/fall alert out to both group and private report subscribers. Overlapping runs are skipped, invalid or non-finite prices do not change the baseline, and manual `#黄金` queries do not change the scheduled comparison baseline.
 - Translation rotates across the translation adapters that initialized successfully.
 - Jarvis gRPC is the only text-assistant/model path. OpenAI is retained only for DALL·E 3 image generation.
@@ -62,6 +62,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 - Jarvis manages model selection, history, and conversation lifecycle. go-cqhttp has no local context-expiry window and does not claim a 30-minute window.
 - `#模式` with no argument replies `当前助手模式：Jarvis`.
 - `#模式 <argument>` replies `模型已由 Jarvis 服务统一管理，不支持在机器人端切换`.
+- `#经济总结` manually triggers the Wall Street daily economic summary for only the current group or private chat; it reuses the same summary generation path as the scheduled 23:56 reporter without broadcasting to all subscribers.
 - `coolq.State` now owns scheduled-push recipients, sent-news hashes, and global values. Legacy per-user assistant-model choices and in-memory group/private dialogue sessions are removed.
 
 ## Wall Street knowledge and summary flow

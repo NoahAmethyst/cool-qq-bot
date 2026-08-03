@@ -30,6 +30,7 @@ const (
 	CMDGold                 = "黄金"
 	CMDExchange             = "汇率"
 	CMDWeather              = "天气"
+	CMDEconomicSummary      = "经济总结"
 )
 
 var groupCmdList []string
@@ -58,6 +59,7 @@ func init() {
 		CMDGold:                 "获取黄金最新价格",
 		CMDExchange:             "计算汇率，实用\"#汇率 源币 目标币\" 的格式获取汇率，如不输入则获取支持的汇率币种列表",
 		CMDWeather:              "设置每天08:00天气推送，使用\"#天气 城市\"设置，\"#天气\"查看，\"#天气 关闭\"取消",
+		CMDEconomicSummary:      "手动触发今日每日经济总结",
 	}
 	groupCmdList = []string{
 		CMDOpenReporter,
@@ -74,6 +76,7 @@ func init() {
 		CMDKelly,
 		CMDGold,
 		CMDExchange,
+		CMDEconomicSummary,
 	}
 
 	groupCmdHandlers = map[string]func(bot *CQBot, groupMessage *message.GroupMessage){
@@ -133,6 +136,9 @@ func init() {
 		CMDExchange: func(bot *CQBot, groupMessage *message.GroupMessage) {
 			bot.exChangeRateForGroup(groupMessage)
 		},
+		CMDEconomicSummary: func(bot *CQBot, groupMessage *message.GroupMessage) {
+			bot.ReportSummary([]int64{groupMessage.GroupCode}, nil)
+		},
 	}
 
 	privateCmdList = []string{
@@ -151,6 +157,7 @@ func init() {
 		CMDGold,
 		CMDExchange,
 		CMDWeather,
+		CMDEconomicSummary,
 	}
 
 	privateCmdHandlers = map[string]func(bot *CQBot, privateMessage *message.PrivateMessage){
@@ -240,6 +247,9 @@ func init() {
 		},
 		CMDWeather: func(bot *CQBot, privateMessage *message.PrivateMessage) {
 			bot.handlePrivateWeather(privateMessage)
+		},
+		CMDEconomicSummary: func(bot *CQBot, privateMessage *message.PrivateMessage) {
+			bot.ReportSummary(nil, []int64{privateMessage.Sender.Uin})
 		},
 	}
 }
