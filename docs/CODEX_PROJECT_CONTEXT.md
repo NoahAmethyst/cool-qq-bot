@@ -62,7 +62,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 - Jarvis manages model selection, history, and conversation lifecycle. go-cqhttp has no local context-expiry window and does not claim a 30-minute window.
 - `#模式` with no argument replies `当前助手模式：Jarvis`.
 - `#模式 <argument>` replies `模型已由 Jarvis 服务统一管理，不支持在机器人端切换`.
-- `#经济总结` manually triggers the Wall Street daily economic summary for only the current group or private chat; it reuses the same summary generation path as the scheduled 23:56 reporter without broadcasting to all subscribers.
+- `#经济总结` manually triggers the Wall Street daily economic summary for only the current group or private chat; it reuses the same summary generation path as the scheduled 23:56 reporter without broadcasting to all subscribers. If the current day's local Wall Street cache is empty, it still asks Jarvis to summarize recent and historical economic knowledge stored under the Wall Street identity.
 - `coolq.State` now owns scheduled-push recipients, sent-news hashes, and global values. Legacy per-user assistant-model choices and in-memory group/private dialogue sessions are removed.
 
 ## Wall Street knowledge and summary flow
@@ -71,7 +71,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 - The scheduled Wall Street reporter runs at minutes 05/15/25/35/45/55 from 09:00 through 23:59. Each fetch atomically marks a URL/title/summary fingerprint, records an RFC3339 collection time, stores new or changed items in the daily record, and asynchronously ingests trusted URLs deduplicated within that fetch batch.
 - Ingest content contains the Asia/Shanghai news date, title, and summary; `source_url` contains an allowlisted Wall Street CN HTTPS URL. The stable date plus unchanged title, summary, and URL produce deterministic same-day knowledge input. Jarvis is not asked to scrape that URL during ingest.
 - At 23:56, `SummaryReporter` fetches group and private subscribers and calls `ReportSummary` once. One Jarvis result is then fanned out to all recipients.
-- The summary uses Jarvis `Generate` with operation `wallstreet_summary_v2`, the same stable Wall Street Jarvis identity as ingestion, and no conversation memory. Its prompt includes the current collected material, asks Jarvis to use historical knowledge to build a dated cross-day causal timeline, and permits selective `web_scrape` calls only for relevant allowlisted URLs at summary time.
+- The summary uses Jarvis `Generate` with operation `wallstreet_summary_v2`, the same stable Wall Street Jarvis identity as ingestion, and no conversation memory. When local trusted Wall Street materials exist, its prompt includes the current collected material, asks Jarvis to use historical knowledge to build a dated cross-day causal timeline, and permits selective `web_scrape` calls only for relevant allowlisted URLs at summary time. When the current local cache is empty, it still asks Jarvis to summarize recent and historical economic knowledge from the same identity's knowledge base.
 - The response must contain exactly five ordered chapter markers. The bot sends these fixed chapters separately:
   1. `今日全球经济形势概览`
   2. `重点事件、原文补充与影响分析`

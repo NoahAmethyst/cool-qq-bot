@@ -405,9 +405,7 @@ func (bot *CQBot) ReportSummary(groupIDs, privateIDs []int64) {
 
 	wallStreetData := top_list.WallStreetNewsDailyRecord.GetData()
 	if len(wallStreetData) == 0 {
-		log.Warnf("没有华尔街今日资讯缓存")
-		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
-		return
+		log.Warn("没有华尔街今日资讯缓存，将使用 Jarvis 知识库生成经济总结")
 	}
 
 	prompt, err := buildWallStreetSummaryPrompt(wallStreetData)

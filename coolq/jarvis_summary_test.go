@@ -34,6 +34,23 @@ func TestBuildWallStreetSummaryPromptRequiresPlainQQTextAndAllowsEmoji(t *testin
 	}
 }
 
+func TestBuildWallStreetSummaryPromptFallsBackToKnowledgeWhenNoTodayNews(t *testing.T) {
+	prompt, err := buildWallStreetSummaryPrompt(map[string][]top_list.WallStreetNews{})
+	if err != nil {
+		t.Fatalf("buildWallStreetSummaryPrompt() error = %v", err)
+	}
+
+	for _, required := range []string{
+		"今日本地缓存没有新的华尔街见闻经济新闻材料",
+		"检索同一用户身份知识库中的历史经济材料和过往新闻",
+		"<<<CHAPTER_5>>> 对应“投资建议/注意事项”",
+	} {
+		if !strings.Contains(prompt, required) {
+			t.Errorf("prompt does not contain %q", required)
+		}
+	}
+}
+
 func TestParsePlainJarvisSummarySanitizesEveryChapter(t *testing.T) {
 	answer := "<<<CHAPTER_1>>>\n# 📈 **概览**\n" +
 		"<<<CHAPTER_2>>>\n- 重点事件\n" +

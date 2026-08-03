@@ -75,7 +75,7 @@ func buildWallStreetSummaryPrompt(records map[string][]top_list.WallStreetNews) 
 	}
 
 	if len(items) == 0 {
-		return "", fmt.Errorf("no trusted wall street news available")
+		return buildWallStreetKnowledgeSummaryPrompt(), nil
 	}
 
 	sort.SliceStable(items, func(i, j int) bool {
@@ -111,6 +111,24 @@ func buildWallStreetSummaryPrompt(records map[string][]top_list.WallStreetNews) 
 `)
 
 	return prompt.String(), nil
+}
+
+func buildWallStreetKnowledgeSummaryPrompt() string {
+	return `今日本地缓存没有新的华尔街见闻经济新闻材料。请不要因此停止总结。
+
+请检索同一用户身份知识库中的历史经济材料和过往新闻，基于最近一段时间已经保存到知识库中的经济内容，生成一份面向今天的经济总结。需要说明本次总结主要依据历史知识库材料，而不是今日新增本地缓存。
+
+总结要求：
+1. 必须检索同一用户身份知识库中的历史经济材料和过往新闻，写出明确日期，串联跨日时间线与因果传导，不得只罗列单日新闻。
+2. 区分可核验事实与分析判断；事实注明事件日期和依据，分析、推测、风险或机会须明确标识。
+3. 专业、严谨、客观，重点解释全球市场、政策、行业和资产价格之间的影响路径。
+4. 最终答案必须严格按以下顺序输出五章；每个 marker 必须恰好出现一次，不得改写、遗漏或重复 marker。每个 marker 后只输出该章正文，不要重复章节标题；marker 前可有少量说明但不会被发送：
+<<<CHAPTER_1>>> 对应“今日全球经济形势概览”
+<<<CHAPTER_2>>> 对应“重点事件、原文补充与影响分析”
+<<<CHAPTER_3>>> 对应“跨日时间线及因果传导”
+<<<CHAPTER_4>>> 对应“未来展望、风险与机会”
+<<<CHAPTER_5>>> 对应“投资建议/注意事项”
+`
 }
 
 func parseWallStreetNewsTime(value string) time.Time {
