@@ -3,6 +3,7 @@ package coolq
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -19,6 +20,11 @@ var jarvisSummaryMarkers = []string{
 	"<<<CHAPTER_4>>>",
 	"<<<CHAPTER_5>>>",
 }
+
+var (
+	jarvisSummaryMarkerLinePattern = regexp.MustCompile(`(?im)^[ \t]*<<<[ \t]*chapter[ \t]*_[ \t]*[1-5][ \t]*>>>[ \t]*\r?\n?`)
+	jarvisSummaryMarkerPattern     = regexp.MustCompile(`(?i)<<<\s*chapter\s*_\s*[1-5]\s*>>>`)
+)
 
 var jarvisSummaryChapterTitles = []string{
 	"今日全球经济形势概览",
@@ -227,6 +233,66 @@ func formatJarvisSummaryChapter(index int, content string) []string {
 		}
 		fragmentLimit = nextFragmentLimit
 	}
+}
+
+// formatJarvisSummaryFallback preserves a non-empty Jarvis response whose chapter
+// markers cannot be parsed, while keeping every outbound QQ message within its limit.
+func formatJarvisSummaryFallback(answer string) []string {
+	for _, marker := range jarvisSummaryMarkers {
+		answer = strings.ReplaceAll(answer, marker+"\r\n", "")
+		answer = strings.ReplaceAll(answer, marker+"\n", "")
+		answer = strings.ReplaceAll(answer, marker, "")
+	}
+	answer = jarvisSummaryMarkerLinePattern.ReplaceAllString(answer, "")
+	answer = jarvisSummaryMarkerPattern.ReplaceAllString(answer, "")
+
+	content := toPlainQQText(answer)
+	if content == "" {
+		return nil
+	}
+
+	const maxMessageRunes = 1000
+	const pageContentRunes = maxMessageRunes - 64
+	const singleHeader = "经济总结\n"
+	if utf8.RuneCountInString(singleHeader+content) <= maxMessageRunes {
+		return []string{singleHeader + content}
+	}
+
+	fragments := splitJarvisSummaryFallbackContent(content, pageContentRunes)
+	messages := make([]string, 0, len(fragments))
+	for index, fragment := range fragments {
+		messages = append(messages, fmt.Sprintf("【经济总结 %d/%d】\n%s", index+1, len(fragments), fragment))
+	}
+	return messages
+}
+
+// formatJarvisSummaryForDelivery returns chapter-formatted messages when the
+// response meets the optional five-chapter convention. Otherwise it preserves
+// the sanitized response through the plain-text fallback path.
+func formatJarvisSummaryForDelivery(answer string) ([]string, bool, error) {
+	chapters, err := parsePlainJarvisSummary(answer)
+	if err != nil {
+		return formatJarvisSummaryFallback(answer), false, err
+	}
+
+	messages := make([]string, 0, len(chapters))
+	for index, chapter := range chapters {
+		messages = append(messages, formatJarvisSummaryChapter(index, chapter)...)
+	}
+	return messages, true, nil
+}
+
+func splitJarvisSummaryFallbackContent(content string, maxRunes int) []string {
+	runes := []rune(content)
+	fragments := make([]string, 0, (len(runes)+maxRunes-1)/maxRunes)
+	for start := 0; start < len(runes); start += maxRunes {
+		end := start + maxRunes
+		if end > len(runes) {
+			end = len(runes)
+		}
+		fragments = append(fragments, string(runes[start:end]))
+	}
+	return fragments
 }
 
 func chineseChapterNumber(index int) string {

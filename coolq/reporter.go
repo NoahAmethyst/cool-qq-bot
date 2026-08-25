@@ -427,17 +427,19 @@ func (bot *CQBot) ReportSummary(groupIDs, privateIDs []int64) {
 		return
 	}
 
-	chapters, err := parsePlainJarvisSummary(response.GetText())
-	if err != nil {
-		log.Errorf(
-			"Jarvis summary failed: operation=parse_chapters code=%s error=%q answer_runes=%d marker_counts=%s",
-			status.Code(err),
-			err.Error(),
+	summaryMessages, structured, formatErr := formatJarvisSummaryForDelivery(response.GetText())
+	if len(summaryMessages) == 0 {
+		log.Errorf("Jarvis summary failed: operation=sanitize_response code=%s", codes.Unknown)
+		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
+		return
+	}
+	if !structured {
+		log.Warnf(
+			"Jarvis summary format fallback: operation=parse_chapters error=%q answer_runes=%d marker_counts=%s",
+			formatErr.Error(),
 			utf8.RuneCountInString(response.GetText()),
 			jarvisSummaryMarkerCounts(response.GetText()),
 		)
-		bot.sendWallStreetSummaryFailure(groupIDs, privateIDs)
-		return
 	}
 
 	var wait sync.WaitGroup
@@ -446,11 +448,9 @@ func (bot *CQBot) ReportSummary(groupIDs, privateIDs []int64) {
 			wait.Add(1)
 			go func(id int64) {
 				defer wait.Done()
-				for chapterIndex, chapter := range chapters {
-					for _, chapterMessage := range formatJarvisSummaryChapter(chapterIndex, chapter) {
-						bot.sendWallStreetSummaryMessage(id, isGroup, chapterMessage)
-						time.Sleep(time.Second)
-					}
+				for _, summaryMessage := range summaryMessages {
+					bot.sendWallStreetSummaryMessage(id, isGroup, summaryMessage)
+					time.Sleep(time.Second)
 				}
 			}(reportID)
 		}
