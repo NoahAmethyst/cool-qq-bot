@@ -226,7 +226,7 @@ func (bot *CQBot) ReportSpecificWeibo(group int64, indexList []int, isGroup bool
 		bot.ReportWeiboHot([]int64{group}, isGroup)
 	} else {
 		for _, _index := range indexList {
-			content := fmt.Sprintf("微博热搜#%d\n%s\n链接:%s", _index+1, _data[_index].Title, _data[_index].Url)
+			content := formatWeiboHotDetail(_data[_index])
 			if isGroup {
 				bot.SendGroupMessage(group, &message.SendingMessage{Elements: []message.IMessageElement{message.NewText(content)}})
 			} else {
@@ -244,12 +244,7 @@ func (bot *CQBot) ReportWeiboHot(groups []int64, isGroup bool) {
 		resp = fmt.Sprintf("爬取微博热搜失败：%s", err.Error())
 
 	} else {
-		var hotContent strings.Builder
-		hotContent.WriteString(fmt.Sprintf("%s 微博实时热搜\n", time.Now().Format("2006-01-02 15:04")))
-		for _, hot := range hotList {
-			hotContent.WriteString(fmt.Sprintf("%d\t%s\n", hot.Rank, hot.Title))
-		}
-		resp = hotContent.String()
+		resp = formatWeiboHotReport(hotList, time.Now())
 	}
 	for _, _group := range groups {
 		if isGroup {
