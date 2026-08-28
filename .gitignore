@@ -1,6 +1,7 @@
 vendor/
 .idea
 .vscode
+.worktrees/
 config.hjson
 config.yml
 session.token
