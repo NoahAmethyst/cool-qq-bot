@@ -680,6 +680,9 @@ type QQBotServiceClient interface {
 	Self(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Resp, error)
 	Friends(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Resp, error)
 	Groups(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*Resp, error)
+	// Notify submits content to every scheduled-push subscriber. A successful
+	// response means at least one existing local CQBot send path accepted it;
+	// MiraiGo does not expose remote delivery acknowledgement for private messages.
 	Notify(ctx context.Context, in *NotifyReq, opts ...grpc.CallOption) (*Resp, error)
 }
 
@@ -742,6 +745,9 @@ type QQBotServiceServer interface {
 	Self(context.Context, *Empty) (*Resp, error)
 	Friends(context.Context, *Empty) (*Resp, error)
 	Groups(context.Context, *Empty) (*Resp, error)
+	// Notify submits content to every scheduled-push subscriber. A successful
+	// response means at least one existing local CQBot send path accepted it;
+	// MiraiGo does not expose remote delivery acknowledgement for private messages.
 	Notify(context.Context, *NotifyReq) (*Resp, error)
 }
 

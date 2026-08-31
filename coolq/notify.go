@@ -12,7 +12,9 @@ type notifySender interface {
 	SendPrivateMessage(int64, int64, *message.SendingMessage) int32
 }
 
-// NotifyResult describes the delivery outcome for one Notify request.
+// NotifyResult describes the local send outcome for one Notify request.
+// MiraiGo does not expose a remote delivery acknowledgement for private messages,
+// so Succeeded counts recipients accepted by the existing CQBot send methods.
 type NotifyResult struct {
 	Attempted int
 	Succeeded int

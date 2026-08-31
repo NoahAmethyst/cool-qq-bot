@@ -14,6 +14,9 @@ service QQBotService {
 
   rpc Groups(Empty)returns(Resp){}
 
+  // Notify submits content to every scheduled-push subscriber. A successful
+  // response means at least one existing local CQBot send path accepted it;
+  // MiraiGo does not expose remote delivery acknowledgement for private messages.
   rpc Notify(NotifyReq) returns(Resp){}
 
 }
@@ -64,7 +67,6 @@ message Resp{
 message NotifyReq{
   string content = 1;
 }
-
 
 
 
