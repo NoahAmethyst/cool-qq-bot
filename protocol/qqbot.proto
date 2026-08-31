@@ -14,10 +14,16 @@ service QQBotService {
 
   rpc Groups(Empty)returns(Resp){}
 
+  rpc Notify(NotifyReq) returns(Resp){}
+
 }
 
 message Empty{
 
+}
+
+message NotifyReq{
+  string content = 1;
 }
 
 message SendMsgReq{
@@ -58,7 +64,6 @@ message Resp{
   repeated User friends = 3;
   repeated Group groups = 4;
 }
-
 
 
 
