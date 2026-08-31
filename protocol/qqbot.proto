@@ -22,10 +22,6 @@ message Empty{
 
 }
 
-message NotifyReq{
-  string content = 1;
-}
-
 message SendMsgReq{
   string content = 1;
   int64 chat = 2;
@@ -65,7 +61,9 @@ message Resp{
   repeated Group groups = 4;
 }
 
-
+message NotifyReq{
+  string content = 1;
+}
 
 
 
