@@ -10,6 +10,7 @@
 ## Development and verification
 
 - This repository targets Go 1.19. Follow the existing package layout and idiomatic Go style.
+- You may create an isolated Git worktree without requesting approval. Complete feature work in that worktree, then merge the verified changes back into `master`.
 - Avoid unrelated refactors, and preserve user changes that have not been committed.
 - Add or update tests for code changes. Run focused tests first, then the broadest practical test suite.
 - Tests under `gotest/` may depend on network access, cloud services, or credentials. Do not assume they are self-contained.
