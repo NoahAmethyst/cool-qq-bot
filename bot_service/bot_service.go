@@ -11,9 +11,25 @@ import (
 	"strconv"
 )
 
-type BotService struct{}
+type scheduledPushNotifier interface {
+	NotifySubscribers(string) coolq.NotifyResult
+}
+
+type BotService struct {
+	notifier scheduledPushNotifier
+}
 
 var QQBot *coolq.CQBot
+
+func (b BotService) scheduledPushNotifier() (scheduledPushNotifier, error) {
+	if b.notifier != nil {
+		return b.notifier, nil
+	}
+	if QQBot == nil {
+		return nil, errors.New("QQ bot not initialize yet")
+	}
+	return QQBot, nil
+}
 
 func (b BotService) SendMsg(_ context.Context, req *qqbot_pb.SendMsgReq) (resp *qqbot_pb.Resp, err error) {
 	resp = new(qqbot_pb.Resp)
@@ -29,6 +45,22 @@ func (b BotService) SendMsg(_ context.Context, req *qqbot_pb.SendMsgReq) (resp *
 			message.NewText(req.Content)}})
 	}
 	return
+}
+
+func (b BotService) Notify(_ context.Context, req *qqbot_pb.NotifyReq) (*qqbot_pb.Resp, error) {
+	notifier, err := b.scheduledPushNotifier()
+	if err != nil {
+		return nil, err
+	}
+
+	result := notifier.NotifySubscribers(req.GetContent())
+	if result.Attempted == 0 {
+		return &qqbot_pb.Resp{Message: "没有可推送的订阅者"}, nil
+	}
+	if result.Succeeded == 0 {
+		return nil, errors.New("failed to send notification to all scheduled push subscribers")
+	}
+	return &qqbot_pb.Resp{}, nil
 }
 
 func (b BotService) Self(_ context.Context, _ *qqbot_pb.Empty) (resp *qqbot_pb.Resp, err error) {
