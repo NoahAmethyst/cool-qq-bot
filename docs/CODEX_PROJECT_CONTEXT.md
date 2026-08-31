@@ -13,7 +13,7 @@ This repository is a customized QQ bot built on go-cqhttp and MiraiGo. This docu
 ## User-facing capabilities
 
 - Login supports configured password, cached session token, or QR code, followed by token-based and normal-login reconnect paths.
-- Group and private messages share a `#` command experience. The bot also exposes OneBot-style HTTP calls and event posts, forward/reverse WebSocket transports, and a QQBot gRPC interface with `SendMsg`, `Self`, `Friends`, and `Groups`.
+- Group and private messages share a `#` command experience. The bot also exposes OneBot-style HTTP calls and event posts, forward/reverse WebSocket transports, and a QQBot gRPC interface with `SendMsg`, `Notify`, `Self`, `Friends`, and `Groups`. `Notify` broadcasts supplied text to all group and private recipients that enabled scheduled pushes, without accepting an explicit recipient; it returns a successful no-subscriber message when none exist, succeeds after any delivery succeeds, and logs each failed target, status, and failure reason.
 - On-demand news covers Weibo, 36Kr, Wall Street CN, Caixin, and Zhihu. Scheduled reporters cover Weibo, 36Kr, Wall Street CN, and Caixin; gold fluctuation delivery runs hourly at minute 30. Zhihu remains on-demand.
 - Weibo hot-search entries preserve Spider gRPC tags in daily records. QQ reports show known tags as fixed Emoji (`🔥` current breakout, `👀` friends watching, `🌅` morning dominance, `🌙` late-night dominance, `👑` topping); unknown tags remain as text. Full reports and `#微博 <排名>` details use the same tag display and retain the detail link.
 - Private chats expose `#天气 城市` to set a daily 08:00 weather push, `#天气` to inspect it, and `#天气 关闭` to cancel it. Group chats do not list or handle the weather command.
